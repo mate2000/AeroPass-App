@@ -1,0 +1,283 @@
+{
+  "@@locale": "es",
+  "appTitle": "AeroPass",
+  "@appTitle": {
+    "description": "The application's display name."
+  },
+  "splashLoadingLabel": "Verificando tu credencial...",
+  "@splashLoadingLabel": {
+    "description": "Shown on the branded splash while the launch-time credential-status check runs (FR-017)."
+  },
+
+  "welcomeBenefitHeadline": "Tu identidad, una sola vez.",
+  "@welcomeBenefitHeadline": {
+    "description": "US1 / FR-001: the passenger-facing benefit statement."
+  },
+  "welcomeBenefitDescription": "Regístrate hoy y pasa seguridad sin volver a mostrar documentos. Este servicio no tiene ningún costo para ti.",
+  "@welcomeBenefitDescription": {
+    "description": "US1 / FR-001: elaboration of the benefit, folding in the fact that the service is free to the passenger."
+  },
+
+  "welcomeStepDocumentTitle": "Escanea tu documento de identidad",
+  "@welcomeStepDocumentTitle": {
+    "description": "First of the three enrollment steps (FR-001)."
+  },
+  "welcomeStepSelfieTitle": "Toma una selfie rápida",
+  "@welcomeStepSelfieTitle": {
+    "description": "Second of the three enrollment steps (FR-001)."
+  },
+  "welcomeStepTravelTitle": "Viaja sin fricciones",
+  "@welcomeStepTravelTitle": {
+    "description": "Third of the three enrollment steps (FR-001)."
+  },
+
+  "welcomePrimaryActionLabel": "Comenzar",
+  "@welcomePrimaryActionLabel": {
+    "description": "FR-002: the single primary action."
+  },
+  "welcomeSecondaryActionLabel": "Ya tengo cuenta",
+  "@welcomeSecondaryActionLabel": {
+    "description": "FR-002: the single secondary action, for account recovery on a new device."
+  },
+
+  "welcomeReenrollmentRequiredHeadline": "Tu credencial ya no es válida",
+  "@welcomeReenrollmentRequiredHeadline": {
+    "description": "FR-006: distinct explanation shown when a credential exists but is expired/revoked."
+  },
+  "welcomeReenrollmentRequiredExpiredDescription": "Tu credencial venció. Vuelve a inscribirte para seguir usando AeroPass.",
+  "@welcomeReenrollmentRequiredExpiredDescription": {},
+  "welcomeReenrollmentRequiredRevokedDescription": "Tu credencial fue revocada. Vuelve a inscribirte para seguir usando AeroPass.",
+  "@welcomeReenrollmentRequiredRevokedDescription": {},
+
+  "welcomeUnrefreshedIndicator": "No pudimos actualizar tu información. Mostramos el último estado conocido.",
+  "@welcomeUnrefreshedIndicator": {
+    "description": "FR-007: shown when credential validity could not be confirmed because the backend is unreachable."
+  },
+
+  "welcomeResumeHeadline": "Continúa donde lo dejaste",
+  "@welcomeResumeHeadline": {
+    "description": "FR-008: shown when an in-progress (process-alive) enrollment session can be resumed."
+  },
+  "welcomeResumeDescription": "Tienes una inscripción sin terminar. Puedes continuar ahora.",
+  "@welcomeResumeDescription": {},
+
+  "welcomeDeviceUnsupportedHeadline": "Este dispositivo no admite la inscripción en la app",
+  "@welcomeDeviceUnsupportedHeadline": {
+    "description": "FR-012: shown when the device can't complete enrollment."
+  },
+  "welcomeDeviceUnsupportedNoCameraDescription": "Este dispositivo no tiene una cámara utilizable. Dirígete al mostrador del aeropuerto para continuar con el proceso habitual.",
+  "@welcomeDeviceUnsupportedNoCameraDescription": {},
+  "welcomeDeviceUnsupportedOsDescription": "La versión del sistema operativo de este dispositivo no es compatible. Dirígete al mostrador del aeropuerto para continuar con el proceso habitual.",
+  "@welcomeDeviceUnsupportedOsDescription": {},
+
+  "welcomePrivacyTermsLinkLabel": "Cómo tratamos tus datos",
+  "@welcomePrivacyTermsLinkLabel": {
+    "description": "US3 / FR-010: link to the plain-language data-handling statement."
+  },
+
+  "termsScreenTitle": "Cómo tratamos tus datos",
+  "@termsScreenTitle": {},
+  "termsWhatWeCollectHeading": "Qué recopilamos",
+  "@termsWhatWeCollectHeading": {},
+  "termsWhatWeCollectBody": "Un documento de identidad y una selfie de verificación de vida, únicamente durante el proceso de inscripción.",
+  "@termsWhatWeCollectBody": {},
+  "termsWhoVerifiesHeading": "Quién verifica tu identidad",
+  "@termsWhoVerifiesHeading": {},
+  "termsWhoVerifiesBody": "Un proveedor externo especializado realiza la verificación biométrica en nombre de AeroPass.",
+  "@termsWhoVerifiesBody": {},
+  "termsRetentionHeading": "Cuánto tiempo se conserva",
+  "@termsRetentionHeading": {},
+  "termsRetentionBody": "La plantilla facial se conserva hasta 30 días después de tu último vuelo.",
+  "@termsRetentionBody": {},
+  "termsRevocationHeading": "Cómo revocar tu consentimiento",
+  "@termsRevocationHeading": {},
+  "termsRevocationBody": "Puedes revocar tu consentimiento en cualquier momento desde la sección de cuenta de la aplicación, sin necesidad de contactar a soporte.",
+  "@termsRevocationBody": {},
+  "termsPlaceholderLinkNotice": "Enlace a los términos legales completos: pendiente de publicación (placeholder de revisión interna).",
+  "@termsPlaceholderLinkNotice": {
+    "description": "FR-011: the screen ships against a placeholder link until legal delivers the final published URLs."
+  },
+
+  "consentTitle": "Cómo tratamos tus datos",
+  "@consentTitle": {
+    "description": "UI Reference: the gate's title. Static chrome, not part of the fetched ConsentTextVersion."
+  },
+  "consentSubtitle": "Tu privacidad es nuestra prioridad. Aquí te explicamos todo.",
+  "@consentSubtitle": {
+    "description": "UI Reference: the gate's subtitle."
+  },
+  "consentCheckboxLabel": "Autorizo el tratamiento de mis datos",
+  "@consentCheckboxLabel": {
+    "description": "FR-004: the confirmation control's label."
+  },
+  "consentPrimaryActionLabel": "Acepto y continúo",
+  "@consentPrimaryActionLabel": {
+    "description": "FR-006: the primary action, disabled until the checkbox is confirmed."
+  },
+  "consentPrimaryActionDisabledHint": "Marca la casilla de autorización para continuar.",
+  "@consentPrimaryActionDisabledHint": {
+    "description": "FR-006: the disabled-state reason exposed to assistive technology (not color alone)."
+  },
+  "consentSecondaryActionLabel": "Ahora no",
+  "@consentSecondaryActionLabel": {
+    "description": "FR-009: the explicit decline action."
+  },
+  "consentBarrierDismissLabel": "Cerrar y volver a la pantalla de bienvenida",
+  "@consentBarrierDismissLabel": {
+    "description": "FR-010/SC-008: semantic label for the dimmed area outside the sheet, tapping it is equivalent to declining."
+  },
+  "consentLegalLinksLabel": "Leer política de privacidad y términos completos",
+  "@consentLegalLinksLabel": {
+    "description": "FR-012: access to the full privacy policy/terms without leaving the enrollment context."
+  },
+  "consentPriorRecordBanner": "Actualizamos los términos de tratamiento de datos. Revísalos y confírmalos de nuevo para continuar.",
+  "@consentPriorRecordBanner": {
+    "description": "FR-014: shown when the gate is re-presented because the recorded consent refers to a superseded text version."
+  },
+
+  "consentUnavailableOfflineHeadline": "Sin conexión",
+  "@consentUnavailableOfflineHeadline": {},
+  "consentUnavailableOfflineBody": "No podemos mostrarte los términos de tratamiento de datos sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.",
+  "@consentUnavailableOfflineBody": {
+    "description": "Edge Cases: the consent text cannot be loaded; the gate blocks with an explanation rather than falling back to stale text."
+  },
+  "consentUnavailableFetchErrorHeadline": "No pudimos cargar esta información",
+  "@consentUnavailableFetchErrorHeadline": {},
+  "consentUnavailableFetchErrorBody": "Ocurrió un problema al cargar los términos de tratamiento de datos. Inténtalo de nuevo en unos momentos.",
+  "@consentUnavailableFetchErrorBody": {},
+  "consentRetryLabel": "Reintentar",
+  "@consentRetryLabel": {},
+
+  "consentConfirmBlockedOfflineMessage": "No podemos iniciar la inscripción sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.",
+  "@consentConfirmBlockedOfflineMessage": {
+    "description": "FR-008: shown inline when recordConsent() fails while offline — the flow does not advance."
+  },
+  "consentConfirmBlockedGenericMessage": "No pudimos guardar tu consentimiento. Inténtalo de nuevo.",
+  "@consentConfirmBlockedGenericMessage": {
+    "description": "FR-008: shown inline when recordConsent() fails for a reason other than connectivity."
+  },
+
+  "consentDeclinedMessage": "Puedes continuar con el proceso habitual del aeropuerto cuando quieras.",
+  "@consentDeclinedMessage": {
+    "description": "FR-009: statement that the conventional airport process remains available, shown after declining or dismissing the gate."
+  },
+
+  "withdrawalTitle": "Retirar tu consentimiento",
+  "@withdrawalTitle": {
+    "description": "FR-015/FR-016: the withdrawal placeholder route's title."
+  },
+  "withdrawalDescription": "Al retirar tu consentimiento, tu credencial y cualquier pase se invalidan de inmediato. La solicitud se procesa en un máximo de 24 horas, incluso si ahora mismo no tienes conexión.",
+  "@withdrawalDescription": {},
+  "withdrawalConfirmActionLabel": "Retirar consentimiento",
+  "@withdrawalConfirmActionLabel": {},
+  "withdrawalCancelActionLabel": "Cancelar",
+  "@withdrawalCancelActionLabel": {},
+  "withdrawalSuccessMessage": "Tu consentimiento fue retirado. Tu credencial ya no es válida.",
+  "@withdrawalSuccessMessage": {
+    "description": "SC-005: shown once the local invalidation effect has been applied, no network dependency."
+  },
+  "withdrawalNoRecordMessage": "No encontramos un consentimiento activo para retirar en este dispositivo.",
+  "@withdrawalNoRecordMessage": {},
+
+  "captureTopBarBackLabel": "Atrás",
+  "@captureTopBarBackLabel": {
+    "description": "UI Reference: top bar left control. FR-012: discards any held image and preserves the session as incomplete."
+  },
+  "captureTopBarHelpLabel": "Ayuda",
+  "@captureTopBarHelpLabel": {
+    "description": "UI Reference: top bar right control. FR-013: returns to this step with the session intact."
+  },
+  "captureStepDocumentLabel": "Documento",
+  "@captureStepDocumentLabel": {},
+  "captureStepSelfieLabel": "Selfie",
+  "@captureStepSelfieLabel": {},
+  "captureStepDoneLabel": "Listo",
+  "@captureStepDoneLabel": {},
+
+  "captureInstruction": "Ubica tu cédula o pasaporte dentro del marco",
+  "@captureInstruction": {
+    "description": "FR-003/FR-019: names the accepted documents — cédula de ciudadanía and Colombian passport only."
+  },
+  "captureHint": "Evita reflejos y sombras",
+  "@captureHint": {
+    "description": "FR-003: glare/shadow avoidance guidance, visible while the preview is active."
+  },
+  "captureCaption": "Toca el círculo central para capturar",
+  "@captureCaption": {},
+
+  "captureTorchOnSemanticLabel": "Apagar la linterna",
+  "@captureTorchOnSemanticLabel": {
+    "description": "FR-005: announced when the torch is currently on (tapping turns it off)."
+  },
+  "captureTorchOffSemanticLabel": "Encender la linterna",
+  "@captureTorchOffSemanticLabel": {
+    "description": "FR-005: announced when the torch is currently off (tapping turns it on)."
+  },
+  "captureButtonSemanticLabel": "Capturar documento",
+  "@captureButtonSemanticLabel": {
+    "description": "FR-004/FR-016: the manual capture control."
+  },
+
+  "capturePermissionRationale": "AeroPass necesita acceder a la cámara para escanear tu cédula o pasaporte. Solo se usa durante este paso y la foto nunca se guarda en tu dispositivo.",
+  "@capturePermissionRationale": {
+    "description": "FR-002: the explanation shown alongside the camera-permission request."
+  },
+  "capturePermissionDeniedTemporaryHeadline": "Necesitamos acceso a tu cámara",
+  "@capturePermissionDeniedTemporaryHeadline": {},
+  "capturePermissionDeniedTemporaryBody": "Sin acceso a la cámara no podemos escanear tu documento. Puedes intentarlo de nuevo.",
+  "@capturePermissionDeniedTemporaryBody": {},
+  "capturePermissionRetryLabel": "Reintentar",
+  "@capturePermissionRetryLabel": {},
+  "capturePermissionDeniedPermanentHeadline": "El acceso a la cámara está bloqueado",
+  "@capturePermissionDeniedPermanentHeadline": {
+    "description": "FR-014: shown after a permanent denial — MUST NOT re-prompt the system dialog again."
+  },
+  "capturePermissionDeniedPermanentBody": "Activa el permiso de cámara para AeroPass desde los ajustes del sistema para continuar con la inscripción.",
+  "@capturePermissionDeniedPermanentBody": {},
+  "capturePermissionOpenSettingsLabel": "Abrir configuración",
+  "@capturePermissionOpenSettingsLabel": {
+    "description": "FR-014: the route to system settings."
+  },
+  "captureConventionalProcessStatement": "Mientras tanto, puedes continuar con el proceso habitual en el mostrador del aeropuerto.",
+  "@captureConventionalProcessStatement": {
+    "description": "FR-014/US3: states that the conventional airport process remains available."
+  },
+
+  "captureOfflineHeadline": "Sin conexión",
+  "@captureOfflineHeadline": {},
+  "captureOfflineBody": "No podemos enviar tu documento para verificación sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.",
+  "@captureOfflineBody": {
+    "description": "FR-015: shown when submission fails for a transport reason; the image is never queued to disk to survive the wait."
+  },
+  "captureOfflineRetryLabel": "Reintentar",
+  "@captureOfflineRetryLabel": {},
+
+  "captureRejectionBlurHeadline": "La imagen está borrosa",
+  "@captureRejectionBlurHeadline": {},
+  "captureRejectionBlurBody": "Mantén el teléfono firme y espera a que enfoque antes de capturar.",
+  "@captureRejectionBlurBody": {},
+  "captureRejectionGlareHeadline": "Hay reflejo sobre el documento",
+  "@captureRejectionGlareHeadline": {},
+  "captureRejectionGlareBody": "Aleja el documento de luces directas o cambia el ángulo para evitar el brillo.",
+  "@captureRejectionGlareBody": {},
+  "captureRejectionFramingHeadline": "El documento no está completo en el marco",
+  "@captureRejectionFramingHeadline": {},
+  "captureRejectionFramingBody": "Ubica el documento completo dentro del marco antes de capturar.",
+  "@captureRejectionFramingBody": {},
+  "captureRejectionWrongDocumentHeadline": "Este documento no es válido",
+  "@captureRejectionWrongDocumentHeadline": {
+    "description": "FR-019: shown when the shape doesn't match cédula de ciudadanía or Colombian passport."
+  },
+  "captureRejectionWrongDocumentBody": "Solo aceptamos cédula de ciudadanía o pasaporte colombiano. Verifica que sea el documento correcto.",
+  "@captureRejectionWrongDocumentBody": {},
+  "captureRejectionLowResolutionHeadline": "La imagen no tiene suficiente calidad",
+  "@captureRejectionLowResolutionHeadline": {},
+  "captureRejectionLowResolutionBody": "Acércate un poco más al documento y vuelve a intentarlo.",
+  "@captureRejectionLowResolutionBody": {},
+  "captureRejectionUnreadableHeadline": "No pudimos leer tu documento",
+  "@captureRejectionUnreadableHeadline": {},
+  "captureRejectionUnreadableBody": "Verifica que el documento esté en buen estado, bien iluminado y vuelve a intentarlo.",
+  "@captureRejectionUnreadableBody": {},
+  "captureRejectionRetryLabel": "Reintentar",
+  "@captureRejectionRetryLabel": {}
+}

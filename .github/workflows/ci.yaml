@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  analyze-and-test:
+    name: Analyze, generate, test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.5"
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Generate code (freezed / json_serializable / gen-l10n)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Fail if code generation produced an uncommitted diff
+        run: |
+          git diff --exit-code -- . ':(exclude).dart_tool' || \
+            (echo "Generated code is out of date. Run 'dart run build_runner build --delete-conflicting-outputs' and commit the result." && exit 1)
+
+      - name: Analyze (zero-warning gate)
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run tests
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info

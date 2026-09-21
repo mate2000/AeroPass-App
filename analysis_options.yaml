@@ -1,0 +1,73 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+
+linter:
+  # The lint rules applied to this project can be customized in the
+  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
+  # included above or to enable additional rules. A list of all available lints
+  # and their documentation is published at https://dart.dev/lints.
+  #
+  # Instead of disabling a lint rule for the entire project in the
+  # section below, it can also be suppressed for a single line of code
+  # or a specific dart file by using the `// ignore: name_of_lint` and
+  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
+  # producing the lint.
+  rules:
+    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
+    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+
+    # Constitution Development Workflow gate: exhaustive-switch enforcement.
+    # Sealed classes (Result<T>, CredentialStatus, EnrollmentStep, ...) are
+    # already exhaustiveness-checked by the Dart 3 language itself (a
+    # non-exhaustive switch over a sealed type is a compile error, not a
+    # lint). This lint extends the same guarantee to plain enums.
+    exhaustive_cases: true
+
+    # Constitution Development Workflow gate: unused-result on Result
+    # returns. Discarding a call site annotated `@useResult` (applied to
+    # `CredentialRepository.getStatus()` in lib/domain/repositories/) is a
+    # built-in analyzer diagnostic (`unused_result`/`unused_result_call`)
+    # triggered by the `@useResult` annotation itself — it is not a
+    # `linter: rules:` entry to enable (there is no such lint rule name;
+    # `flutter analyze` reports it automatically wherever `@useResult` is
+    # used).
+
+    # Constitution Principle IX / Development Workflow: `dynamic` is
+    # forbidden outside service-boundary deserialization.
+    avoid_dynamic_calls: true
+
+    strict_top_level_inference: true
+
+    # Constructors intentionally expose a public named parameter (e.g.
+    # `dio`) that assigns a private field (`_dio`) — `this._dio` would
+    # force the parameter itself to be named `_dio`, which is worse API
+    # ergonomics than the info-level lint it would silence.
+    prefer_initializing_formals: false
+
+# Note on the import-boundary rule (a view importing lib/data/ or
+# lib/domain/repositories/ directly): the analyzer's built-in linter has no
+# rule for architecture-layer import boundaries without adding a
+# custom_lint-based plugin package (a third-party dependency the
+# Constitution requires justifying, and disproportionate for a single
+# feature). Per KISS, this is instead enforced as an executable check in
+# test/architecture/import_boundary_test.dart, which fails `flutter test`
+# (and therefore CI) if any lib/features/**/*_view.dart file imports
+# lib/data/ or lib/domain/repositories/ directly. See that file for the
+# rule itself.
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options

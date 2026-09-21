@@ -1,19 +1,21 @@
 <!--
 Sync Impact Report
-- Version change: (unratified template) → 1.2.0
-- Modified principles: N/A (first ratification)
-- Added principles: I. Consent and Data Minimization; II. The Verification Provider Is an Adapter;
-  III. Every Flow Has a Failure Path; IV. Test-First on the Trust Boundary;
-  V. Airport-Grade Experience Constraints; VI. Accessibility Is a Gate, Not a Polish Pass;
-  VII. Observability Without PII; VIII. Architecture Follows the Flutter App Architecture Guide;
-  IX. Mandated Code Patterns; X. Craft Standards Apply to Every Line
-- Added sections: Product Budgets the App Is Accountable For; Security & Compliance Constraints;
-  Development Workflow & Quality Gates; Governance
+- Version change: 1.2.0 → 1.3.0
+- Modified principles: I. Consent and Data Minimization — persisted-state allowlist expanded to
+  include a per-step capture-attempt counter (count + last-reset timestamp only; no capture
+  content), scoped to the specific step it protects. No existing obligation was removed or
+  redefined.
+- Added principles: none
+- Added sections: none
 - Removed sections: none
-- Templates requiring updates: none checked in this change — dependent templates/commands read this
-  file at runtime per the constitution command's scope guard and were not modified here. Recommend
-  a manual pass of plan-template.md's Constitution Check section against Principles I–X before the
-  next /speckit.plan.
+- Rationale: 003-escanear-documento's FR-009 requires a device-level capture-attempt cap durable
+  enough to survive an app kill (an in-memory/session-scoped counter was found, during
+  /speckit-clarify, to let a passenger bypass the cap by force-killing and reopening the app,
+  undermining the cap's cost-control purpose — each submitted capture consumes a paid verification).
+  No existing allowlist entry could legitimately cover this; folding it onto the consent record
+  would have gamed the rule's letter without honoring its intent (the counter is not about consent).
+- Templates requiring updates: none checked in this change — plan-template.md's Constitution Check
+  section reads this file at runtime per the constitution command's scope guard.
 - Follow-up TODOs: none — no placeholders deferred
 -->
 
@@ -40,9 +42,12 @@ on completion, cancellation, or error. They MUST NEVER be written to disk, the m
 cache directory, a crash report, or an analytics payload.
 
 Persisted state is limited to: the credential token issued by the backend, its validity window, a
-display-only subset of identity fields the user already saw on the confirmation screen, and the
-user's consent record with timestamp and version. Anything a feature wants to persist beyond that
-list requires an explicit amendment to this document, not a code review waiver.
+display-only subset of identity fields the user already saw on the confirmation screen, the user's
+consent record with timestamp and version, and a per-step capture-attempt counter (an integer count
+and a last-reset timestamp only — never an image, an extraction result, or any other capture
+content) used solely to cap retries on a capture step and scoped to the specific step it protects.
+Anything a feature wants to persist beyond that list requires an explicit amendment to this
+document, not a code review waiver.
 
 Consent is revocable from inside the app, without contacting support, and the revocation entry point
 MUST be reachable from the account surface in no more than two taps. Revoking MUST immediately
@@ -394,4 +399,4 @@ planning, code review on every PR, and a review of this document at each release
 principle that was routinely waived is either enforced or amended — a principle that is waived
 without amendment is a governance failure, not a pragmatic exception.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-21 | **Last Amended**: 2026-09-21
+**Version**: 1.3.0 | **Ratified**: 2026-09-21 | **Last Amended**: 2026-09-21

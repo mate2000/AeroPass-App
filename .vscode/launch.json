@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "aeropass_app (dev)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=API_BASE_URL=https://api.dev.aeropass.example"
+            ]
+        },
+        {
+            "name": "aeropass_app (dev, offline demo)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=API_BASE_URL=https://api.dev.aeropass.example",
+                "--dart-define=USE_FAKE_CONSENT_BACKEND=true"
+            ]
+        },
+        {
+            "name": "aeropass_app (prod)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "release",
+            "args": [
+                "--dart-define=API_BASE_URL=https://api.aeropass.example"
+            ]
+        }
+    ]
+}

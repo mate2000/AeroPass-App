@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../app/enrollment_session_controller.dart';
+import '../app/pending_document_controller.dart';
+import '../core/clock.dart';
 import '../data/services/camera_capture_service.dart';
+import '../data/services/liveness_camera_service.dart';
 import '../data/services/system_settings_launcher.dart';
 import '../domain/entities/consent_record.dart';
 import '../domain/entities/credential_status.dart';
@@ -16,14 +19,23 @@ import '../domain/repositories/credential_repository.dart';
 import '../domain/repositories/device_capability_checker.dart';
 import '../domain/repositories/document_quality_assessor.dart';
 import '../domain/repositories/document_verification_repository.dart';
+import '../domain/repositories/field_reverification_repository.dart';
+import '../domain/repositories/identity_record_repository.dart';
+import '../domain/repositories/liveness_verification_repository.dart';
 import '../features/account/withdrawal_placeholder_view.dart';
 import '../features/account/withdrawal_viewmodel.dart';
 import '../features/agent_escalation_placeholder_view.dart';
 import '../features/enrollment/capture/capture_view.dart';
 import '../features/enrollment/capture/capture_viewmodel.dart';
-import '../features/enrollment/capture/document_confirmation_placeholder_view.dart';
+import '../features/enrollment/confirmation/document_confirmation_view.dart';
+import '../features/enrollment/confirmation/document_confirmation_viewmodel.dart';
 import '../features/enrollment/consent/consent_view.dart';
 import '../features/enrollment/consent/consent_viewmodel.dart';
+import '../features/enrollment/liveness/liveness_capture_view.dart';
+import '../features/enrollment/liveness/liveness_capture_viewmodel.dart';
+import '../features/enrollment/liveness/verification_progress_placeholder_view.dart';
+import '../features/enrollment/selfie/selfie_instructions_view.dart';
+import '../features/enrollment/selfie/selfie_instructions_viewmodel.dart';
 import '../features/enrollment/welcome/recovery_placeholder_view.dart';
 import '../features/enrollment/welcome/terms_placeholder_view.dart';
 import '../features/enrollment/welcome/welcome_view.dart';
@@ -41,6 +53,9 @@ abstract final class AppRoutes {
   static const consent = '/enrollment/consent';
   static const documentCapture = '/enrollment/document-capture';
   static const documentConfirmation = '/enrollment/document-confirmation';
+  static const selfieInstructions = '/enrollment/selfie-instructions';
+  static const livenessCapture = '/enrollment/liveness-capture';
+  static const verificationProgress = '/enrollment/verification-progress';
   static const retryGuidance = '/enrollment/retry-guidance';
   static const agentEscalation = '/enrollment/agent-escalation';
   static const help = '/enrollment/help';
@@ -135,6 +150,7 @@ GoRouter buildAppRouter({String? initialLocation}) {
             verificationRepository: context.read<DocumentVerificationRepository>(),
             attemptCounterRepository: context.read<CaptureAttemptCounterRepository>(),
             enrollmentSessionController: context.read<EnrollmentSessionController>(),
+            pendingDocumentController: context.read<PendingDocumentController>(),
             analyticsEmitter: context.read<AnalyticsEmitter>(),
             systemSettingsLauncher: context.read<SystemSettingsLauncher>(),
           ),
@@ -145,7 +161,58 @@ GoRouter buildAppRouter({String? initialLocation}) {
       ),
       GoRoute(
         path: AppRoutes.documentConfirmation,
-        builder: (context, state) => const DocumentConfirmationPlaceholderView(),
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => DocumentConfirmationViewModel(
+            pendingDocumentController: context.read<PendingDocumentController>(),
+            fieldReverificationRepository: context.read<FieldReverificationRepository>(),
+            identityRecordRepository: context.read<IdentityRecordRepository>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+            enrollmentSessionController: context
+                .read<EnrollmentSessionController>(),
+            clock: context.read<Clock>(),
+          ),
+          child: Consumer<DocumentConfirmationViewModel>(
+            builder: (context, viewModel, _) =>
+                DocumentConfirmationView(viewModel: viewModel),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.selfieInstructions,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => SelfieInstructionsViewModel(
+            enrollmentSessionController: context
+                .read<EnrollmentSessionController>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+          ),
+          child: Consumer<SelfieInstructionsViewModel>(
+            builder: (context, viewModel, _) =>
+                SelfieInstructionsView(viewModel: viewModel),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.livenessCapture,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => LivenessCaptureViewModel(
+            livenessVerificationRepository: context
+                .read<LivenessVerificationRepository>(),
+            livenessCameraService: context.read<LivenessCameraService>(),
+            attemptCounterRepository: context
+                .read<CaptureAttemptCounterRepository>(),
+            enrollmentSessionController: context
+                .read<EnrollmentSessionController>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+          ),
+          child: Consumer<LivenessCaptureViewModel>(
+            builder: (context, viewModel, _) =>
+                LivenessCaptureView(viewModel: viewModel),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.verificationProgress,
+        builder: (context, state) => const VerificationProgressPlaceholderView(),
       ),
       GoRoute(
         path: AppRoutes.retryGuidance,
@@ -224,6 +291,34 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
       error: (_, _) => false,
     );
     return isCurrent ? null : AppRoutes.consent;
+  }
+
+  if (state.matchedLocation == AppRoutes.documentConfirmation) {
+    // 004-confirmar-datos research.md §1: a deep link or a stale back-stack
+    // entry straight into this route, with nothing handed off by capture,
+    // is redirected back to document capture rather than trusted.
+    // `DocumentConfirmationViewModel` performs the identical check again on
+    // load (defense in depth) — this router-level guard exists so the
+    // route never even builds the ViewModel in the stale case.
+    final pendingDocumentController = context.read<PendingDocumentController>();
+    return pendingDocumentController.hasPendingDocument
+        ? null
+        : AppRoutes.documentCapture;
+  }
+
+  if (state.matchedLocation == AppRoutes.livenessCapture) {
+    // 006-selfie-liveness research.md §4: a deep link or a stale back-stack
+    // entry straight into this route, without ever having confirmed
+    // extracted data (004), is redirected back to document capture rather
+    // than trusted. `stepReached == selfieCapture` alone is trivially
+    // satisfiable by bouncing through 005 (which sets it unconditionally,
+    // by design), so `identityConfirmed` is the narrower, load-bearing
+    // check.
+    final enrollmentSessionController = context
+        .read<EnrollmentSessionController>();
+    final identityConfirmed =
+        enrollmentSessionController.current?.identityConfirmed ?? false;
+    return identityConfirmed ? null : AppRoutes.documentCapture;
   }
 
   if (!onSplashOrWelcome) {

@@ -23,9 +23,9 @@ class CaptureAttemptCounterRepositoryImpl
   final Clock _clock;
 
   @override
-  Future<Result<CaptureAttemptCounter>> read() async {
+  Future<Result<CaptureAttemptCounter>> read(AttemptCounterScope scope) async {
     try {
-      final existing = await _service.read();
+      final existing = await _service.read(scope);
       if (existing != null) {
         return Result.ok(existing);
       }
@@ -39,12 +39,14 @@ class CaptureAttemptCounterRepositoryImpl
   }
 
   @override
-  Future<Result<CaptureAttemptCounter>> increment() async {
+  Future<Result<CaptureAttemptCounter>> increment(
+    AttemptCounterScope scope,
+  ) async {
     try {
-      final current = await _service.read() ??
+      final current = await _service.read(scope) ??
           CaptureAttemptCounter(count: 0, lastResetAt: _clock.now());
       final next = current.copyWith(count: current.count + 1);
-      await _service.write(next);
+      await _service.write(scope, next);
       return Result.ok(next);
     } catch (e, st) {
       return Result.error(e, st);
@@ -52,10 +54,10 @@ class CaptureAttemptCounterRepositoryImpl
   }
 
   @override
-  Future<Result<CaptureAttemptCounter>> reset() async {
+  Future<Result<CaptureAttemptCounter>> reset(AttemptCounterScope scope) async {
     try {
       final next = CaptureAttemptCounter(count: 0, lastResetAt: _clock.now());
-      await _service.write(next);
+      await _service.write(scope, next);
       return Result.ok(next);
     } catch (e, st) {
       return Result.error(e, st);

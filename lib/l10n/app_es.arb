@@ -279,5 +279,157 @@
   "captureRejectionUnreadableBody": "Verifica que el documento esté en buen estado, bien iluminado y vuelve a intentarlo.",
   "@captureRejectionUnreadableBody": {},
   "captureRejectionRetryLabel": "Reintentar",
-  "@captureRejectionRetryLabel": {}
+  "@captureRejectionRetryLabel": {},
+
+  "confirmationNoticeText": "Verifica que los datos coincidan exactamente con tu documento original.",
+  "@confirmationNoticeText": {
+    "description": "004-confirmar-datos FR-012: visible before the fields, instructing exact comparison."
+  },
+  "confirmationCapturedBadgeLabel": "Capturado",
+  "@confirmationCapturedBadgeLabel": {
+    "description": "Paired with a checkmark icon on the document thumbnail card."
+  },
+
+  "confirmationFieldFullNameLabel": "Nombre completo",
+  "@confirmationFieldFullNameLabel": {},
+  "confirmationFieldDocumentNumberLabel": "Número de documento",
+  "@confirmationFieldDocumentNumberLabel": {},
+  "confirmationFieldNationalityLabel": "Nacionalidad",
+  "@confirmationFieldNationalityLabel": {},
+  "confirmationFieldExpiryDateLabel": "Fecha de vencimiento",
+  "@confirmationFieldExpiryDateLabel": {},
+
+  "confirmationEditActionLabel": "Editar",
+  "@confirmationEditActionLabel": {
+    "description": "Prefixed to the field label to build each field's edit-button semantic label, e.g. 'Editar Nombre completo'."
+  },
+  "confirmationSaveEditLabel": "Guardar",
+  "@confirmationSaveEditLabel": {},
+  "confirmationCancelEditLabel": "Cancelar",
+  "@confirmationCancelEditLabel": {},
+  "confirmationInvalidFormatMessage": "El valor ingresado no tiene el formato esperado.",
+  "@confirmationInvalidFormatMessage": {
+    "description": "FR-006: shown inline under a field being edited."
+  },
+  "confirmationUnresolvedMessage": "No pudimos confirmar este dato con tu documento. Puedes intentarlo de nuevo o escanear otra vez.",
+  "@confirmationUnresolvedMessage": {
+    "description": "FR-005: shown when the automated re-check could not confirm an edit."
+  },
+  "confirmationReverifyingLabel": "Verificando...",
+  "@confirmationReverifyingLabel": {},
+
+  "confirmationPrimaryActionLabel": "Los datos son correctos",
+  "@confirmationPrimaryActionLabel": {},
+  "confirmationSecondaryActionLabel": "Escanear de nuevo",
+  "@confirmationSecondaryActionLabel": {},
+  "confirmationConfirmFailedMessage": "No pudimos guardar tus datos. Verifica tu conexión e inténtalo de nuevo.",
+  "@confirmationConfirmFailedMessage": {
+    "description": "FR-017: confirmation could not be recorded durably."
+  },
+
+  "confirmationMissingFieldLabel": "No pudimos leer este dato",
+  "@confirmationMissingFieldLabel": {
+    "description": "FR-009: an explicit gap, never rendered as a blank value."
+  },
+  "confirmationExpiredHeadline": "Tu documento está vencido",
+  "@confirmationExpiredHeadline": {
+    "description": "FR-008."
+  },
+  "confirmationExpiredBody": "No podemos continuar la inscripción con un documento vencido.",
+  "@confirmationExpiredBody": {},
+  "confirmationMissingFieldHeadline": "No pudimos leer todos los datos de tu documento",
+  "@confirmationMissingFieldHeadline": {
+    "description": "FR-009."
+  },
+  "confirmationMissingFieldBody": "Vuelve a escanear tu documento para intentar leer el dato faltante.",
+  "@confirmationMissingFieldBody": {},
+
+  "selfieInstructionsTitle": "Ahora una selfie",
+  "@selfieInstructionsTitle": {
+    "description": "005-instrucciones-selfie FR-001."
+  },
+  "selfieInstructionsSubtitle": "Necesitamos confirmar que eres el titular del documento.",
+  "@selfieInstructionsSubtitle": {},
+  "selfieInstructionsRuleLightingLabel": "Buena iluminación, de frente a la luz",
+  "@selfieInstructionsRuleLightingLabel": {
+    "description": "FR-002/FR-003, stated first since lighting is the most common cause of failure."
+  },
+  "selfieInstructionsRuleFaceVisibleLabel": "Rostro descubierto y visible por completo",
+  "@selfieInstructionsRuleFaceVisibleLabel": {
+    "description": "FR-003/CONFLICT-001 resolved: states what must be visible (the unobstructed face), never a list of garments to remove — never asks to remove glasses or a religious head covering."
+  },
+  "selfieInstructionsRuleEyesLabel": "Mira directamente a la cámara",
+  "@selfieInstructionsRuleEyesLabel": {},
+  "selfieInstructionsPrimaryActionLabel": "Tomar selfie",
+  "@selfieInstructionsPrimaryActionLabel": {},
+
+  "livenessFooter": "La captura es automática — no toques la pantalla",
+  "@livenessFooter": {
+    "description": "006-selfie-liveness FR-003/FR-018, UI Reference."
+  },
+  "livenessProgressBadge": "{percent}%",
+  "@livenessProgressBadge": {
+    "description": "FR-006, UI Reference (\"64%\", top right).",
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "livenessInstructionMoveCloser": "Acércate un poco",
+  "@livenessInstructionMoveCloser": {
+    "description": "FR-004, UI Reference's example instruction."
+  },
+  "livenessInstructionMoveBack": "Aléjate un poco",
+  "@livenessInstructionMoveBack": {},
+  "livenessInstructionCenterFace": "Centra tu rostro en el óvalo",
+  "@livenessInstructionCenterFace": {},
+  "livenessInstructionHoldStill": "Mantente quieto",
+  "@livenessInstructionHoldStill": {
+    "description": "Also the fallback for an unrecognized processor instruction code (data-model.md)."
+  },
+  "livenessInstructionLookAtCamera": "Mira directamente a la cámara",
+  "@livenessInstructionLookAtCamera": {},
+  "livenessInstructionImproveLighting": "Busca un lugar con mejor iluminación",
+  "@livenessInstructionImproveLighting": {},
+
+  "livenessFailureGenericHeadline": "No pudimos completar la captura",
+  "@livenessFailureGenericHeadline": {
+    "description": "FR-010/Clarifications: shared verbatim (text and styling) by unclassifiedFailure and attackDetected — never a message unique to attack detection."
+  },
+  "livenessFailureGenericBody": "Vuelve a intentarlo en un lugar con buena luz, mirando directamente a la cámara.",
+  "@livenessFailureGenericBody": {},
+  "livenessFailureTooDarkHeadline": "Hay poca luz",
+  "@livenessFailureTooDarkHeadline": {
+    "description": "FR-009, same vocabulary as 005-instrucciones-selfie's lighting condition."
+  },
+  "livenessFailureTooDarkBody": "Busca un lugar con mejor iluminación y vuelve a intentarlo.",
+  "@livenessFailureTooDarkBody": {},
+  "livenessFailureFaceOutOfFrameHeadline": "No pudimos ver tu rostro completo",
+  "@livenessFailureFaceOutOfFrameHeadline": {},
+  "livenessFailureFaceOutOfFrameBody": "Centra tu rostro dentro del óvalo y vuelve a intentarlo.",
+  "@livenessFailureFaceOutOfFrameBody": {},
+  "livenessFailureMovementDetectedHeadline": "Detectamos demasiado movimiento",
+  "@livenessFailureMovementDetectedHeadline": {},
+  "livenessFailureMovementDetectedBody": "Mantente quieto durante la captura y vuelve a intentarlo.",
+  "@livenessFailureMovementDetectedBody": {},
+  "livenessFailureMultipleFacesDetectedHeadline": "Detectamos más de un rostro",
+  "@livenessFailureMultipleFacesDetectedHeadline": {},
+  "livenessFailureMultipleFacesDetectedBody": "Asegúrate de que solo tu rostro esté frente a la cámara y vuelve a intentarlo.",
+  "@livenessFailureMultipleFacesDetectedBody": {},
+  "livenessFailureFaceObstructedHeadline": "Tu rostro no está completamente visible",
+  "@livenessFailureFaceObstructedHeadline": {
+    "description": "FR-009/CONFLICT-001, same vocabulary as 005's face-visibility condition — never names a specific garment."
+  },
+  "livenessFailureFaceObstructedBody": "Descubre tu rostro por completo y vuelve a intentarlo.",
+  "@livenessFailureFaceObstructedBody": {},
+  "livenessFailureRetryLabel": "Reintentar",
+  "@livenessFailureRetryLabel": {},
+
+  "livenessStalledHeadline": "La captura tardó más de lo esperado",
+  "@livenessStalledHeadline": {
+    "description": "FR-013: ends with an explanation rather than continuing indefinitely."
+  },
+  "livenessStalledBody": "Vuelve a intentarlo en un lugar con buena luz y señal.",
+  "@livenessStalledBody": {},
+  "livenessStalledRetryLabel": "Reintentar",
+  "@livenessStalledRetryLabel": {}
 }

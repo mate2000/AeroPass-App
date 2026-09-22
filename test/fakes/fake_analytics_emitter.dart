@@ -149,4 +149,146 @@ class FakeAnalyticsEmitter implements AnalyticsEmitter {
   void captureStepAbandoned() {
     events.add(const RecordedAnalyticsEvent('capture_step_abandoned'));
   }
+
+  @override
+  void confirmationStepEntered() {
+    events.add(const RecordedAnalyticsEvent('confirmation_step_entered'));
+  }
+
+  @override
+  void confirmationFieldEdited({required FieldKey field}) {
+    events.add(
+      RecordedAnalyticsEvent('confirmation_field_edited', {
+        'field': field.name,
+      }),
+    );
+  }
+
+  @override
+  void confirmationFieldReverified({
+    required FieldKey field,
+    required bool confirmed,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('confirmation_field_reverified', {
+        'field': field.name,
+        'confirmed': confirmed,
+      }),
+    );
+  }
+
+  @override
+  void confirmationCorrectionAttemptLimitReached() {
+    events.add(
+      const RecordedAnalyticsEvent('confirmation_correction_attempt_limit_reached'),
+    );
+  }
+
+  @override
+  void confirmationRescanned() {
+    events.add(const RecordedAnalyticsEvent('confirmation_rescanned'));
+  }
+
+  @override
+  void confirmationBlockedUnusableDocument({
+    required DocumentBlockReason reason,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('confirmation_blocked_unusable_document', {
+        'reason': reason.name,
+      }),
+    );
+  }
+
+  @override
+  void confirmationConfirmed() {
+    events.add(const RecordedAnalyticsEvent('confirmation_confirmed'));
+  }
+
+  @override
+  void confirmationConfirmFailed() {
+    events.add(const RecordedAnalyticsEvent('confirmation_confirm_failed'));
+  }
+
+  @override
+  void confirmationStepAbandoned() {
+    events.add(const RecordedAnalyticsEvent('confirmation_step_abandoned'));
+  }
+
+  @override
+  void selfieInstructionsStepEntered() {
+    events.add(const RecordedAnalyticsEvent('selfie_instructions_step_entered'));
+  }
+
+  @override
+  void selfieInstructionsAdvanced() {
+    events.add(const RecordedAnalyticsEvent('selfie_instructions_advanced'));
+  }
+
+  @override
+  void selfieInstructionsHelpOpened() {
+    events.add(const RecordedAnalyticsEvent('selfie_instructions_help_opened'));
+  }
+
+  @override
+  void selfieInstructionsStepAbandoned() {
+    events.add(
+      const RecordedAnalyticsEvent('selfie_instructions_step_abandoned'),
+    );
+  }
+
+  @override
+  void livenessStepEntered() {
+    events.add(const RecordedAnalyticsEvent('liveness_step_entered'));
+  }
+
+  @override
+  void livenessPhaseReached({
+    required int phaseIndex,
+    required int totalPhases,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('liveness_phase_reached', {
+        'phaseIndex': phaseIndex,
+        'totalPhases': totalPhases,
+      }),
+    );
+  }
+
+  @override
+  void livenessOutcome({
+    required LivenessOutcomeKind outcome,
+    LivenessQualityReason? reason,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('liveness_outcome', {
+        'outcome': outcome.name,
+        if (reason != null) 'reason': reason.name,
+      }),
+    );
+  }
+
+  @override
+  void livenessAttemptCount({required int attemptNumber}) {
+    events.add(
+      RecordedAnalyticsEvent('liveness_attempt_count', {
+        'attemptNumber': attemptNumber,
+      }),
+    );
+  }
+
+  @override
+  void livenessAttemptLimitReached() {
+    events.add(const RecordedAnalyticsEvent('liveness_attempt_limit_reached'));
+  }
+
+  @override
+  void livenessStalled() {
+    events.add(const RecordedAnalyticsEvent('liveness_stalled'));
+  }
+
+  @override
+  void livenessStepAbandoned() {
+    events.add(const RecordedAnalyticsEvent('liveness_step_abandoned'));
+  }
 }

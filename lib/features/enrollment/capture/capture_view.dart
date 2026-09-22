@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../core/design/step_indicator.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'capture_view_state.dart';
 import 'capture_viewmodel.dart';
 import 'widgets/capture_button.dart';
 import 'widgets/inline_error_message.dart';
 import 'widgets/permission_denied_message.dart';
-import 'widgets/step_indicator.dart';
 import 'widgets/torch_toggle.dart';
 import 'widgets/viewfinder_overlay.dart';
 
@@ -105,7 +105,9 @@ class _CaptureViewState extends State<CaptureView> with WidgetsBindingObserver {
                     children: [
                       _TopBar(onBack: _onBack),
                       const SizedBox(height: 8),
-                      const StepIndicator(),
+                      const StepIndicator(
+                        currentStep: EnrollmentProgressStep.document,
+                      ),
                       Expanded(
                         child: _CaptureBody(
                           viewModel: widget.viewModel,

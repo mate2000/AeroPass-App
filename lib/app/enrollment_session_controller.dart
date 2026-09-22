@@ -61,6 +61,16 @@ class EnrollmentSessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Marks the current session's identity as confirmed (006-selfie-liveness,
+  /// research.md §4) — called only from a successful 004 confirmation. A
+  /// no-op if no session is in progress.
+  void markIdentityConfirmed() {
+    final existing = _current;
+    if (existing == null) return;
+    _current = existing.copyWith(identityConfirmed: true);
+    notifyListeners();
+  }
+
   /// Clears the current session (e.g. on completion or explicit
   /// cancellation). The next [startOrResume] call creates a fresh one.
   void clear() {

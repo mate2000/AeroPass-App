@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../../core/result.dart';
 import '../../domain/entities/capture_outcome.dart';
+import '../../domain/entities/extraction_result.dart';
 import '../../domain/repositories/document_verification_repository.dart';
 import '../models/document_verification_response.dart';
 import 'document_verification_service.dart';
@@ -41,10 +42,45 @@ class DocumentVerificationRepositoryImpl
 
   CaptureOutcome _mapResponse(DocumentVerificationResponse response) {
     if (response.outcome == 'accepted') {
-      return const CaptureOutcome.accepted();
+      return CaptureOutcome.accepted(extraction: _mapExtraction(response));
     }
     return CaptureOutcome.rejected(reason: _mapReason(response.reason));
   }
+
+  /// Maps the wire field list into `ExtractionResult` (004-confirmar-datos
+  /// research.md §2/§3, contracts/document-verification-port-addendum.md).
+  /// A key the mapping doesn't recognize is skipped, mirroring
+  /// `_mapReason`'s "fall back rather than throw" discipline; a
+  /// `FieldKey` the response never mentions at all becomes
+  /// `ExtractedField.missing` (FR-009's explicit gap, never inferred as an
+  /// empty value).
+  ExtractionResult _mapExtraction(DocumentVerificationResponse response) {
+    final byKey = <FieldKey, ExtractedFieldResponse>{
+      for (final field in response.fields ?? const <ExtractedFieldResponse>[])
+        if (_mapFieldKey(field.key) != null) _mapFieldKey(field.key)!: field,
+    };
+    return ExtractionResult(
+      fields: [
+        for (final key in FieldKey.values)
+          if (byKey[key] case final field?)
+            ExtractedField.present(
+              key: key,
+              value: field.value,
+              confidence: field.confidence,
+            )
+          else
+            ExtractedField.missing(key: key),
+      ],
+    );
+  }
+
+  FieldKey? _mapFieldKey(String raw) => switch (raw) {
+    'full_name' => FieldKey.fullName,
+    'document_number' => FieldKey.documentNumber,
+    'nationality' => FieldKey.nationality,
+    'expiry_date' => FieldKey.expiryDate,
+    _ => null,
+  };
 
   /// Maps the processor's own error taxonomy into the fixed, small
   /// `CaptureRejectionReason` vocabulary shared with device-side rejections

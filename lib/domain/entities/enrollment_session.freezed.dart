@@ -282,7 +282,12 @@ mixin _$EnrollmentSession {
 /// sent to the backend or analytics as a stable identifier.
  String get id; EnrollmentStep get stepReached;/// In-memory only; used solely to decide UI copy ("continue where you
 /// left off"), not a resumability deadline.
- DateTime get startedAt;
+ DateTime get startedAt;/// Set only by a successful 004 confirmation (research.md §4). Backs
+/// 006's reachability guard: `stepReached == selfieCapture` alone is
+/// trivially satisfiable by bouncing through 005 without ever
+/// confirming extracted data, since 005 sets that step unconditionally
+/// by design.
+ bool get identityConfirmed;
 /// Create a copy of EnrollmentSession
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -294,20 +299,20 @@ $EnrollmentSessionCopyWith<EnrollmentSession> get copyWith => _$EnrollmentSessio
 @override
 bool operator ==(Object other) {
   final _this = this as EnrollmentSession;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EnrollmentSession&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.stepReached, _this.stepReached) || other.stepReached == _this.stepReached)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EnrollmentSession&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.stepReached, _this.stepReached) || other.stepReached == _this.stepReached)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt)&&(identical(other.identityConfirmed, _this.identityConfirmed) || other.identityConfirmed == _this.identityConfirmed));
 }
 
 
 @override
 int get hashCode {
   final _this = this as EnrollmentSession;
-  return Object.hash(runtimeType,_this.id,_this.stepReached,_this.startedAt);
+  return Object.hash(runtimeType,_this.id,_this.stepReached,_this.startedAt,_this.identityConfirmed);
 }
 
 @override
 String toString() {
   final _this = this as EnrollmentSession;
-  return 'EnrollmentSession(id: ${_this.id}, stepReached: ${_this.stepReached}, startedAt: ${_this.startedAt})';
+  return 'EnrollmentSession(id: ${_this.id}, stepReached: ${_this.stepReached}, startedAt: ${_this.startedAt}, identityConfirmed: ${_this.identityConfirmed})';
 }
 
 
@@ -318,7 +323,7 @@ abstract mixin class $EnrollmentSessionCopyWith<$Res>  {
   factory $EnrollmentSessionCopyWith(EnrollmentSession value, $Res Function(EnrollmentSession) _then) = _$EnrollmentSessionCopyWithImpl;
 @useResult
 $Res call({
- String id, EnrollmentStep stepReached, DateTime startedAt
+ String id, EnrollmentStep stepReached, DateTime startedAt, bool identityConfirmed
 });
 
 
@@ -335,12 +340,13 @@ class _$EnrollmentSessionCopyWithImpl<$Res>
 
 /// Create a copy of EnrollmentSession
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? stepReached = null,Object? startedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? stepReached = null,Object? startedAt = null,Object? identityConfirmed = null,}) {
   return _then(EnrollmentSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,stepReached: null == stepReached ? _self.stepReached : stepReached // ignore: cast_nullable_to_non_nullable
 as EnrollmentStep,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,identityConfirmed: null == identityConfirmed ? _self.identityConfirmed : identityConfirmed // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of EnrollmentSession
@@ -431,10 +437,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  EnrollmentStep stepReached,  DateTime startedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  EnrollmentStep stepReached,  DateTime startedAt,  bool identityConfirmed)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EnrollmentSession() when $default != null:
-return $default(_that.id,_that.stepReached,_that.startedAt);case _:
+return $default(_that.id,_that.stepReached,_that.startedAt,_that.identityConfirmed);case _:
   return orElse();
 
 }
@@ -452,10 +458,10 @@ return $default(_that.id,_that.stepReached,_that.startedAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  EnrollmentStep stepReached,  DateTime startedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  EnrollmentStep stepReached,  DateTime startedAt,  bool identityConfirmed)  $default,) {final _that = this;
 switch (_that) {
 case _EnrollmentSession():
-return $default(_that.id,_that.stepReached,_that.startedAt);}
+return $default(_that.id,_that.stepReached,_that.startedAt,_that.identityConfirmed);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -469,10 +475,10 @@ return $default(_that.id,_that.stepReached,_that.startedAt);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  EnrollmentStep stepReached,  DateTime startedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  EnrollmentStep stepReached,  DateTime startedAt,  bool identityConfirmed)?  $default,) {final _that = this;
 switch (_that) {
 case _EnrollmentSession() when $default != null:
-return $default(_that.id,_that.stepReached,_that.startedAt);case _:
+return $default(_that.id,_that.stepReached,_that.startedAt,_that.identityConfirmed);case _:
   return null;
 
 }
@@ -484,7 +490,7 @@ return $default(_that.id,_that.stepReached,_that.startedAt);case _:
 
 
 class _EnrollmentSession implements EnrollmentSession {
-  const _EnrollmentSession({required this.id, required this.stepReached, required this.startedAt});
+  const _EnrollmentSession({required this.id, required this.stepReached, required this.startedAt, this.identityConfirmed = false});
   
 
 /// Exists only to guarantee FR-004's "exactly one session" invariant
@@ -495,6 +501,12 @@ class _EnrollmentSession implements EnrollmentSession {
 /// In-memory only; used solely to decide UI copy ("continue where you
 /// left off"), not a resumability deadline.
 @override final  DateTime startedAt;
+/// Set only by a successful 004 confirmation (research.md §4). Backs
+/// 006's reachability guard: `stepReached == selfieCapture` alone is
+/// trivially satisfiable by bouncing through 005 without ever
+/// confirming extracted data, since 005 sets that step unconditionally
+/// by design.
+@override@JsonKey() final  bool identityConfirmed;
 
 /// Create a copy of EnrollmentSession
 /// with the given fields replaced by the non-null parameter values.
@@ -506,18 +518,18 @@ _$EnrollmentSessionCopyWith<_EnrollmentSession> get copyWith => __$EnrollmentSes
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EnrollmentSession&&(identical(other.id, id) || other.id == id)&&(identical(other.stepReached, stepReached) || other.stepReached == stepReached)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EnrollmentSession&&(identical(other.id, id) || other.id == id)&&(identical(other.stepReached, stepReached) || other.stepReached == stepReached)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.identityConfirmed, identityConfirmed) || other.identityConfirmed == identityConfirmed));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,stepReached,startedAt);
+    return Object.hash(runtimeType,id,stepReached,startedAt,identityConfirmed);
 }
 
 @override
 String toString() {
-    return 'EnrollmentSession(id: $id, stepReached: $stepReached, startedAt: $startedAt)';
+    return 'EnrollmentSession(id: $id, stepReached: $stepReached, startedAt: $startedAt, identityConfirmed: $identityConfirmed)';
 }
 
 
@@ -528,7 +540,7 @@ abstract mixin class _$EnrollmentSessionCopyWith<$Res> implements $EnrollmentSes
   factory _$EnrollmentSessionCopyWith(_EnrollmentSession value, $Res Function(_EnrollmentSession) _then) = __$EnrollmentSessionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, EnrollmentStep stepReached, DateTime startedAt
+ String id, EnrollmentStep stepReached, DateTime startedAt, bool identityConfirmed
 });
 
 
@@ -545,12 +557,13 @@ class __$EnrollmentSessionCopyWithImpl<$Res>
 
 /// Create a copy of EnrollmentSession
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? stepReached = null,Object? startedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? stepReached = null,Object? startedAt = null,Object? identityConfirmed = null,}) {
   return _then(_EnrollmentSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,stepReached: null == stepReached ? _self.stepReached : stepReached // ignore: cast_nullable_to_non_nullable
 as EnrollmentStep,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,identityConfirmed: null == identityConfirmed ? _self.identityConfirmed : identityConfirmed // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

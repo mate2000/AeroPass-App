@@ -6,6 +6,7 @@
 // `consent_view_test.dart`'s isolated router, since the invariant lives in
 // `router.dart`'s own `_redirect` function.
 import 'package:aeropass_app/app/enrollment_session_controller.dart';
+import 'package:aeropass_app/app/pending_document_controller.dart';
 import 'package:aeropass_app/app/router.dart';
 import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/core/result.dart';
@@ -23,6 +24,8 @@ import 'package:aeropass_app/domain/repositories/credential_repository.dart';
 import 'package:aeropass_app/domain/repositories/device_capability_checker.dart';
 import 'package:aeropass_app/domain/repositories/document_quality_assessor.dart';
 import 'package:aeropass_app/domain/repositories/document_verification_repository.dart';
+import 'package:aeropass_app/domain/repositories/field_reverification_repository.dart';
+import 'package:aeropass_app/domain/repositories/identity_record_repository.dart';
 import 'package:aeropass_app/data/services/camera_capture_service.dart';
 import 'package:aeropass_app/data/services/system_settings_launcher.dart';
 import 'package:aeropass_app/l10n/generated/app_localizations.dart';
@@ -38,6 +41,8 @@ import '../fakes/fake_consent_repository.dart';
 import '../fakes/fake_credential_repository.dart';
 import '../fakes/fake_device_capability_checker.dart';
 import '../fakes/fake_document_verification_repository.dart';
+import '../fakes/fake_field_reverification_repository.dart';
+import '../fakes/fake_identity_record_repository.dart';
 import '../fakes/fake_secure_storage_platform.dart';
 import '../fakes/fake_system_settings_launcher.dart';
 
@@ -90,6 +95,13 @@ Future<void> _pumpApp(
   );
   final systemSettingsLauncher = FakeSystemSettingsLauncher();
 
+  // 004-confirmar-datos: reachable from the document-capture route's own
+  // accepted path, so its dependencies must be providable even when this
+  // test's `initialLocation` is `documentCapture` itself.
+  final fieldReverificationRepository = FakeFieldReverificationRepository();
+  final identityRecordRepository = FakeIdentityRecordRepository();
+  final pendingDocumentController = PendingDocumentController();
+
   final router = buildAppRouter(initialLocation: initialLocation);
   addTearDown(router.dispose);
 
@@ -109,8 +121,18 @@ Future<void> _pumpApp(
           value: attemptCounterRepository,
         ),
         Provider<SystemSettingsLauncher>.value(value: systemSettingsLauncher),
+        Provider<FieldReverificationRepository>.value(
+          value: fieldReverificationRepository,
+        ),
+        Provider<IdentityRecordRepository>.value(
+          value: identityRecordRepository,
+        ),
+        Provider<Clock>.value(value: const _FixedClock()),
         ChangeNotifierProvider<EnrollmentSessionController>.value(
           value: sessionController,
+        ),
+        ChangeNotifierProvider<PendingDocumentController>.value(
+          value: pendingDocumentController,
         ),
       ],
       child: MaterialApp.router(

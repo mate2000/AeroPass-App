@@ -380,10 +380,10 @@ return rejected(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  accepted,TResult Function( CaptureRejectionReason reason)?  rejected,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( ExtractionResult extraction)?  accepted,TResult Function( CaptureRejectionReason reason)?  rejected,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CaptureOutcomeAccepted() when accepted != null:
-return accepted();case CaptureOutcomeRejected() when rejected != null:
+return accepted(_that.extraction);case CaptureOutcomeRejected() when rejected != null:
 return rejected(_that.reason);case _:
   return orElse();
 
@@ -402,10 +402,10 @@ return rejected(_that.reason);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  accepted,required TResult Function( CaptureRejectionReason reason)  rejected,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( ExtractionResult extraction)  accepted,required TResult Function( CaptureRejectionReason reason)  rejected,}) {final _that = this;
 switch (_that) {
 case CaptureOutcomeAccepted():
-return accepted();case CaptureOutcomeRejected():
+return accepted(_that.extraction);case CaptureOutcomeRejected():
 return rejected(_that.reason);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -420,10 +420,10 @@ return rejected(_that.reason);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  accepted,TResult? Function( CaptureRejectionReason reason)?  rejected,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( ExtractionResult extraction)?  accepted,TResult? Function( CaptureRejectionReason reason)?  rejected,}) {final _that = this;
 switch (_that) {
 case CaptureOutcomeAccepted() when accepted != null:
-return accepted();case CaptureOutcomeRejected() when rejected != null:
+return accepted(_that.extraction);case CaptureOutcomeRejected() when rejected != null:
 return rejected(_that.reason);case _:
   return null;
 
@@ -436,33 +436,78 @@ return rejected(_that.reason);case _:
 
 
 class CaptureOutcomeAccepted implements CaptureOutcome {
-  const CaptureOutcomeAccepted();
+  const CaptureOutcomeAccepted({required this.extraction});
   
 
+ final  ExtractionResult extraction;
 
-
+/// Create a copy of CaptureOutcome
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CaptureOutcomeAcceptedCopyWith<CaptureOutcomeAccepted> get copyWith => _$CaptureOutcomeAcceptedCopyWithImpl<CaptureOutcomeAccepted>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is CaptureOutcomeAccepted);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CaptureOutcomeAccepted&&(identical(other.extraction, extraction) || other.extraction == extraction));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode {
+    return Object.hash(runtimeType,extraction);
+}
 
 @override
 String toString() {
-    return 'CaptureOutcome.accepted()';
+    return 'CaptureOutcome.accepted(extraction: $extraction)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $CaptureOutcomeAcceptedCopyWith<$Res> implements $CaptureOutcomeCopyWith<$Res> {
+  factory $CaptureOutcomeAcceptedCopyWith(CaptureOutcomeAccepted value, $Res Function(CaptureOutcomeAccepted) _then) = _$CaptureOutcomeAcceptedCopyWithImpl;
+@useResult
+$Res call({
+ ExtractionResult extraction
+});
 
 
+$ExtractionResultCopyWith<$Res> get extraction;
+
+}
+/// @nodoc
+class _$CaptureOutcomeAcceptedCopyWithImpl<$Res>
+    implements $CaptureOutcomeAcceptedCopyWith<$Res> {
+  _$CaptureOutcomeAcceptedCopyWithImpl(this._self, this._then);
+
+  final CaptureOutcomeAccepted _self;
+  final $Res Function(CaptureOutcomeAccepted) _then;
+
+/// Create a copy of CaptureOutcome
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? extraction = null,}) {
+  return _then(CaptureOutcomeAccepted(
+extraction: null == extraction ? _self.extraction : extraction // ignore: cast_nullable_to_non_nullable
+as ExtractionResult,
+  ));
+}
+
+/// Create a copy of CaptureOutcome
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExtractionResultCopyWith<$Res> get extraction {
+  
+  return $ExtractionResultCopyWith<$Res>(_self.extraction, (value) {
+    return _then(_self.copyWith(extraction: value));
+  });
+}
+}
 
 /// @nodoc
 

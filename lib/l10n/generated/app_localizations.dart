@@ -615,6 +615,306 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Reintentar'**
   String get captureRejectionRetryLabel;
+
+  /// 004-confirmar-datos FR-012: visible before the fields, instructing exact comparison.
+  ///
+  /// In es, this message translates to:
+  /// **'Verifica que los datos coincidan exactamente con tu documento original.'**
+  String get confirmationNoticeText;
+
+  /// Paired with a checkmark icon on the document thumbnail card.
+  ///
+  /// In es, this message translates to:
+  /// **'Capturado'**
+  String get confirmationCapturedBadgeLabel;
+
+  /// No description provided for @confirmationFieldFullNameLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre completo'**
+  String get confirmationFieldFullNameLabel;
+
+  /// No description provided for @confirmationFieldDocumentNumberLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de documento'**
+  String get confirmationFieldDocumentNumberLabel;
+
+  /// No description provided for @confirmationFieldNationalityLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nacionalidad'**
+  String get confirmationFieldNationalityLabel;
+
+  /// No description provided for @confirmationFieldExpiryDateLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de vencimiento'**
+  String get confirmationFieldExpiryDateLabel;
+
+  /// Prefixed to the field label to build each field's edit-button semantic label, e.g. 'Editar Nombre completo'.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar'**
+  String get confirmationEditActionLabel;
+
+  /// No description provided for @confirmationSaveEditLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get confirmationSaveEditLabel;
+
+  /// No description provided for @confirmationCancelEditLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get confirmationCancelEditLabel;
+
+  /// FR-006: shown inline under a field being edited.
+  ///
+  /// In es, this message translates to:
+  /// **'El valor ingresado no tiene el formato esperado.'**
+  String get confirmationInvalidFormatMessage;
+
+  /// FR-005: shown when the automated re-check could not confirm an edit.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos confirmar este dato con tu documento. Puedes intentarlo de nuevo o escanear otra vez.'**
+  String get confirmationUnresolvedMessage;
+
+  /// No description provided for @confirmationReverifyingLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificando...'**
+  String get confirmationReverifyingLabel;
+
+  /// No description provided for @confirmationPrimaryActionLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Los datos son correctos'**
+  String get confirmationPrimaryActionLabel;
+
+  /// No description provided for @confirmationSecondaryActionLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Escanear de nuevo'**
+  String get confirmationSecondaryActionLabel;
+
+  /// FR-017: confirmation could not be recorded durably.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos guardar tus datos. Verifica tu conexión e inténtalo de nuevo.'**
+  String get confirmationConfirmFailedMessage;
+
+  /// FR-009: an explicit gap, never rendered as a blank value.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos leer este dato'**
+  String get confirmationMissingFieldLabel;
+
+  /// FR-008.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu documento está vencido'**
+  String get confirmationExpiredHeadline;
+
+  /// No description provided for @confirmationExpiredBody.
+  ///
+  /// In es, this message translates to:
+  /// **'No podemos continuar la inscripción con un documento vencido.'**
+  String get confirmationExpiredBody;
+
+  /// FR-009.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos leer todos los datos de tu documento'**
+  String get confirmationMissingFieldHeadline;
+
+  /// No description provided for @confirmationMissingFieldBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Vuelve a escanear tu documento para intentar leer el dato faltante.'**
+  String get confirmationMissingFieldBody;
+
+  /// 005-instrucciones-selfie FR-001.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora una selfie'**
+  String get selfieInstructionsTitle;
+
+  /// No description provided for @selfieInstructionsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitamos confirmar que eres el titular del documento.'**
+  String get selfieInstructionsSubtitle;
+
+  /// FR-002/FR-003, stated first since lighting is the most common cause of failure.
+  ///
+  /// In es, this message translates to:
+  /// **'Buena iluminación, de frente a la luz'**
+  String get selfieInstructionsRuleLightingLabel;
+
+  /// FR-003/CONFLICT-001 resolved: states what must be visible (the unobstructed face), never a list of garments to remove — never asks to remove glasses or a religious head covering.
+  ///
+  /// In es, this message translates to:
+  /// **'Rostro descubierto y visible por completo'**
+  String get selfieInstructionsRuleFaceVisibleLabel;
+
+  /// No description provided for @selfieInstructionsRuleEyesLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Mira directamente a la cámara'**
+  String get selfieInstructionsRuleEyesLabel;
+
+  /// No description provided for @selfieInstructionsPrimaryActionLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Tomar selfie'**
+  String get selfieInstructionsPrimaryActionLabel;
+
+  /// 006-selfie-liveness FR-003/FR-018, UI Reference.
+  ///
+  /// In es, this message translates to:
+  /// **'La captura es automática — no toques la pantalla'**
+  String get livenessFooter;
+
+  /// FR-006, UI Reference ("64%", top right).
+  ///
+  /// In es, this message translates to:
+  /// **'{percent}%'**
+  String livenessProgressBadge(int percent);
+
+  /// FR-004, UI Reference's example instruction.
+  ///
+  /// In es, this message translates to:
+  /// **'Acércate un poco'**
+  String get livenessInstructionMoveCloser;
+
+  /// No description provided for @livenessInstructionMoveBack.
+  ///
+  /// In es, this message translates to:
+  /// **'Aléjate un poco'**
+  String get livenessInstructionMoveBack;
+
+  /// No description provided for @livenessInstructionCenterFace.
+  ///
+  /// In es, this message translates to:
+  /// **'Centra tu rostro en el óvalo'**
+  String get livenessInstructionCenterFace;
+
+  /// Also the fallback for an unrecognized processor instruction code (data-model.md).
+  ///
+  /// In es, this message translates to:
+  /// **'Mantente quieto'**
+  String get livenessInstructionHoldStill;
+
+  /// No description provided for @livenessInstructionLookAtCamera.
+  ///
+  /// In es, this message translates to:
+  /// **'Mira directamente a la cámara'**
+  String get livenessInstructionLookAtCamera;
+
+  /// No description provided for @livenessInstructionImproveLighting.
+  ///
+  /// In es, this message translates to:
+  /// **'Busca un lugar con mejor iluminación'**
+  String get livenessInstructionImproveLighting;
+
+  /// FR-010/Clarifications: shared verbatim (text and styling) by unclassifiedFailure and attackDetected — never a message unique to attack detection.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos completar la captura'**
+  String get livenessFailureGenericHeadline;
+
+  /// No description provided for @livenessFailureGenericBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Vuelve a intentarlo en un lugar con buena luz, mirando directamente a la cámara.'**
+  String get livenessFailureGenericBody;
+
+  /// FR-009, same vocabulary as 005-instrucciones-selfie's lighting condition.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay poca luz'**
+  String get livenessFailureTooDarkHeadline;
+
+  /// No description provided for @livenessFailureTooDarkBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Busca un lugar con mejor iluminación y vuelve a intentarlo.'**
+  String get livenessFailureTooDarkBody;
+
+  /// No description provided for @livenessFailureFaceOutOfFrameHeadline.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos ver tu rostro completo'**
+  String get livenessFailureFaceOutOfFrameHeadline;
+
+  /// No description provided for @livenessFailureFaceOutOfFrameBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Centra tu rostro dentro del óvalo y vuelve a intentarlo.'**
+  String get livenessFailureFaceOutOfFrameBody;
+
+  /// No description provided for @livenessFailureMovementDetectedHeadline.
+  ///
+  /// In es, this message translates to:
+  /// **'Detectamos demasiado movimiento'**
+  String get livenessFailureMovementDetectedHeadline;
+
+  /// No description provided for @livenessFailureMovementDetectedBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantente quieto durante la captura y vuelve a intentarlo.'**
+  String get livenessFailureMovementDetectedBody;
+
+  /// No description provided for @livenessFailureMultipleFacesDetectedHeadline.
+  ///
+  /// In es, this message translates to:
+  /// **'Detectamos más de un rostro'**
+  String get livenessFailureMultipleFacesDetectedHeadline;
+
+  /// No description provided for @livenessFailureMultipleFacesDetectedBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Asegúrate de que solo tu rostro esté frente a la cámara y vuelve a intentarlo.'**
+  String get livenessFailureMultipleFacesDetectedBody;
+
+  /// FR-009/CONFLICT-001, same vocabulary as 005's face-visibility condition — never names a specific garment.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu rostro no está completamente visible'**
+  String get livenessFailureFaceObstructedHeadline;
+
+  /// No description provided for @livenessFailureFaceObstructedBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Descubre tu rostro por completo y vuelve a intentarlo.'**
+  String get livenessFailureFaceObstructedBody;
+
+  /// No description provided for @livenessFailureRetryLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get livenessFailureRetryLabel;
+
+  /// FR-013: ends with an explanation rather than continuing indefinitely.
+  ///
+  /// In es, this message translates to:
+  /// **'La captura tardó más de lo esperado'**
+  String get livenessStalledHeadline;
+
+  /// No description provided for @livenessStalledBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Vuelve a intentarlo en un lugar con buena luz y señal.'**
+  String get livenessStalledBody;
+
+  /// No description provided for @livenessStalledRetryLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get livenessStalledRetryLabel;
 }
 
 class _AppLocalizationsDelegate

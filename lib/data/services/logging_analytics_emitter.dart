@@ -125,4 +125,124 @@ class LoggingAnalyticsEmitter implements AnalyticsEmitter {
   void captureStepAbandoned() {
     _log('capture_step_abandoned');
   }
+
+  @override
+  void confirmationStepEntered() {
+    _log('confirmation_step_entered');
+  }
+
+  @override
+  void confirmationFieldEdited({required FieldKey field}) {
+    _log('confirmation_field_edited', {'field': field.name});
+  }
+
+  @override
+  void confirmationFieldReverified({
+    required FieldKey field,
+    required bool confirmed,
+  }) {
+    _log('confirmation_field_reverified', {
+      'field': field.name,
+      'confirmed': confirmed,
+    });
+  }
+
+  @override
+  void confirmationCorrectionAttemptLimitReached() {
+    _log('confirmation_correction_attempt_limit_reached');
+  }
+
+  @override
+  void confirmationRescanned() {
+    _log('confirmation_rescanned');
+  }
+
+  @override
+  void confirmationBlockedUnusableDocument({
+    required DocumentBlockReason reason,
+  }) {
+    _log('confirmation_blocked_unusable_document', {'reason': reason.name});
+  }
+
+  @override
+  void confirmationConfirmed() {
+    _log('confirmation_confirmed');
+  }
+
+  @override
+  void confirmationConfirmFailed() {
+    _log('confirmation_confirm_failed');
+  }
+
+  @override
+  void confirmationStepAbandoned() {
+    _log('confirmation_step_abandoned');
+  }
+
+  @override
+  void selfieInstructionsStepEntered() {
+    _log('selfie_instructions_step_entered');
+  }
+
+  @override
+  void selfieInstructionsAdvanced() {
+    _log('selfie_instructions_advanced');
+  }
+
+  @override
+  void selfieInstructionsHelpOpened() {
+    _log('selfie_instructions_help_opened');
+  }
+
+  @override
+  void selfieInstructionsStepAbandoned() {
+    _log('selfie_instructions_step_abandoned');
+  }
+
+  @override
+  void livenessStepEntered() {
+    _log('liveness_step_entered');
+  }
+
+  @override
+  void livenessPhaseReached({
+    required int phaseIndex,
+    required int totalPhases,
+  }) {
+    _log('liveness_phase_reached', {
+      'phaseIndex': phaseIndex,
+      'totalPhases': totalPhases,
+    });
+  }
+
+  @override
+  void livenessOutcome({
+    required LivenessOutcomeKind outcome,
+    LivenessQualityReason? reason,
+  }) {
+    _log('liveness_outcome', {
+      'outcome': outcome.name,
+      if (reason != null) 'reason': reason.name,
+    });
+  }
+
+  @override
+  void livenessAttemptCount({required int attemptNumber}) {
+    _log('liveness_attempt_count', {'attemptNumber': attemptNumber});
+  }
+
+  @override
+  void livenessAttemptLimitReached() {
+    _log('liveness_attempt_limit_reached');
+  }
+
+  @override
+  void livenessStalled() {
+    _log('liveness_stalled');
+  }
+
+  @override
+  void livenessStepAbandoned() {
+    _log('liveness_step_abandoned');
+  }
 }

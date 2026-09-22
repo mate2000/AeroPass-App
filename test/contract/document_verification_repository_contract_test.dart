@@ -13,6 +13,7 @@ import 'package:aeropass_app/core/result.dart';
 import 'package:aeropass_app/data/services/document_verification_repository_impl.dart';
 import 'package:aeropass_app/data/services/document_verification_service.dart';
 import 'package:aeropass_app/domain/entities/capture_outcome.dart';
+import 'package:aeropass_app/domain/entities/extraction_result.dart';
 import 'package:aeropass_app/domain/repositories/document_verification_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,14 +34,68 @@ void main() {
 Uint8List get _sampleBytes => Uint8List.fromList(List.filled(16, 1));
 
 void _runContractTests(_HarnessFactory factory) {
-  test('1. Submission accepted by the processor -> Ok(CaptureOutcome.accepted)', () async {
-    final harness = factory.create();
-    harness.givenAccepted();
+  test(
+    '1. Submission accepted by the processor -> Ok(CaptureOutcome.accepted) '
+    'with every field present (contracts/document-verification-port-addendum.md)',
+    () async {
+      final harness = factory.create();
+      harness.givenAccepted();
 
-    final result = await harness.repository.submit(_sampleBytes);
+      final result = await harness.repository.submit(_sampleBytes);
 
-    expect(result, const Result<CaptureOutcome>.ok(CaptureOutcome.accepted()));
-  });
+      expect(
+        result,
+        const Result<CaptureOutcome>.ok(
+          CaptureOutcome.accepted(
+            extraction: ExtractionResult(
+              fields: [
+                ExtractedField.present(
+                  key: FieldKey.fullName,
+                  value: 'Mateo González Restrepo',
+                  confidence: 0.98,
+                ),
+                ExtractedField.present(
+                  key: FieldKey.documentNumber,
+                  value: 'CC 1.234.567.890',
+                  confidence: 0.97,
+                ),
+                ExtractedField.present(
+                  key: FieldKey.nationality,
+                  value: 'Colombiana',
+                  confidence: 0.99,
+                ),
+                ExtractedField.present(
+                  key: FieldKey.expiryDate,
+                  value: '2031-03-14',
+                  confidence: 0.95,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  test(
+    '1b. Submission accepted with one field absent from the response -> '
+    'that field maps to ExtractedField.missing, others unaffected',
+    () async {
+      final harness = factory.create();
+      harness.givenAcceptedWithMissingField(FieldKey.nationality);
+
+      final result = await harness.repository.submit(_sampleBytes);
+
+      final outcome = result.valueOrNull;
+      expect(outcome, isA<CaptureOutcomeAccepted>());
+      final extraction = (outcome as CaptureOutcomeAccepted).extraction;
+      expect(
+        extraction.fieldFor(FieldKey.nationality),
+        const ExtractedField.missing(key: FieldKey.nationality),
+      );
+      expect(extraction.fieldFor(FieldKey.fullName), isA<ExtractedFieldPresent>());
+    },
+  );
 
   test(
     '2. Submission rejected for blur -> '
@@ -149,9 +204,25 @@ abstract class _Harness {
   DocumentVerificationRepository get repository;
 
   void givenAccepted();
+  void givenAcceptedWithMissingField(FieldKey missingField);
   void givenRejected(String? reasonCode);
   void givenTransportFailure();
 }
+
+/// The 4-field accepted-response fixture shared by both harnesses.
+const _acceptedFieldsJson = [
+  {'key': 'full_name', 'value': 'Mateo González Restrepo', 'confidence': 0.98},
+  {'key': 'document_number', 'value': 'CC 1.234.567.890', 'confidence': 0.97},
+  {'key': 'nationality', 'value': 'Colombiana', 'confidence': 0.99},
+  {'key': 'expiry_date', 'value': '2031-03-14', 'confidence': 0.95},
+];
+
+String _jsonKeyFor(FieldKey key) => switch (key) {
+  FieldKey.fullName => 'full_name',
+  FieldKey.documentNumber => 'document_number',
+  FieldKey.nationality => 'nationality',
+  FieldKey.expiryDate => 'expiry_date',
+};
 
 abstract class _HarnessFactory {
   _Harness create();
@@ -172,7 +243,59 @@ class _FakeHarness implements _Harness {
 
   @override
   void givenAccepted() {
-    _repo.scriptSubmit(const Result.ok(CaptureOutcome.accepted()));
+    _repo.scriptSubmit(
+      const Result.ok(
+        CaptureOutcome.accepted(
+          extraction: ExtractionResult(
+            fields: [
+              ExtractedField.present(
+                key: FieldKey.fullName,
+                value: 'Mateo González Restrepo',
+                confidence: 0.98,
+              ),
+              ExtractedField.present(
+                key: FieldKey.documentNumber,
+                value: 'CC 1.234.567.890',
+                confidence: 0.97,
+              ),
+              ExtractedField.present(
+                key: FieldKey.nationality,
+                value: 'Colombiana',
+                confidence: 0.99,
+              ),
+              ExtractedField.present(
+                key: FieldKey.expiryDate,
+                value: '2031-03-14',
+                confidence: 0.95,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void givenAcceptedWithMissingField(FieldKey missingField) {
+    _repo.scriptSubmit(
+      Result.ok(
+        CaptureOutcome.accepted(
+          extraction: ExtractionResult(
+            fields: [
+              for (final key in FieldKey.values)
+                if (key == missingField)
+                  ExtractedField.missing(key: key)
+                else
+                  ExtractedField.present(
+                    key: key,
+                    value: 'fixture',
+                    confidence: 0.98,
+                  ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -216,7 +339,19 @@ class _RealHarness implements _Harness {
 
   @override
   void givenAccepted() {
-    _adapter.respondWith({'outcome': 'accepted'});
+    _adapter.respondWith({'outcome': 'accepted', 'fields': _acceptedFieldsJson});
+  }
+
+  @override
+  void givenAcceptedWithMissingField(FieldKey missingField) {
+    final missingJsonKey = _jsonKeyFor(missingField);
+    _adapter.respondWith({
+      'outcome': 'accepted',
+      'fields': [
+        for (final field in _acceptedFieldsJson)
+          if (field['key'] != missingJsonKey) field,
+      ],
+    });
   }
 
   @override

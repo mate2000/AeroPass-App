@@ -1,12 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:aeropass_app/app/enrollment_session_controller.dart';
+import 'package:aeropass_app/app/pending_document_controller.dart';
 import 'package:aeropass_app/app/router.dart' show AppRoutes;
 import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/core/result.dart';
 import 'package:aeropass_app/data/services/camera_capture_service.dart';
 import 'package:aeropass_app/domain/entities/capture_outcome.dart';
 import 'package:aeropass_app/domain/entities/consent_record.dart';
+import 'package:aeropass_app/domain/entities/extraction_result.dart';
 import 'package:aeropass_app/domain/entities/consent_text_version.dart';
 import 'package:aeropass_app/domain/entities/enrollment_attempt_id.dart';
 import 'package:aeropass_app/domain/entities/processing_scope.dart';
@@ -35,6 +37,18 @@ class _FixedClock implements Clock {
 CapturedDocumentFrame _frame() => (
   analysisBytes: Uint8List.fromList([1, 2, 3]),
   submissionBytes: Uint8List.fromList([4, 5, 6]),
+);
+
+/// A minimal accepted extraction — this file only needs *an* accepted
+/// outcome to exist, not to exercise 004-confirmar-datos's own field logic.
+const _extraction = ExtractionResult(
+  fields: [
+    ExtractedField.present(
+      key: FieldKey.fullName,
+      value: 'Mateo González Restrepo',
+      confidence: 0.98,
+    ),
+  ],
 );
 
 ConsentTextVersion _sampleText() => ConsentTextVersion(
@@ -116,6 +130,7 @@ void main() {
   late FakeCaptureAttemptCounterRepository attemptCounterRepository;
   late FakeAnalyticsEmitter analyticsEmitter;
   late EnrollmentSessionController sessionController;
+  late PendingDocumentController pendingDocumentController;
   late FakeSystemSettingsLauncher systemSettingsLauncher;
 
   setUp(() {
@@ -130,6 +145,7 @@ void main() {
     sessionController = EnrollmentSessionController(
       clock: _FixedClock(DateTime.utc(2026, 1, 1)),
     );
+    pendingDocumentController = PendingDocumentController();
     systemSettingsLauncher = FakeSystemSettingsLauncher();
   });
 
@@ -140,6 +156,7 @@ void main() {
     verificationRepository: verificationRepository,
     attemptCounterRepository: attemptCounterRepository,
     enrollmentSessionController: sessionController,
+    pendingDocumentController: pendingDocumentController,
     analyticsEmitter: analyticsEmitter,
     systemSettingsLauncher: systemSettingsLauncher,
   );
@@ -179,13 +196,14 @@ void main() {
         cameraCaptureService.scriptCapture(_frame());
         qualityAssessor.scriptAssessment(const QualityAssessment.usable());
         verificationRepository.scriptSubmit(
-          const Result.ok(CaptureOutcome.accepted()),
+          const Result.ok(CaptureOutcome.accepted(extraction: _extraction)),
         );
 
         await tester.tap(find.bySemanticsLabel('Capturar documento'));
         await tester.pumpAndSettle();
 
         expect(find.text('document-confirmation-stub'), findsOneWidget);
+        expect(pendingDocumentController.hasPendingDocument, isTrue);
       },
     );
   });

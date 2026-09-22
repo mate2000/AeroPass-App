@@ -31,5 +31,12 @@ sealed class EnrollmentSession with _$EnrollmentSession {
     /// In-memory only; used solely to decide UI copy ("continue where you
     /// left off"), not a resumability deadline.
     required DateTime startedAt,
+
+    /// Set only by a successful 004 confirmation (research.md §4). Backs
+    /// 006's reachability guard: `stepReached == selfieCapture` alone is
+    /// trivially satisfiable by bouncing through 005 without ever
+    /// confirming extracted data, since 005 sets that step unconditionally
+    /// by design.
+    @Default(false) bool identityConfirmed,
   }) = _EnrollmentSession;
 }

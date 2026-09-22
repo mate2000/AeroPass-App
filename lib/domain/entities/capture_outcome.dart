@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'extraction_result.dart';
+
 part 'capture_outcome.freezed.dart';
 
 /// The single rejection-reason vocabulary shared by device-side quality
@@ -70,8 +72,13 @@ sealed class QualityAssessment with _$QualityAssessment {
 @freezed
 sealed class CaptureOutcome with _$CaptureOutcome {
   /// The processor accepted the capture; the flow advances to data
-  /// confirmation (004 stub).
-  const factory CaptureOutcome.accepted() = CaptureOutcomeAccepted;
+  /// confirmation (004-confirmar-datos). [extraction] is the processor's
+  /// per-field read of the document, carried here rather than through a
+  /// second, parallel channel (004's research.md §1) — extended onto this
+  /// variant after 003-escanear-documento shipped without it.
+  const factory CaptureOutcome.accepted({
+    required ExtractionResult extraction,
+  }) = CaptureOutcomeAccepted;
 
   /// The processor rejected the capture; the passenger is returned to this
   /// screen with [reason] expressed in the same actionable vocabulary as a

@@ -6,6 +6,7 @@
 import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/data/services/capture_attempt_counter_repository_impl.dart';
 import 'package:aeropass_app/data/services/capture_attempt_counter_service.dart';
+import 'package:aeropass_app/domain/entities/capture_attempt_counter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -70,17 +71,19 @@ void main() {
   });
 
   test('read() surfaces a genuine storage failure as Error', () async {
-    final result = await repository.read();
+    final result = await repository.read(AttemptCounterScope.documentCapture);
     expect(result.isError, isTrue);
   });
 
   test('increment() surfaces a genuine storage failure as Error', () async {
-    final result = await repository.increment();
+    final result = await repository.increment(
+      AttemptCounterScope.documentCapture,
+    );
     expect(result.isError, isTrue);
   });
 
   test('reset() surfaces a genuine storage failure as Error', () async {
-    final result = await repository.reset();
+    final result = await repository.reset(AttemptCounterScope.documentCapture);
     expect(result.isError, isTrue);
   });
 }

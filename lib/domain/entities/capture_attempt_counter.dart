@@ -2,6 +2,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'capture_attempt_counter.freezed.dart';
 
+/// Which step's independent attempt budget a `CaptureAttemptCounterRepository`
+/// call addresses (006-selfie-liveness, research.md §3). The counter shape
+/// (count + last-reset timestamp) and the limit (3) are shared knowledge
+/// across steps; only the storage scope differs, so this is a call
+/// parameter rather than a second, near-duplicate port.
+enum AttemptCounterScope { documentCapture, selfieLiveness }
+
 /// The **only** new persisted entity this feature introduces (data-model.md,
 /// plan.md's Constitution Check), per Constitution Principle I's amended
 /// (v1.3.0) persisted-state allowlist: "a per-step capture-attempt counter

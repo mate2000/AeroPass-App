@@ -1,21 +1,34 @@
 <!--
 Sync Impact Report
-- Version change: 1.2.0 → 1.3.0
-- Modified principles: I. Consent and Data Minimization — persisted-state allowlist expanded to
-  include a per-step capture-attempt counter (count + last-reset timestamp only; no capture
-  content), scoped to the specific step it protects. No existing obligation was removed or
-  redefined.
+- Version change: 1.3.0 → 1.4.0
+- Modified principles: III. Every Flow Has a Failure Path — added a bounded, temporary
+  "Happy-Path Development Mode" carve-out permitting specific, named relaxations (attempt
+  limits/retry routing/escalation destinations, the full error taxonomy, offline/connectivity
+  handling, device capability gating and permission-denied paths, timing/performance budget
+  enforcement, analytics event completeness, and backend integrations served by fakes), each
+  gated behind a build flag that cannot be enabled in a release build. The principle's existing
+  obligation is otherwise untouched: a feature MUST still eventually implement every deferred
+  requirement, tracked by identifier, before the airport pilot integration. No existing obligation
+  was removed or redefined for any feature not invoking this mode.
 - Added principles: none
-- Added sections: none
+- Added sections: none (new subsection added within Principle III, not a new top-level section)
 - Removed sections: none
-- Rationale: 003-escanear-documento's FR-009 requires a device-level capture-attempt cap durable
-  enough to survive an app kill (an in-memory/session-scoped counter was found, during
-  /speckit-clarify, to let a passenger bypass the cap by force-killing and reopening the app,
-  undermining the cap's cost-control purpose — each submitted capture consumes a paid verification).
-  No existing allowlist entry could legitimately cover this; folding it onto the consent record
-  would have gamed the rule's letter without honoring its intent (the counter is not about consent).
-- Templates requiring updates: none checked in this change — plan-template.md's Constitution Check
-  section reads this file at runtime per the constitution command's scope guard.
+- Rationale: 005-instrucciones-selfie's spec.md declares a project-wide "Happy Path First"
+  delivery mode — applying to it and every enrollment-flow spec that follows — that directly
+  conflicts with this principle's existing text: "The retry, agent-escalation, and
+  technical-error screens are part of the happy path's definition of done — a feature whose
+  failure states are unimplemented is not complete, regardless of whether its success path
+  ships." Surfaced during /speckit-plan's Constitution Check, the same category of conflict
+  003-escanear-documento hit with Principle I (resolved via the 1.2.0→1.3.0 amendment above) —
+  per Governance, "where a spec ... conflicts with it, this document wins and the conflicting
+  artifact is amended," so the choice was amend-or-reject, not silently proceed. Principles II,
+  IV, and V were checked and require no change: II and IV already permit and require fakes/tests
+  against them, which this carve-out merely confirms rather than relaxes; V's no-network
+  requirement is scoped to the issued credential/QR-pass surface specifically, which this
+  carve-out does not touch (general offline-handling deferral elsewhere in the app is a distinct,
+  unrelated concern).
+- Templates requiring updates: none checked in this change — plan-template.md's Constitution
+  Check section reads this file at runtime per the constitution command's scope guard.
 - Follow-up TODOs: none — no placeholders deferred
 -->
 
@@ -88,9 +101,49 @@ agent-escalation, and technical-error screens are part of the happy path's defin
 feature whose failure states are unimplemented is not complete, regardless of whether its success
 path ships.
 
+**Happy-Path Development Mode.** A feature's spec may declare happy-path development mode, under
+which the following MAY be deferred rather than shipped with the feature: attempt limits, retry
+routing, and escalation destinations (a failure MAY log and return to the same screen instead of
+routing); the full error taxonomy (a single generic failure state MAY stand in for the specific,
+actionable messages this principle otherwise requires); offline and connectivity handling (the
+network MAY be assumed present); device capability gating and permission-denied paths (permissions
+MAY be assumed granted and the device assumed supported); the timing and performance budgets in
+Principle V and the Product Budgets section (measured once the flow exists, not enforced while it
+is being assembled); analytics event completeness (events MAY be incomplete, but any event that is
+emitted MUST already satisfy Principle VII); and backend integrations (MAY be served by a fake,
+provided the fake satisfies the same contract Principle II already requires of one).
+
+This mode changes nothing else. It does NOT relax: real personal data in development or testing
+(synthetic documents and test faces only, in every mode); persistence of images or biometric
+samples (memory-only in every mode, exactly as this principle and Principle I already require);
+personal data in logs, events, or crash reports, in any mode (Principle VII, unrelaxed);
+Principle I's consent gate (a fake recorder MAY back it, but the flow MUST still pass through it
+in order — the ordering is not something to add afterwards); or the Product Budgets absolute that
+no path presents a valid credential or pass without backend affirmation.
+
+Every relaxation MUST live behind a build flag that cannot be enabled in a release build, and the
+release pipeline MUST fail if one is enabled once such a pipeline exists; until then, the app
+itself MUST fail fast — refusing to run rather than silently shipping the relaxation — if a
+release build is produced with one enabled. A relaxation is configuration, never a deleted code
+path: the code this principle requires still gets written, later, behind the same flag flipped
+off, not invented from scratch at exit.
+
+A feature invoking this mode MUST enumerate its own deferred requirements, by requirement
+identifier, in its spec — a deferral nobody wrote down is not a deferral, it is the exact defect
+this principle exists to prevent. Before any build reaches a real passenger — concretely, before
+the airport pilot integration, the first point a real passenger's document or face reaches the
+app — every deferred requirement across every feature that invoked this mode MUST be either
+implemented or accepted in writing as out of scope for that release. A working demo on synthetic
+data does not end this mode; only that integration, or an explicit written acceptance per
+deferral, does.
+
 Rationale: biometric enrollment fails for ordinary reasons — bad light, a worn document, a face the
 model rejects — and it fails in a queue, with a flight boarding. A dead end there is a passenger who
-misses a flight and an airport that does not renew.
+misses a flight and an airport that does not renew. Happy-path mode exists because the same
+enrollment flow cannot be demonstrated end-to-end, feature by feature, if every feature must also
+ship its full failure taxonomy first — but a relaxation that is not flagged, tracked, and closed
+before a real passenger arrives is the dead end this principle forbids, arriving late instead of
+early.
 
 ### IV. Test-First on the Trust Boundary
 
@@ -399,4 +452,4 @@ planning, code review on every PR, and a review of this document at each release
 principle that was routinely waived is either enforced or amended — a principle that is waived
 without amendment is a governance failure, not a pragmatic exception.
 
-**Version**: 1.3.0 | **Ratified**: 2026-09-21 | **Last Amended**: 2026-09-21
+**Version**: 1.4.0 | **Ratified**: 2026-09-21 | **Last Amended**: 2026-09-21

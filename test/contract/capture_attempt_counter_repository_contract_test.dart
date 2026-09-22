@@ -1,12 +1,15 @@
 // Contract: CaptureAttemptCounterRepository
-// (contracts/capture-attempt-counter-port.md).
+// (contracts/capture-attempt-counter-port.md,
+// contracts/attempt-counter-port-addendum.md).
 //
-// The same 4-case suite runs against BOTH the fake and the real
+// The same case suite runs against BOTH the fake and the real
 // implementation, unmodified — Constitution Principle X's Liskov
-// requirement.
+// requirement. Cases 1-4 run once per AttemptCounterScope (006-selfie-liveness);
+// cases 5-6 prove the scopes are independent of one another.
 import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/data/services/capture_attempt_counter_repository_impl.dart';
 import 'package:aeropass_app/data/services/capture_attempt_counter_service.dart';
+import 'package:aeropass_app/domain/entities/capture_attempt_counter.dart';
 import 'package:aeropass_app/domain/repositories/capture_attempt_counter_repository.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
@@ -25,19 +28,25 @@ class _FakeClock implements Clock {
 
 void main() {
   group('Fake implementation', () {
-    _runContractTests(_FakeHarnessFactory());
+    for (final scope in AttemptCounterScope.values) {
+      group(scope.name, () => _runContractTests(_FakeHarnessFactory(), scope));
+    }
+    _runIndependenceTests(_FakeHarnessFactory());
   });
 
   group('Real implementation', () {
-    _runContractTests(_RealHarnessFactory());
+    for (final scope in AttemptCounterScope.values) {
+      group(scope.name, () => _runContractTests(_RealHarnessFactory(), scope));
+    }
+    _runIndependenceTests(_RealHarnessFactory());
   });
 }
 
-void _runContractTests(_HarnessFactory factory) {
+void _runContractTests(_HarnessFactory factory, AttemptCounterScope scope) {
   test('1. read() with nothing ever written -> Ok(CaptureAttemptCounter(count: 0, ...))', () async {
     final harness = factory.create();
 
-    final result = await harness.repository.read();
+    final result = await harness.repository.read(scope);
 
     final counter = result.when(
       ok: (c) => c,
@@ -52,15 +61,15 @@ void _runContractTests(_HarnessFactory factory) {
     () async {
       final harness = factory.create();
 
-      final first = (await harness.repository.increment()).valueOrNull!;
-      final second = (await harness.repository.increment()).valueOrNull!;
-      final third = (await harness.repository.increment()).valueOrNull!;
+      final first = (await harness.repository.increment(scope)).valueOrNull!;
+      final second = (await harness.repository.increment(scope)).valueOrNull!;
+      final third = (await harness.repository.increment(scope)).valueOrNull!;
 
       expect(third.count, 3);
       expect(second.lastResetAt, first.lastResetAt);
       expect(third.lastResetAt, first.lastResetAt);
 
-      final afterRead = (await harness.repository.read()).valueOrNull!;
+      final afterRead = (await harness.repository.read(scope)).valueOrNull!;
       expect(afterRead.count, 3);
       expect(afterRead.lastResetAt, first.lastResetAt);
     },
@@ -72,14 +81,14 @@ void _runContractTests(_HarnessFactory factory) {
     () async {
       final harness = factory.create();
 
-      final beforeReset = (await harness.repository.increment()).valueOrNull!;
+      final beforeReset = (await harness.repository.increment(scope)).valueOrNull!;
       harness.advanceClock(const Duration(seconds: 1));
-      final afterReset = (await harness.repository.reset()).valueOrNull!;
+      final afterReset = (await harness.repository.reset(scope)).valueOrNull!;
 
       expect(afterReset.count, 0);
       expect(afterReset.lastResetAt.isAfter(beforeReset.lastResetAt), isTrue);
 
-      final read = (await harness.repository.read()).valueOrNull!;
+      final read = (await harness.repository.read(scope)).valueOrNull!;
       expect(read.count, 0);
       expect(read.lastResetAt, afterReset.lastResetAt);
     },
@@ -90,11 +99,11 @@ void _runContractTests(_HarnessFactory factory) {
     '(simulating an app restart)',
     () async {
       final harness = factory.create();
-      final _ = await harness.repository.increment();
-      final _ = await harness.repository.increment();
+      final _ = await harness.repository.increment(scope);
+      final _ = await harness.repository.increment(scope);
 
       final restarted = harness.createNewInstance();
-      final result = await restarted.read();
+      final result = await restarted.read(scope);
 
       final counter = result.when(
         ok: (c) => c,
@@ -103,6 +112,53 @@ void _runContractTests(_HarnessFactory factory) {
       expect(counter.count, 2);
     },
   );
+}
+
+void _runIndependenceTests(_HarnessFactory factory) {
+  group('scope independence (attempt-counter-port-addendum.md)', () {
+    test(
+      '5. incrementing one scope does not affect another scope\'s count',
+      () async {
+        final harness = factory.create();
+
+        final _ = await harness.repository.increment(AttemptCounterScope.documentCapture);
+        final _ = await harness.repository.increment(AttemptCounterScope.documentCapture);
+
+        final documentCount = (await harness.repository.read(
+          AttemptCounterScope.documentCapture,
+        )).valueOrNull!;
+        final selfieCount = (await harness.repository.read(
+          AttemptCounterScope.selfieLiveness,
+        )).valueOrNull!;
+
+        expect(documentCount.count, 2);
+        expect(selfieCount.count, 0);
+      },
+    );
+
+    test(
+      '6. resetting one scope does not affect another scope\'s nonzero count',
+      () async {
+        final harness = factory.create();
+
+        final _ = await harness.repository.increment(AttemptCounterScope.documentCapture);
+        final _ = await harness.repository.increment(AttemptCounterScope.selfieLiveness);
+        final _ = await harness.repository.increment(AttemptCounterScope.selfieLiveness);
+
+        final _ = await harness.repository.reset(AttemptCounterScope.documentCapture);
+
+        final documentCount = (await harness.repository.read(
+          AttemptCounterScope.documentCapture,
+        )).valueOrNull!;
+        final selfieCount = (await harness.repository.read(
+          AttemptCounterScope.selfieLiveness,
+        )).valueOrNull!;
+
+        expect(documentCount.count, 0);
+        expect(selfieCount.count, 2);
+      },
+    );
+  });
 }
 
 /// Stages a contract scenario's preconditions, independently of which
@@ -147,10 +203,12 @@ class _FakeHarness implements _Harness {
     // this fake's substitute for "a new instance reads the same
     // underlying store" — the real implementation's harness below is what
     // actually proves persistence across a fresh object graph.
-    final snapshot = _repo.currentForTesting;
     final next = FakeCaptureAttemptCounterRepository(now: _clock.now);
-    if (snapshot != null) {
-      next.seed(snapshot);
+    for (final scope in AttemptCounterScope.values) {
+      final snapshot = _repo.currentForTesting(scope);
+      if (snapshot != null) {
+        next.seed(scope, snapshot);
+      }
     }
     _repo = next;
     return next;

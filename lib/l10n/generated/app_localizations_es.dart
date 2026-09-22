@@ -315,4 +315,180 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get captureRejectionRetryLabel => 'Reintentar';
+
+  @override
+  String get confirmationNoticeText =>
+      'Verifica que los datos coincidan exactamente con tu documento original.';
+
+  @override
+  String get confirmationCapturedBadgeLabel => 'Capturado';
+
+  @override
+  String get confirmationFieldFullNameLabel => 'Nombre completo';
+
+  @override
+  String get confirmationFieldDocumentNumberLabel => 'Número de documento';
+
+  @override
+  String get confirmationFieldNationalityLabel => 'Nacionalidad';
+
+  @override
+  String get confirmationFieldExpiryDateLabel => 'Fecha de vencimiento';
+
+  @override
+  String get confirmationEditActionLabel => 'Editar';
+
+  @override
+  String get confirmationSaveEditLabel => 'Guardar';
+
+  @override
+  String get confirmationCancelEditLabel => 'Cancelar';
+
+  @override
+  String get confirmationInvalidFormatMessage =>
+      'El valor ingresado no tiene el formato esperado.';
+
+  @override
+  String get confirmationUnresolvedMessage =>
+      'No pudimos confirmar este dato con tu documento. Puedes intentarlo de nuevo o escanear otra vez.';
+
+  @override
+  String get confirmationReverifyingLabel => 'Verificando...';
+
+  @override
+  String get confirmationPrimaryActionLabel => 'Los datos son correctos';
+
+  @override
+  String get confirmationSecondaryActionLabel => 'Escanear de nuevo';
+
+  @override
+  String get confirmationConfirmFailedMessage =>
+      'No pudimos guardar tus datos. Verifica tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get confirmationMissingFieldLabel => 'No pudimos leer este dato';
+
+  @override
+  String get confirmationExpiredHeadline => 'Tu documento está vencido';
+
+  @override
+  String get confirmationExpiredBody =>
+      'No podemos continuar la inscripción con un documento vencido.';
+
+  @override
+  String get confirmationMissingFieldHeadline =>
+      'No pudimos leer todos los datos de tu documento';
+
+  @override
+  String get confirmationMissingFieldBody =>
+      'Vuelve a escanear tu documento para intentar leer el dato faltante.';
+
+  @override
+  String get selfieInstructionsTitle => 'Ahora una selfie';
+
+  @override
+  String get selfieInstructionsSubtitle =>
+      'Necesitamos confirmar que eres el titular del documento.';
+
+  @override
+  String get selfieInstructionsRuleLightingLabel =>
+      'Buena iluminación, de frente a la luz';
+
+  @override
+  String get selfieInstructionsRuleFaceVisibleLabel =>
+      'Rostro descubierto y visible por completo';
+
+  @override
+  String get selfieInstructionsRuleEyesLabel => 'Mira directamente a la cámara';
+
+  @override
+  String get selfieInstructionsPrimaryActionLabel => 'Tomar selfie';
+
+  @override
+  String get livenessFooter =>
+      'La captura es automática — no toques la pantalla';
+
+  @override
+  String livenessProgressBadge(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get livenessInstructionMoveCloser => 'Acércate un poco';
+
+  @override
+  String get livenessInstructionMoveBack => 'Aléjate un poco';
+
+  @override
+  String get livenessInstructionCenterFace => 'Centra tu rostro en el óvalo';
+
+  @override
+  String get livenessInstructionHoldStill => 'Mantente quieto';
+
+  @override
+  String get livenessInstructionLookAtCamera => 'Mira directamente a la cámara';
+
+  @override
+  String get livenessInstructionImproveLighting =>
+      'Busca un lugar con mejor iluminación';
+
+  @override
+  String get livenessFailureGenericHeadline =>
+      'No pudimos completar la captura';
+
+  @override
+  String get livenessFailureGenericBody =>
+      'Vuelve a intentarlo en un lugar con buena luz, mirando directamente a la cámara.';
+
+  @override
+  String get livenessFailureTooDarkHeadline => 'Hay poca luz';
+
+  @override
+  String get livenessFailureTooDarkBody =>
+      'Busca un lugar con mejor iluminación y vuelve a intentarlo.';
+
+  @override
+  String get livenessFailureFaceOutOfFrameHeadline =>
+      'No pudimos ver tu rostro completo';
+
+  @override
+  String get livenessFailureFaceOutOfFrameBody =>
+      'Centra tu rostro dentro del óvalo y vuelve a intentarlo.';
+
+  @override
+  String get livenessFailureMovementDetectedHeadline =>
+      'Detectamos demasiado movimiento';
+
+  @override
+  String get livenessFailureMovementDetectedBody =>
+      'Mantente quieto durante la captura y vuelve a intentarlo.';
+
+  @override
+  String get livenessFailureMultipleFacesDetectedHeadline =>
+      'Detectamos más de un rostro';
+
+  @override
+  String get livenessFailureMultipleFacesDetectedBody =>
+      'Asegúrate de que solo tu rostro esté frente a la cámara y vuelve a intentarlo.';
+
+  @override
+  String get livenessFailureFaceObstructedHeadline =>
+      'Tu rostro no está completamente visible';
+
+  @override
+  String get livenessFailureFaceObstructedBody =>
+      'Descubre tu rostro por completo y vuelve a intentarlo.';
+
+  @override
+  String get livenessFailureRetryLabel => 'Reintentar';
+
+  @override
+  String get livenessStalledHeadline => 'La captura tardó más de lo esperado';
+
+  @override
+  String get livenessStalledBody =>
+      'Vuelve a intentarlo en un lugar con buena luz y señal.';
+
+  @override
+  String get livenessStalledRetryLabel => 'Reintentar';
 }

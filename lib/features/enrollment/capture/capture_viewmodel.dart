@@ -4,6 +4,7 @@ import 'package:camera/camera.dart' show CameraController;
 import 'package:flutter/foundation.dart';
 
 import '../../../app/enrollment_session_controller.dart';
+import '../../../app/pending_document_controller.dart';
 import '../../../core/command.dart';
 import '../../../core/result.dart';
 import '../../../data/services/camera_capture_service.dart';
@@ -12,6 +13,7 @@ import '../../../domain/entities/capture_attempt_counter.dart';
 import '../../../domain/entities/capture_outcome.dart';
 import '../../../domain/entities/consent_record.dart';
 import '../../../domain/entities/enrollment_session.dart';
+import '../../../domain/entities/extraction_result.dart';
 import '../../../domain/repositories/analytics_emitter.dart';
 import '../../../domain/repositories/capture_attempt_counter_repository.dart';
 import '../../../domain/repositories/consent_repository.dart';
@@ -37,6 +39,7 @@ class CaptureViewModel extends ChangeNotifier {
     required DocumentVerificationRepository verificationRepository,
     required CaptureAttemptCounterRepository attemptCounterRepository,
     required EnrollmentSessionController enrollmentSessionController,
+    required PendingDocumentController pendingDocumentController,
     required AnalyticsEmitter analyticsEmitter,
     required SystemSettingsLauncher systemSettingsLauncher,
   }) : _consentRepository = consentRepository,
@@ -45,6 +48,7 @@ class CaptureViewModel extends ChangeNotifier {
        _verificationRepository = verificationRepository,
        _attemptCounterRepository = attemptCounterRepository,
        _enrollmentSessionController = enrollmentSessionController,
+       _pendingDocumentController = pendingDocumentController,
        _analyticsEmitter = analyticsEmitter,
        _systemSettingsLauncher = systemSettingsLauncher {
     capture = Command0(_capture);
@@ -60,6 +64,7 @@ class CaptureViewModel extends ChangeNotifier {
   final DocumentVerificationRepository _verificationRepository;
   final CaptureAttemptCounterRepository _attemptCounterRepository;
   final EnrollmentSessionController _enrollmentSessionController;
+  final PendingDocumentController _pendingDocumentController;
   final AnalyticsEmitter _analyticsEmitter;
   final SystemSettingsLauncher _systemSettingsLauncher;
 
@@ -195,7 +200,9 @@ class CaptureViewModel extends ChangeNotifier {
       return Result.error(e, st);
     }
 
-    final counterResult = await _attemptCounterRepository.read();
+    final counterResult = await _attemptCounterRepository.read(
+      AttemptCounterScope.documentCapture,
+    );
     final attemptNumber = (counterResult.valueOrNull?.count ?? 0) + 1;
     _analyticsEmitter.captureAttempted(attemptNumber: attemptNumber);
 
@@ -213,7 +220,8 @@ class CaptureViewModel extends ChangeNotifier {
     final result = await _verificationRepository.submit(frame.submissionBytes);
     return result.when(
       ok: (outcome) => switch (outcome) {
-        CaptureOutcomeAccepted() => _registerAccepted(),
+        CaptureOutcomeAccepted(:final extraction) =>
+          _registerAccepted(frame.submissionBytes, extraction),
         CaptureOutcomeRejected(:final reason) => _registerVerificationRejection(reason),
       },
       error: (_, _) {
@@ -233,8 +241,17 @@ class CaptureViewModel extends ChangeNotifier {
     return _registerRejection(reason);
   }
 
-  Future<Result<void>> _registerAccepted() async {
-    final _ = await _attemptCounterRepository.reset();
+  Future<Result<void>> _registerAccepted(
+    Uint8List documentImageBytes,
+    ExtractionResult extraction,
+  ) async {
+    final _ = await _attemptCounterRepository.reset(
+      AttemptCounterScope.documentCapture,
+    );
+    // 004-confirmar-datos research.md §1: hand the retained bytes and the
+    // processor's extraction forward, in memory only, before navigating —
+    // this is the one hand-off point `PendingDocumentController` exists for.
+    _pendingDocumentController.set(documentImageBytes, extraction);
     _outcomeRecorded = true;
     _analyticsEmitter.captureAccepted();
     _pendingNavigation = CaptureNavigationTarget.dataConfirmation;
@@ -246,12 +263,16 @@ class CaptureViewModel extends ChangeNotifier {
   /// it came from the on-device assessor or the verification processor —
   /// both rejection paths converge here.
   Future<Result<void>> _registerRejection(CaptureRejectionReason reason) async {
-    final incrementResult = await _attemptCounterRepository.increment();
+    final incrementResult = await _attemptCounterRepository.increment(
+      AttemptCounterScope.documentCapture,
+    );
     final count = incrementResult.valueOrNull?.count ?? 0;
     if (count >= captureAttemptLimit) {
       _outcomeRecorded = true;
       _analyticsEmitter.captureAttemptLimitReached();
-      final _ = await _attemptCounterRepository.reset();
+      final _ = await _attemptCounterRepository.reset(
+        AttemptCounterScope.documentCapture,
+      );
       _pendingNavigation = CaptureNavigationTarget.retryGuidance;
       notifyListeners();
       return const Result.ok(null);

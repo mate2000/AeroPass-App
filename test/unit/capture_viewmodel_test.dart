@@ -1,12 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:aeropass_app/app/enrollment_session_controller.dart';
+import 'package:aeropass_app/app/pending_document_controller.dart';
 import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/core/result.dart';
 import 'package:aeropass_app/data/services/camera_capture_service.dart';
 import 'package:aeropass_app/domain/entities/capture_attempt_counter.dart';
 import 'package:aeropass_app/domain/entities/capture_outcome.dart';
 import 'package:aeropass_app/domain/entities/consent_record.dart';
+import 'package:aeropass_app/domain/entities/extraction_result.dart';
 import 'package:aeropass_app/domain/entities/consent_text_version.dart';
 import 'package:aeropass_app/domain/entities/enrollment_attempt_id.dart';
 import 'package:aeropass_app/domain/entities/processing_scope.dart';
@@ -34,6 +36,18 @@ CapturedDocumentFrame _frame() => (
   submissionBytes: Uint8List.fromList([4, 5, 6]),
 );
 
+/// A minimal accepted extraction — this file only needs *an* accepted
+/// outcome to exist, not to exercise 004-confirmar-datos's own field logic.
+const _extraction = ExtractionResult(
+  fields: [
+    ExtractedField.present(
+      key: FieldKey.fullName,
+      value: 'Mateo González Restrepo',
+      confidence: 0.98,
+    ),
+  ],
+);
+
 void main() {
   late FakeConsentRepository consentRepository;
   late FakeCameraCaptureService cameraCaptureService;
@@ -42,6 +56,7 @@ void main() {
   late FakeCaptureAttemptCounterRepository attemptCounterRepository;
   late FakeAnalyticsEmitter analyticsEmitter;
   late EnrollmentSessionController sessionController;
+  late PendingDocumentController pendingDocumentController;
   late FakeSystemSettingsLauncher systemSettingsLauncher;
 
   setUp(() {
@@ -54,6 +69,7 @@ void main() {
     sessionController = EnrollmentSessionController(
       clock: _FixedClock(DateTime.utc(2026, 1, 1)),
     );
+    pendingDocumentController = PendingDocumentController();
     systemSettingsLauncher = FakeSystemSettingsLauncher();
   });
 
@@ -65,6 +81,7 @@ void main() {
       verificationRepository: verificationRepository,
       attemptCounterRepository: attemptCounterRepository,
       enrollmentSessionController: sessionController,
+      pendingDocumentController: pendingDocumentController,
       analyticsEmitter: analyticsEmitter,
       systemSettingsLauncher: systemSettingsLauncher,
     );
@@ -213,9 +230,10 @@ void main() {
         cameraCaptureService.scriptCapture(_frame());
         qualityAssessor.scriptAssessment(const QualityAssessment.usable());
         verificationRepository.scriptSubmit(
-          const Result.ok(CaptureOutcome.accepted()),
+          const Result.ok(CaptureOutcome.accepted(extraction: _extraction)),
         );
         attemptCounterRepository.seed(
+          AttemptCounterScope.documentCapture,
           CaptureAttemptCounter(count: 2, lastResetAt: DateTime.utc(2026, 1, 1)),
         );
 
@@ -227,8 +245,16 @@ void main() {
         );
         expect(viewModel.state, const CaptureViewState.ready());
         expect(verificationRepository.submitCallCount, 1);
-        final counter = (await attemptCounterRepository.read()).valueOrNull!;
+        final counter = (await attemptCounterRepository.read(
+          AttemptCounterScope.documentCapture,
+        )).valueOrNull!;
         expect(counter.count, 0);
+        // 004-confirmar-datos research.md §1: the captured bytes and the
+        // extraction are handed to PendingDocumentController before
+        // navigating, never retained by the ViewModel itself.
+        expect(pendingDocumentController.hasPendingDocument, isTrue);
+        expect(pendingDocumentController.documentImageBytes, _frame().submissionBytes);
+        expect(pendingDocumentController.extraction, _extraction);
         expect(
           analyticsEmitter.events.map((e) => e.name),
           containsAll(['capture_attempted', 'capture_accepted']),
@@ -263,7 +289,9 @@ void main() {
             lastRejectionReason: CaptureRejectionReason.blur,
           ),
         );
-        final counter = (await attemptCounterRepository.read()).valueOrNull!;
+        final counter = (await attemptCounterRepository.read(
+          AttemptCounterScope.documentCapture,
+        )).valueOrNull!;
         expect(counter.count, 1);
         expect(
           analyticsEmitter.events.map((e) => e.name),
@@ -297,7 +325,9 @@ void main() {
             lastRejectionReason: CaptureRejectionReason.glare,
           ),
         );
-        final counter = (await attemptCounterRepository.read()).valueOrNull!;
+        final counter = (await attemptCounterRepository.read(
+          AttemptCounterScope.documentCapture,
+        )).valueOrNull!;
         expect(counter.count, 1);
         expect(
           analyticsEmitter.events.map((e) => e.name),
@@ -329,7 +359,9 @@ void main() {
           viewModel.pendingNavigation,
           CaptureNavigationTarget.retryGuidance,
         );
-        final counter = (await attemptCounterRepository.read()).valueOrNull!;
+        final counter = (await attemptCounterRepository.read(
+          AttemptCounterScope.documentCapture,
+        )).valueOrNull!;
         expect(counter.count, 0);
         expect(
           analyticsEmitter.events.map((e) => e.name),
@@ -358,7 +390,9 @@ void main() {
         await viewModel.capture.run();
 
         expect(viewModel.state, const CaptureViewState.ready(offline: true));
-        final counter = (await attemptCounterRepository.read()).valueOrNull!;
+        final counter = (await attemptCounterRepository.read(
+          AttemptCounterScope.documentCapture,
+        )).valueOrNull!;
         expect(counter.count, 0);
       },
     );
@@ -387,7 +421,7 @@ void main() {
       cameraCaptureService.scriptCapture(_frame());
       qualityAssessor.scriptAssessment(const QualityAssessment.usable());
       verificationRepository.scriptSubmit(
-        const Result.ok(CaptureOutcome.accepted()),
+        const Result.ok(CaptureOutcome.accepted(extraction: _extraction)),
       );
       await viewModel.capture.run();
 

@@ -21,7 +21,8 @@ class PendingDocumentController extends ChangeNotifier {
 
   /// True once a capture has handed off its bytes and extraction, and until
   /// [clear] is called.
-  bool get hasPendingDocument => _documentImageBytes != null && _extraction != null;
+  bool get hasPendingDocument =>
+      _documentImageBytes != null && _extraction != null;
 
   void set(Uint8List documentImageBytes, ExtractionResult extraction) {
     _documentImageBytes = documentImageBytes;

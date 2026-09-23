@@ -67,7 +67,10 @@ class ConsentViewModel extends ChangeNotifier {
   /// (FR-008).
   UnavailableReason? get confirmFailureReason {
     final result = confirm.result;
-    return result?.when(ok: (_) => null, error: (error, _) => _classifyUnavailable(error));
+    return result?.when(
+      ok: (_) => null,
+      error: (error, _) => _classifyUnavailable(error),
+    );
   }
 
   /// Re-attempts the current-text fetch (e.g. after a tap on the

@@ -7,6 +7,7 @@ import '../../domain/entities/processing_scope.dart';
 import '../../domain/repositories/consent_repository.dart';
 import '../models/consent_text_version_response.dart';
 import 'consent_service.dart';
+import 'credential_service.dart';
 
 /// The real `ConsentRepository` implementation, backed by `ConsentService`.
 /// Per contracts/consent-repository-port.md: no `dio` exception, DTO, or
@@ -17,10 +18,19 @@ import 'consent_service.dart';
 /// `FakeConsentRepository`, unmodified (Constitution Principle X, Liskov)
 /// — see test/contract/consent_repository_contract_test.dart.
 class ConsentRepositoryImpl implements ConsentRepository {
-  ConsentRepositoryImpl(this._service, {required Clock clock}) : _clock = clock;
+  ConsentRepositoryImpl(
+    this._service, {
+    required Clock clock,
+    required CredentialService credentialService,
+  }) : _clock = clock,
+       _credentialService = credentialService;
 
   final ConsentService _service;
   final Clock _clock;
+
+  /// 008-identidad-activa, research.md §6: withdrawal deletes the cached
+  /// credential in the same local-effect step.
+  final CredentialService _credentialService;
 
   /// Guards against overlapping opportunistic retries (research.md §4):
   /// `_redirect` may call this more than once in quick succession across
@@ -109,6 +119,16 @@ class ConsentRepositoryImpl implements ConsentRepository {
       // network dependency) is durable the instant this write completes —
       // it does not wait for backend confirmation.
       await _service.writeLocalRecord(pending);
+    } catch (e, st) {
+      return Result.error(e, st);
+    }
+    try {
+      // 008-identidad-activa (contracts/consent-withdrawal-addendum.md):
+      // Principle I — "revoking MUST immediately invalidate the local
+      // credential". Before backend delivery, so it needs no network. A
+      // withdrawal that leaves a usable credential behind is not a
+      // successful withdrawal.
+      await _credentialService.clearCachedCredential();
     } catch (e, st) {
       return Result.error(e, st);
     }

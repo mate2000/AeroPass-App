@@ -62,9 +62,8 @@ class _ConsentViewState extends State<ConsentView> {
     // remains available. Shown via the app-level ScaffoldMessenger
     // (MaterialApp.router provides one above the Navigator), so it
     // persists visibly across the pop back to the welcome screen.
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.consentDeclinedMessage)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.consentDeclinedMessage)));
     context.pop();
   }
 
@@ -144,7 +143,11 @@ class _ConsentSheet extends StatelessWidget {
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
-              BoxShadow(color: Color(0x33000000), blurRadius: 16, offset: Offset(0, -4)),
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 16,
+                offset: Offset(0, -4),
+              ),
             ],
           ),
           child: Column(
@@ -252,13 +255,20 @@ class _ReadyContent extends StatelessWidget {
                     _PriorRecordBanner(message: l10n.consentPriorRecordBanner),
                   ],
                   const SizedBox(height: 8),
-                  for (final point in state.text.points) ConsentPointTile(point: point),
+                  for (final point in state.text.points)
+                    ConsentPointTile(point: point),
                   const SizedBox(height: 8),
                   Text(state.text.rightsStatement, style: textTheme.bodySmall),
                   const SizedBox(height: 8),
-                  Text(state.text.optionalityStatement, style: textTheme.bodySmall),
+                  Text(
+                    state.text.optionalityStatement,
+                    style: textTheme.bodySmall,
+                  ),
                   const SizedBox(height: 8),
-                  Text(state.text.processorDisclosure, style: textTheme.bodySmall),
+                  Text(
+                    state.text.processorDisclosure,
+                    style: textTheme.bodySmall,
+                  ),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton(

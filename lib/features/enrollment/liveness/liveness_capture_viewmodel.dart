@@ -33,7 +33,8 @@ class LivenessCaptureViewModel extends ChangeNotifier {
     required CaptureAttemptCounterRepository attemptCounterRepository,
     required EnrollmentSessionController enrollmentSessionController,
     required AnalyticsEmitter analyticsEmitter,
-    @visibleForTesting Duration sampleInterval = const Duration(milliseconds: 200),
+    @visibleForTesting
+    Duration sampleInterval = const Duration(milliseconds: 200),
     @visibleForTesting Duration stallDuration = const Duration(seconds: 45),
   }) : _livenessVerificationRepository = livenessVerificationRepository,
        _livenessCameraService = livenessCameraService,
@@ -53,8 +54,24 @@ class LivenessCaptureViewModel extends ChangeNotifier {
       _pendingNavigation = LivenessNavigationTarget.documentCapture;
       return;
     }
+    unawaited(_enter());
+  }
+
+  /// 009-reintento (retry-policy addendum): an exhausted limit stays in
+  /// force — entering at the limit goes to retry guidance, and neither the
+  /// camera nor a liveness session is started.
+  Future<void> _enter() async {
+    final counter = await _attemptCounterRepository.read(
+      AttemptCounterScope.selfieLiveness,
+    );
+    if (_aborted) return;
+    if ((counter.valueOrNull?.count ?? 0) >= captureAttemptLimit) {
+      _pendingNavigation = LivenessNavigationTarget.retryGuidance;
+      notifyListeners();
+      return;
+    }
     _analyticsEmitter.livenessStepEntered();
-    unawaited(_runAttempt());
+    await _runAttempt();
   }
 
   final LivenessVerificationRepository _livenessVerificationRepository;
@@ -100,9 +117,22 @@ class LivenessCaptureViewModel extends ChangeNotifier {
   }
 
   /// The live front-camera preview controller, or `null` before the
-  /// camera has started, after it has stopped, or when backed by a fake in
-  /// tests.
-  CameraController? get cameraController => _livenessCameraService.controller;
+  /// camera has started, once it starts stopping, or when backed by a fake
+  /// in tests.
+  CameraController? get cameraController =>
+      _cameraVisible ? _livenessCameraService.controller : null;
+
+  /// Whether the view may render the camera preview. It is cleared, and
+  /// listeners notified, *before* the camera is stopped, so the view drops
+  /// `CameraPreview` before the controller is disposed. Otherwise the
+  /// preview rebuilds against a disposed controller and throws
+  /// `CameraException(Disposed CameraController)`.
+  bool _cameraVisible = false;
+
+  /// Identifies the latest attempt, so an attempt superseded while its
+  /// camera was still starting (e.g. backgrounded by the permission
+  /// dialog, then resumed) doesn't carry on alongside the new one.
+  int _attemptId = 0;
 
   String? _sessionId;
 
@@ -130,6 +160,7 @@ class LivenessCaptureViewModel extends ChangeNotifier {
   }
 
   Future<void> _runAttempt() async {
+    final attemptId = ++_attemptId;
     _aborted = false;
     _transportFailureCount = 0;
     _setState(const LivenessCaptureViewState.loading());
@@ -142,10 +173,20 @@ class LivenessCaptureViewModel extends ChangeNotifier {
       // explicitly deferred by spec.md's happy-path Delivery Mode — a
       // hardware failure here still can't crash the screen, so it's
       // treated as an unclassified failure rather than left unhandled.
+      if (attemptId != _attemptId) return;
       await _completeWith(const LivenessOutcome.unclassifiedFailure());
       return;
     }
-    if (_aborted) return;
+    // A newer attempt now owns the camera; leave it alone.
+    if (attemptId != _attemptId) return;
+    if (_aborted) {
+      // Aborted while the camera was starting: the abort's stop() ran
+      // before there was anything to stop, so release it now.
+      await _livenessCameraService.stop();
+      return;
+    }
+    _cameraVisible = true;
+    notifyListeners();
 
     final sessionResult = await _livenessVerificationRepository.startSession();
     if (_aborted) return;
@@ -220,6 +261,7 @@ class LivenessCaptureViewModel extends ChangeNotifier {
   Future<void> _completeWith(LivenessOutcome outcome) async {
     _cancelStallTimer();
     _aborted = true;
+    _hideCamera();
     await _livenessCameraService.stop();
     _sessionId = null;
     _outcomeRecorded = true;
@@ -230,9 +272,8 @@ class LivenessCaptureViewModel extends ChangeNotifier {
     );
 
     if (outcome is LivenessOutcomeSuccess) {
-      final _ = await _attemptCounterRepository.reset(
-        AttemptCounterScope.selfieLiveness,
-      );
+      // 009-reintento FR-017: passing the liveness check no longer resets the
+      // counter; only a verification match (007) or an agent does.
       _pendingNavigation = LivenessNavigationTarget.verificationProgress;
       _setState(
         LivenessCaptureViewState.outcome(outcome: outcome, limitReached: false),
@@ -249,20 +290,22 @@ class LivenessCaptureViewModel extends ChangeNotifier {
     final limitReached = count >= captureAttemptLimit;
     if (limitReached) {
       _analyticsEmitter.livenessAttemptLimitReached();
-      final _ = await _attemptCounterRepository.reset(
-        AttemptCounterScope.selfieLiveness,
-      );
+      // 009-reintento FR-017: reaching the limit keeps the count.
       _pendingNavigation = LivenessNavigationTarget.retryGuidance;
     }
     _setState(
-      LivenessCaptureViewState.outcome(outcome: outcome, limitReached: limitReached),
+      LivenessCaptureViewState.outcome(
+        outcome: outcome,
+        limitReached: limitReached,
+      ),
     );
   }
 
   LivenessOutcomeKind _kindFor(LivenessOutcome outcome) => switch (outcome) {
     LivenessOutcomeSuccess() => LivenessOutcomeKind.success,
     LivenessOutcomeQualityFailure() => LivenessOutcomeKind.qualityFailure,
-    LivenessOutcomeUnclassifiedFailure() => LivenessOutcomeKind.unclassifiedFailure,
+    LivenessOutcomeUnclassifiedFailure() =>
+      LivenessOutcomeKind.unclassifiedFailure,
     LivenessOutcomeAttackDetected() => LivenessOutcomeKind.attackDetected,
   };
 
@@ -278,15 +321,23 @@ class LivenessCaptureViewModel extends ChangeNotifier {
 
   void _onStalled() {
     _aborted = true;
+    _hideCamera();
     unawaited(_livenessCameraService.stop());
     _sessionId = null;
     _analyticsEmitter.livenessStalled();
     _setState(const LivenessCaptureViewState.stalled());
   }
 
-  void _abort() {
+  void _hideCamera({bool notify = true}) {
+    if (!_cameraVisible) return;
+    _cameraVisible = false;
+    if (notify) notifyListeners();
+  }
+
+  void _abort({bool notify = true}) {
     _aborted = true;
     _cancelStallTimer();
+    _hideCamera(notify: notify);
     unawaited(_livenessCameraService.stop());
     _sessionId = null;
   }
@@ -315,14 +366,17 @@ class LivenessCaptureViewModel extends ChangeNotifier {
   /// resuming a partial attempt.
   Future<void> onAppResumed() async {
     final state = _state;
-    if (state is LivenessCaptureViewLoading || state is LivenessCaptureViewRunning) {
+    if (state is LivenessCaptureViewLoading ||
+        state is LivenessCaptureViewRunning) {
       unawaited(_runAttempt());
     }
   }
 
   @override
   void dispose() {
-    _abort();
+    // The view is being torn down with this ViewModel, so there's no one
+    // left to notify.
+    _abort(notify: false);
     retry.dispose();
     super.dispose();
   }

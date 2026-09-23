@@ -44,7 +44,10 @@ class DocumentThumbnailCard extends StatelessWidget {
                 width: 72,
                 height: 48,
                 color: Colors.white24,
-                child: const Icon(Icons.image_not_supported, color: Colors.white54),
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: Colors.white54,
+                ),
               ),
             ),
           ),
@@ -60,7 +63,11 @@ class DocumentThumbnailCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.check_circle, color: AppColors.teal, size: 16),
+                        const Icon(
+                          Icons.check_circle,
+                          color: AppColors.teal,
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           l10n.confirmationCapturedBadgeLabel,

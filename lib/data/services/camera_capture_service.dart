@@ -146,9 +146,7 @@ class CameraPluginCaptureService implements CameraCaptureService {
     // FR-010: the plugin writes takePicture()'s output to a platform temp
     // path internally; delete it immediately once read into memory so no
     // copy survives on disk past this call.
-    unawaited(
-      File(xFile.path).delete().catchError((_) => File(xFile.path)),
-    );
+    unawaited(File(xFile.path).delete().catchError((_) => File(xFile.path)));
 
     return (analysisBytes: analysisBytes, submissionBytes: submissionBytes);
   }

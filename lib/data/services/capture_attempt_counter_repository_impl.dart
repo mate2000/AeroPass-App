@@ -43,7 +43,8 @@ class CaptureAttemptCounterRepositoryImpl
     AttemptCounterScope scope,
   ) async {
     try {
-      final current = await _service.read(scope) ??
+      final current =
+          await _service.read(scope) ??
           CaptureAttemptCounter(count: 0, lastResetAt: _clock.now());
       final next = current.copyWith(count: current.count + 1);
       await _service.write(scope, next);

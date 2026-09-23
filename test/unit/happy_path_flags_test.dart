@@ -44,17 +44,14 @@ void main() {
     );
   });
 
-  test(
-    "5. the real flags, as compiled into this test binary, are both off "
-    '(no --dart-define was passed to `flutter test`) -> the real, '
-    'unoverridden call is release-safe',
-    () {
-      expect(HappyPathFlags.useFakeConsentBackend, isFalse);
-      expect(HappyPathFlags.useFakeVerificationBackend, isFalse);
-      expect(
-        () => HappyPathFlags.assertReleaseSafe(releaseMode: true),
-        returnsNormally,
-      );
-    },
-  );
+  test("5. the real flags, as compiled into this test binary, are both off "
+      '(no --dart-define was passed to `flutter test`) -> the real, '
+      'unoverridden call is release-safe', () {
+    expect(HappyPathFlags.useFakeConsentBackend, isFalse);
+    expect(HappyPathFlags.useFakeVerificationBackend, isFalse);
+    expect(
+      () => HappyPathFlags.assertReleaseSafe(releaseMode: true),
+      returnsNormally,
+    );
+  });
 }

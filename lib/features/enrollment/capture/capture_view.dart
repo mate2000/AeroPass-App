@@ -100,7 +100,9 @@ class _CaptureViewState extends State<CaptureView> with WidgetsBindingObserver {
             return SafeArea(
               child: Stack(
                 children: [
-                  Positioned.fill(child: _CameraLayer(viewModel: widget.viewModel)),
+                  Positioned.fill(
+                    child: _CameraLayer(viewModel: widget.viewModel),
+                  ),
                   Column(
                     children: [
                       _TopBar(onBack: _onBack),
@@ -109,9 +111,7 @@ class _CaptureViewState extends State<CaptureView> with WidgetsBindingObserver {
                         currentStep: EnrollmentProgressStep.document,
                       ),
                       Expanded(
-                        child: _CaptureBody(
-                          viewModel: widget.viewModel,
-                        ),
+                        child: _CaptureBody(viewModel: widget.viewModel),
                       ),
                     ],
                   ),

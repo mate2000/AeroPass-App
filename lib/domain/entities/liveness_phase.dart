@@ -10,11 +10,14 @@ part 'liveness_phase.freezed.dart';
 /// fallback (asks for nothing new, never regresses progress).
 @freezed
 sealed class LivenessInstruction with _$LivenessInstruction {
-  const factory LivenessInstruction.moveCloser() = LivenessInstructionMoveCloser;
+  const factory LivenessInstruction.moveCloser() =
+      LivenessInstructionMoveCloser;
   const factory LivenessInstruction.moveBack() = LivenessInstructionMoveBack;
-  const factory LivenessInstruction.centerFace() = LivenessInstructionCenterFace;
+  const factory LivenessInstruction.centerFace() =
+      LivenessInstructionCenterFace;
   const factory LivenessInstruction.holdStill() = LivenessInstructionHoldStill;
-  const factory LivenessInstruction.lookAtCamera() = LivenessInstructionLookAtCamera;
+  const factory LivenessInstruction.lookAtCamera() =
+      LivenessInstructionLookAtCamera;
   const factory LivenessInstruction.improveLighting() =
       LivenessInstructionImproveLighting;
 }

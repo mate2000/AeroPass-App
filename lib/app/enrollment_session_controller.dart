@@ -73,6 +73,36 @@ class EnrollmentSessionController extends ChangeNotifier {
 
   /// Clears the current session (e.g. on completion or explicit
   /// cancellation). The next [startOrResume] call creates a fresh one.
+  /// 007-validando research.md §11: a document rejection sends the passenger
+  /// back to document capture. Clearing [EnrollmentSession.identityConfirmed]
+  /// keeps 006's reachability guard honest: a stale link to the liveness
+  /// route cannot skip the new confirmation.
+  void returnToDocumentCapture() {
+    final existing = _current;
+    if (existing == null) return;
+    _current = existing.copyWith(
+      stepReached: const EnrollmentStep.documentCapture(),
+      identityConfirmed: false,
+    );
+    notifyListeners();
+  }
+
+  /// 011-error-tecnico research.md §9: a cold launch that resumes a
+  /// verification rebuilds the session. A verification job exists only after
+  /// 006 submitted a sample, and 006 is reachable only with a confirmed
+  /// identity record, so the backend's job is the proof. Nothing is
+  /// persisted. Does nothing when a session already exists.
+  void resumeAfterVerification() {
+    if (_current != null) return;
+    _current = EnrollmentSession(
+      id: generateUuidV4(),
+      stepReached: const EnrollmentStep.selfieCapture(),
+      startedAt: _clock.now(),
+      identityConfirmed: true,
+    );
+    notifyListeners();
+  }
+
   void clear() {
     _current = null;
     notifyListeners();

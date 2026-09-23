@@ -3,9 +3,12 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../app/enrollment_session_controller.dart';
 import '../app/pending_document_controller.dart';
+import 'activated_credential_handoff.dart';
+import 'technical_error_controller.dart';
 import '../core/clock.dart';
 import '../data/services/camera_capture_service.dart';
 import '../data/services/liveness_camera_service.dart';
@@ -15,6 +18,7 @@ import '../domain/entities/credential_status.dart';
 import '../domain/repositories/analytics_emitter.dart';
 import '../domain/repositories/capture_attempt_counter_repository.dart';
 import '../domain/repositories/consent_repository.dart';
+import '../domain/repositories/credential_issuance_repository.dart';
 import '../domain/repositories/credential_repository.dart';
 import '../domain/repositories/device_capability_checker.dart';
 import '../domain/repositories/document_quality_assessor.dart';
@@ -22,18 +26,33 @@ import '../domain/repositories/document_verification_repository.dart';
 import '../domain/repositories/field_reverification_repository.dart';
 import '../domain/repositories/identity_record_repository.dart';
 import '../domain/repositories/liveness_verification_repository.dart';
+import '../domain/repositories/verification_job_repository.dart';
+import '../data/services/screen_capture_guard.dart';
 import '../features/account/withdrawal_placeholder_view.dart';
 import '../features/account/withdrawal_viewmodel.dart';
-import '../features/agent_escalation_placeholder_view.dart';
+import '../domain/entities/escalation.dart';
+import '../domain/repositories/agent_chat_repository.dart';
+import '../domain/repositories/escalation_repository.dart';
+import '../features/enrollment/escalation/agent_chat_view.dart';
+import '../features/enrollment/escalation/agent_chat_viewmodel.dart';
+import '../features/enrollment/escalation/escalation_view.dart';
+import '../features/enrollment/escalation/escalation_viewmodel.dart';
+import '../features/credential/credential_detail_placeholder_view.dart';
 import '../features/enrollment/capture/capture_view.dart';
 import '../features/enrollment/capture/capture_viewmodel.dart';
 import '../features/enrollment/confirmation/document_confirmation_view.dart';
+import '../features/enrollment/credential_activated/credential_activated_view.dart';
+import '../features/enrollment/credential_activated/credential_activated_viewmodel.dart';
+import '../features/enrollment/credential_activated/credential_not_active_placeholder_view.dart';
 import '../features/enrollment/confirmation/document_confirmation_viewmodel.dart';
 import '../features/enrollment/consent/consent_view.dart';
 import '../features/enrollment/consent/consent_viewmodel.dart';
 import '../features/enrollment/liveness/liveness_capture_view.dart';
 import '../features/enrollment/liveness/liveness_capture_viewmodel.dart';
-import '../features/enrollment/liveness/verification_progress_placeholder_view.dart';
+import '../features/enrollment/verification/verification_progress_view.dart';
+import '../features/enrollment/verification/verification_progress_viewmodel.dart';
+import '../features/enrollment/retry/retry_guidance_view.dart';
+import '../features/enrollment/retry/retry_guidance_viewmodel.dart';
 import '../features/enrollment/selfie/selfie_instructions_view.dart';
 import '../features/enrollment/selfie/selfie_instructions_viewmodel.dart';
 import '../features/enrollment/welcome/recovery_placeholder_view.dart';
@@ -41,8 +60,28 @@ import '../features/enrollment/welcome/terms_placeholder_view.dart';
 import '../features/enrollment/welcome/welcome_view.dart';
 import '../features/enrollment/welcome/welcome_viewmodel.dart';
 import '../features/help_placeholder_view.dart';
-import '../features/retry_guidance_placeholder_view.dart';
-import '../features/trips/trips_placeholder_view.dart';
+import '../features/enrollment/technical_error/technical_error_view.dart';
+import '../features/enrollment/technical_error/technical_error_viewmodel.dart';
+import '../domain/repositories/operational_alert_reporter.dart';
+import '../domain/repositories/service_status_repository.dart';
+import '../domain/entities/verification_job_status.dart';
+import '../domain/entities/verification_outcome.dart';
+import '../domain/repositories/credential_summary_repository.dart';
+import '../domain/repositories/trip_repository.dart';
+import '../features/profile/profile_placeholder_view.dart';
+import '../features/trip_verification_placeholder_view.dart';
+import '../features/trips/trips_home_view.dart';
+import '../features/trips/trips_home_viewmodel.dart';
+import 'home_shell.dart';
+import 'clock_trust_monitor.dart';
+import '../core/happy_path_flags.dart';
+import '../data/dev/dev_pass_repository.dart';
+import '../domain/repositories/device_posture_checker.dart';
+import '../domain/repositories/pass_code_source.dart';
+import '../domain/repositories/pass_display_guard.dart';
+import '../domain/repositories/pass_repository.dart';
+import '../features/pass/pass_view.dart';
+import '../features/pass/pass_viewmodel.dart';
 import 'splash_view.dart';
 
 /// Route paths, named once here rather than scattered as string literals
@@ -56,13 +95,21 @@ abstract final class AppRoutes {
   static const selfieInstructions = '/enrollment/selfie-instructions';
   static const livenessCapture = '/enrollment/liveness-capture';
   static const verificationProgress = '/enrollment/verification-progress';
+  static const credentialActivated = '/enrollment/credential-activated';
+  static const credentialNotActive = '/enrollment/credential-not-active';
+  static const credentialDetail = '/credential';
+  static const technicalError = '/enrollment/technical-error';
   static const retryGuidance = '/enrollment/retry-guidance';
   static const agentEscalation = '/enrollment/agent-escalation';
+  static const agentChat = '/enrollment/agent-chat';
   static const help = '/enrollment/help';
   static const trips = '/trips';
   static const recovery = '/account/recovery';
   static const terms = '/legal/terms';
   static const withdrawal = '/account/withdrawal';
+  static const profile = '/profile';
+  static const tripVerification = '/trip/verification';
+  static const pass = '/trip/pass';
 }
 
 /// The app's `go_router` skeleton, including the credential-status-aware
@@ -88,6 +135,7 @@ GoRouter buildAppRouter({String? initialLocation}) {
   return GoRouter(
     initialLocation: initialLocation ?? AppRoutes.splash,
     redirect: _redirect,
+    observers: [SentryNavigatorObserver()],
     errorBuilder: (context, state) => const SplashView(),
     routes: [
       GoRoute(
@@ -122,10 +170,13 @@ GoRouter buildAppRouter({String? initialLocation}) {
           barrierDismissible: false,
           barrierColor: const Color(0x99000000),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final offsetAnimation = Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
+            final offsetAnimation =
+                Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                );
             return SlideTransition(position: offsetAnimation, child: child);
           },
           child: ChangeNotifierProvider(
@@ -147,15 +198,20 @@ GoRouter buildAppRouter({String? initialLocation}) {
             consentRepository: context.read<ConsentRepository>(),
             cameraCaptureService: context.read<CameraCaptureService>(),
             qualityAssessor: context.read<DocumentQualityAssessor>(),
-            verificationRepository: context.read<DocumentVerificationRepository>(),
-            attemptCounterRepository: context.read<CaptureAttemptCounterRepository>(),
-            enrollmentSessionController: context.read<EnrollmentSessionController>(),
-            pendingDocumentController: context.read<PendingDocumentController>(),
+            verificationRepository: context
+                .read<DocumentVerificationRepository>(),
+            attemptCounterRepository: context
+                .read<CaptureAttemptCounterRepository>(),
+            enrollmentSessionController: context
+                .read<EnrollmentSessionController>(),
+            pendingDocumentController: context
+                .read<PendingDocumentController>(),
             analyticsEmitter: context.read<AnalyticsEmitter>(),
             systemSettingsLauncher: context.read<SystemSettingsLauncher>(),
           ),
           child: Consumer<CaptureViewModel>(
-            builder: (context, viewModel, _) => CaptureView(viewModel: viewModel),
+            builder: (context, viewModel, _) =>
+                CaptureView(viewModel: viewModel),
           ),
         ),
       ),
@@ -163,8 +219,10 @@ GoRouter buildAppRouter({String? initialLocation}) {
         path: AppRoutes.documentConfirmation,
         builder: (context, state) => ChangeNotifierProvider(
           create: (context) => DocumentConfirmationViewModel(
-            pendingDocumentController: context.read<PendingDocumentController>(),
-            fieldReverificationRepository: context.read<FieldReverificationRepository>(),
+            pendingDocumentController: context
+                .read<PendingDocumentController>(),
+            fieldReverificationRepository: context
+                .read<FieldReverificationRepository>(),
             identityRecordRepository: context.read<IdentityRecordRepository>(),
             analyticsEmitter: context.read<AnalyticsEmitter>(),
             enrollmentSessionController: context
@@ -212,23 +270,192 @@ GoRouter buildAppRouter({String? initialLocation}) {
       ),
       GoRoute(
         path: AppRoutes.verificationProgress,
-        builder: (context, state) => const VerificationProgressPlaceholderView(),
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => VerificationProgressViewModel(
+            jobRepository: context.read<VerificationJobRepository>(),
+            issuanceRepository: context.read<CredentialIssuanceRepository>(),
+            handoff: context.read<ActivatedCredentialHandoff>(),
+            enrollmentSessionController: context
+                .read<EnrollmentSessionController>(),
+            pendingDocumentController: context
+                .read<PendingDocumentController>(),
+            attemptCounterRepository: context
+                .read<CaptureAttemptCounterRepository>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+            technicalErrorController: context.read<TechnicalErrorController>(),
+            clock: context.read<Clock>(),
+          ),
+          child: Consumer<VerificationProgressViewModel>(
+            builder: (context, viewModel, _) =>
+                VerificationProgressView(viewModel: viewModel),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.credentialActivated,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => CredentialActivatedViewModel(
+            handoff: context.read<ActivatedCredentialHandoff>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+            screenCaptureGuard: context.read<ScreenCaptureGuard>(),
+          ),
+          child: Consumer<CredentialActivatedViewModel>(
+            builder: (context, viewModel, _) =>
+                CredentialActivatedView(viewModel: viewModel),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.credentialNotActive,
+        builder: (context, state) => const CredentialNotActivePlaceholderView(),
+      ),
+      GoRoute(
+        path: AppRoutes.technicalError,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => TechnicalErrorViewModel(
+            technicalErrorController: context.read<TechnicalErrorController>(),
+            enrollmentSessionController: context
+                .read<EnrollmentSessionController>(),
+            statusRepository: context.read<ServiceStatusRepository>(),
+            alertReporter: context.read<OperationalAlertReporter>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+            clock: context.read<Clock>(),
+          ),
+          child: Consumer<TechnicalErrorViewModel>(
+            builder: (context, viewModel, _) =>
+                TechnicalErrorView(viewModel: viewModel),
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.retryGuidance,
-        builder: (context, state) => const RetryGuidancePlaceholderView(),
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => RetryGuidanceViewModel(
+            attemptCounterRepository: context
+                .read<CaptureAttemptCounterRepository>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+          ),
+          child: Consumer<RetryGuidanceViewModel>(
+            builder: (context, viewModel, _) =>
+                RetryGuidanceView(viewModel: viewModel),
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.agentEscalation,
-        builder: (context, state) => const AgentEscalationPlaceholderView(),
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => EscalationViewModel(
+            escalationRepository: context.read<EscalationRepository>(),
+            issuanceRepository: context.read<CredentialIssuanceRepository>(),
+            handoff: context.read<ActivatedCredentialHandoff>(),
+            enrollmentSessionController: context
+                .read<EnrollmentSessionController>(),
+            attemptCounterRepository: context
+                .read<CaptureAttemptCounterRepository>(),
+            analyticsEmitter: context.read<AnalyticsEmitter>(),
+            clock: context.read<Clock>(),
+          ),
+          child: Consumer<EscalationViewModel>(
+            builder: (context, viewModel, _) =>
+                EscalationView(viewModel: viewModel),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.agentChat,
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (context) => AgentChatViewModel(
+            chatRepository: context.read<AgentChatRepository>(),
+          ),
+          child: Consumer<AgentChatViewModel>(
+            builder: (context, viewModel, _) =>
+                AgentChatView(viewModel: viewModel),
+          ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.help,
         builder: (context, state) => const HelpPlaceholderView(),
       ),
+      // 012-mis-viajes research.md §8: the enrolled passenger's three tabs.
+      ShellRoute(
+        builder: (context, state, child) =>
+            HomeShell(location: state.matchedLocation, child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.trips,
+            builder: (context, state) => ChangeNotifierProvider(
+              create: (context) => TripsHomeViewModel(
+                summaryRepository: context.read<CredentialSummaryRepository>(),
+                tripRepository: context.read<TripRepository>(),
+                analyticsEmitter: context.read<AnalyticsEmitter>(),
+                clock: context.read<Clock>(),
+                passRepository: context.read<PassRepository>(),
+              ),
+              child: Consumer<TripsHomeViewModel>(
+                builder: (context, viewModel, _) =>
+                    TripsHomeView(viewModel: viewModel),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.credentialDetail,
+            builder: (context, state) =>
+                const CredentialDetailPlaceholderView(),
+          ),
+          GoRoute(
+            path: AppRoutes.profile,
+            builder: (context, state) => const ProfilePlaceholderView(),
+          ),
+        ],
+      ),
       GoRoute(
-        path: AppRoutes.trips,
-        builder: (context, state) => const TripsPlaceholderView(),
+        path: AppRoutes.tripVerification,
+        builder: (context, state) => const TripVerificationPlaceholderView(),
+      ),
+      // 014-qr-pase: the pass is always for the trip Mis viajes promotes as
+      // next, read from the in-session snapshot. No trip id travels in the
+      // route, so none reaches navigation breadcrumbs.
+      GoRoute(
+        path: AppRoutes.pass,
+        builder: (context, state) {
+          final trip = context.read<TripRepository>().lastKnown?.next;
+          final passRepository = context.read<PassRepository>();
+          final summaryRepository = context.read<CredentialSummaryRepository>();
+          return ChangeNotifierProvider(
+            create: (context) => PassViewModel(
+              tripId: trip?.id,
+              trip: trip,
+              passRepository: passRepository,
+              codeSource: context.read<PassCodeSource>(),
+              displayGuard: context.read<PassDisplayGuard>(),
+              postureChecker: context.read<DevicePostureChecker>(),
+              clockTrust: context.read<ClockTrustMonitor>(),
+              analyticsEmitter: context.read<AnalyticsEmitter>(),
+              clock: context.read<Clock>(),
+              loadHolderName: () async => (await summaryRepository.getSummary())
+                  .valueOrNull
+                  ?.holderName,
+              // FR-019: the dev control acts through the fake backend only,
+              // and only in a build with the release-refused flag.
+              onDevExpire:
+                  HappyPathFlags.devPassControls &&
+                      passRepository is DevPassRepository &&
+                      trip != null
+                  ? () {
+                      final active = passRepository.activePassFor(trip.id);
+                      if (active != null) {
+                        passRepository.expireNow(active.passId);
+                      }
+                    }
+                  : null,
+            ),
+            child: Consumer<PassViewModel>(
+              builder: (context, viewModel, _) =>
+                  PassView(viewModel: viewModel),
+            ),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.recovery,
@@ -243,6 +470,8 @@ GoRouter buildAppRouter({String? initialLocation}) {
         builder: (context, state) => ChangeNotifierProvider(
           create: (context) => WithdrawalViewModel(
             consentRepository: context.read<ConsentRepository>(),
+            activatedCredentialHandoff: context
+                .read<ActivatedCredentialHandoff>(),
           ),
           child: Consumer<WithdrawalViewModel>(
             builder: (context, viewModel, _) =>
@@ -321,6 +550,10 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
     return identityConfirmed ? null : AppRoutes.documentCapture;
   }
 
+  if (state.matchedLocation == AppRoutes.credentialActivated) {
+    return _credentialActivatedRedirect(context);
+  }
+
   if (!onSplashOrWelcome) {
     // A deep link straight into a stub route (consent/trips/recovery/
     // terms/withdrawal) is let through unguarded — none of those need a
@@ -329,6 +562,12 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   }
 
   final repository = context.read<CredentialRepository>();
+  final consentRepository = context.read<ConsentRepository>();
+  final escalationRepository = context.read<EscalationRepository>();
+  final jobRepository = context.read<VerificationJobRepository>();
+  final enrollmentSessionController = context
+      .read<EnrollmentSessionController>();
+  final clock = context.read<Clock>();
   final result = await repository.getStatus();
   final status = result.when(
     ok: (value) => value,
@@ -345,5 +584,91 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
     return state.matchedLocation == AppRoutes.trips ? null : AppRoutes.trips;
   }
 
+  // 011 contracts/launch-routing-addendum.md: resuming an escalation or a
+  // verification happens on cold launch only. Going to welcome shows welcome;
+  // before this, 010's "Volver al inicio" bounced straight back.
+  final coldLaunch = state.matchedLocation == AppRoutes.splash;
+  if (coldLaunch && status is NoCredential) {
+    if (await _hasOpenEscalation(consentRepository, escalationRepository)) {
+      return AppRoutes.agentEscalation;
+    }
+    if (await _hasResumableVerification(
+      consentRepository,
+      jobRepository,
+      clock,
+    )) {
+      enrollmentSessionController.resumeAfterVerification();
+      return AppRoutes.verificationProgress;
+    }
+  }
+
   return state.matchedLocation == AppRoutes.welcome ? null : AppRoutes.welcome;
+}
+
+/// 010-escalar-agente FR-010: a passenger who left screen 10 with an
+/// escalation still open (or resolved while away) resumes there on launch.
+/// Keyed by the consent record's enrollment attempt, so only an active
+/// consent can have one; any failed read falls through to welcome.
+Future<bool> _hasOpenEscalation(
+  ConsentRepository consentRepository,
+  EscalationRepository escalationRepository,
+) async {
+  final consent = (await consentRepository.getLocalRecord()).valueOrNull;
+  if (consent?.status != ConsentRecordStatus.active) return false;
+  final status = (await escalationRepository.getStatus()).valueOrNull;
+  return status is EscalationOpen || status is EscalationResolved;
+}
+
+/// 011-error-tecnico FR-012: a verification that failed within the backend's
+/// 24-hour window resumes into 007, which re-reads the same job. A rejection
+/// is not resumable here (009 owns it), and any failed read falls through to
+/// welcome.
+Future<bool> _hasResumableVerification(
+  ConsentRepository consentRepository,
+  VerificationJobRepository jobRepository,
+  Clock clock,
+) async {
+  final consent = (await consentRepository.getLocalRecord()).valueOrNull;
+  if (consent?.status != ConsentRecordStatus.active) return false;
+  final job = (await jobRepository.getStatus()).valueOrNull;
+  final until = switch (job) {
+    VerificationJobInProgress(:final resumableUntil) => resumableUntil,
+    VerificationJobCompleted(
+      :final resumableUntil,
+      outcome: VerificationServiceFailure() || VerificationMatched(),
+    ) =>
+      resumableUntil,
+    _ => null,
+  };
+  return until != null && until.isAfter(clock.now());
+}
+
+/// 008-identidad-activa research.md §5: screen 08 builds only while the
+/// in-memory hand-off holds a backend-confirmed credential AND consent is
+/// still active (FR-001, FR-009, FR-011). Every other entry — a link,
+/// restored navigation, a stale back-stack entry — is redirected: to the
+/// credential surface if a valid credential exists, otherwise back to
+/// splash, which applies spec 001's launch rule.
+Future<String?> _credentialActivatedRedirect(BuildContext context) async {
+  final handoff = context.read<ActivatedCredentialHandoff>();
+  final consentRepository = context.read<ConsentRepository>();
+  final credentialRepository = context.read<CredentialRepository>();
+
+  if (handoff.hasCredential) {
+    final consent = (await consentRepository.getLocalRecord()).valueOrNull;
+    if (consent?.status == ConsentRecordStatus.active) return null;
+    handoff.clear();
+    return AppRoutes.splash;
+  }
+
+  final status = (await credentialRepository.getStatus()).when(
+    ok: (value) => value,
+    error: (_, _) => const CredentialStatus.unreachable(lastKnownStatus: null),
+  );
+  final hasValidCredential = switch (status) {
+    Valid() => true,
+    Unreachable(lastKnownStatus: final last) => last is Valid,
+    NoCredential() || ExpiredOrRevoked() => false,
+  };
+  return hasValidCredential ? AppRoutes.credentialDetail : AppRoutes.splash;
 }

@@ -135,11 +135,20 @@ class _FieldRowState extends State<FieldRow> {
             ],
           ),
           if (widget.state.status is FieldCorrectionInvalidFormat)
-            _StatusMessage(text: l10n.confirmationInvalidFormatMessage, error: true),
+            _StatusMessage(
+              text: l10n.confirmationInvalidFormatMessage,
+              error: true,
+            ),
           if (widget.state.status is FieldCorrectionUnresolved)
-            _StatusMessage(text: l10n.confirmationUnresolvedMessage, error: true),
+            _StatusMessage(
+              text: l10n.confirmationUnresolvedMessage,
+              error: true,
+            ),
           if (busy)
-            _StatusMessage(text: l10n.confirmationReverifyingLabel, error: false),
+            _StatusMessage(
+              text: l10n.confirmationReverifyingLabel,
+              error: false,
+            ),
         ],
       ),
     );
@@ -180,7 +189,9 @@ class _StatusMessage extends StatelessWidget {
               child: Text(
                 text,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: error ? Theme.of(context).colorScheme.error : Colors.grey[700],
+                  color: error
+                      ? Theme.of(context).colorScheme.error
+                      : Colors.grey[700],
                 ),
               ),
             ),

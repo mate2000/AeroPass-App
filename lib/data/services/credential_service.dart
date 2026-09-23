@@ -28,9 +28,17 @@ class CredentialService {
   static const String tokenKey = 'aeropass.credential.token';
   static const String validUntilKey = 'aeropass.credential.valid_until';
 
-  /// Reads the credential cached by the credential-issuance feature. This
-  /// screen only ever reads this value; it never writes it (Constitution
-  /// Principle I's persisted-state allowlist).
+  /// 012-mis-viajes research.md §1: the display-only identity fields the
+  /// passenger already saw on 004 and 008, allowed by Principle I's
+  /// allowlist, so the home strip renders offline. Never the full number.
+  static const String holderNameKey = 'aeropass.credential.holder_name';
+  static const String documentLast4Key = 'aeropass.credential.document_last4';
+
+  /// Reads the credential cached by the credential-issuance feature
+  /// (008-identidad-activa). The welcome screen only ever reads this value;
+  /// the issuance repository writes it, and consent withdrawal deletes it
+  /// (Constitution Principle I's persisted-state allowlist: the token and
+  /// its validity window, nothing else).
   Future<Credential?> readCachedCredential() async {
     final token = await _secureStorage.read(key: tokenKey);
     final validUntilRaw = await _secureStorage.read(key: validUntilKey);
@@ -52,5 +60,56 @@ class CredentialService {
       queryParameters: token == null ? null : {'token': token},
     );
     return CredentialStatusResponse.fromJson(response.data!);
+  }
+
+  /// 008-identidad-activa, research.md §3: written by the issuance
+  /// repository on a confirmed active credential, before success is
+  /// reported. Exactly the two allowlisted values.
+  Future<void> writeCachedCredential({
+    required String token,
+    required DateTime validUntil,
+    String? holderName,
+    String? documentLast4,
+  }) async {
+    await _secureStorage.write(key: tokenKey, value: token);
+    await _secureStorage.write(
+      key: validUntilKey,
+      value: validUntil.toUtc().toIso8601String(),
+    );
+    await writeDisplayFields(
+      holderName: holderName,
+      documentLast4: documentLast4,
+    );
+  }
+
+  /// 012-mis-viajes: the stored display fields, or nulls.
+  Future<({String? holderName, String? documentLast4})>
+  readDisplayFields() async => (
+    holderName: await _secureStorage.read(key: holderNameKey),
+    documentLast4: await _secureStorage.read(key: documentLast4Key),
+  );
+
+  /// 012-mis-viajes: stores whichever display fields are given; a null
+  /// leaves that field as it is.
+  Future<void> writeDisplayFields({
+    String? holderName,
+    String? documentLast4,
+  }) async {
+    if (holderName != null) {
+      await _secureStorage.write(key: holderNameKey, value: holderName);
+    }
+    if (documentLast4 != null) {
+      await _secureStorage.write(key: documentLast4Key, value: documentLast4);
+    }
+  }
+
+  /// 008-identidad-activa, research.md §6: called by consent withdrawal —
+  /// "revoking MUST immediately invalidate the local credential"
+  /// (Constitution Principle I).
+  Future<void> clearCachedCredential() async {
+    await _secureStorage.delete(key: tokenKey);
+    await _secureStorage.delete(key: validUntilKey);
+    await _secureStorage.delete(key: holderNameKey);
+    await _secureStorage.delete(key: documentLast4Key);
   }
 }

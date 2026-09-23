@@ -32,48 +32,42 @@ void main() {
 Uint8List get _sampleBytes => Uint8List.fromList(List.filled(16, 1));
 
 void _runContractTests(_HarnessFactory factory) {
-  test(
-    '1. Candidate value matches what the retained image shows -> '
-    'Ok(FieldReverificationOutcome.confirmed())',
-    () async {
-      final harness = factory.create();
-      harness.givenConfirmed();
+  test('1. Candidate value matches what the retained image shows -> '
+      'Ok(FieldReverificationOutcome.confirmed())', () async {
+    final harness = factory.create();
+    harness.givenConfirmed();
 
-      final result = await harness.repository.reverify(
-        documentImageBytes: _sampleBytes,
-        field: FieldKey.fullName,
-        candidateValue: 'Mateo González Restrepo',
-      );
+    final result = await harness.repository.reverify(
+      documentImageBytes: _sampleBytes,
+      field: FieldKey.fullName,
+      candidateValue: 'Mateo González Restrepo',
+    );
 
-      expect(
-        result,
-        const Result<FieldReverificationOutcome>.ok(
-          FieldReverificationOutcome.confirmed(),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<FieldReverificationOutcome>.ok(
+        FieldReverificationOutcome.confirmed(),
+      ),
+    );
+  });
 
-  test(
-    '2. Candidate value does not match -> Ok(FieldReverificationOutcome.disagreed())',
-    () async {
-      final harness = factory.create();
-      harness.givenDisagreed();
+  test('2. Candidate value does not match -> Ok(FieldReverificationOutcome.disagreed())', () async {
+    final harness = factory.create();
+    harness.givenDisagreed();
 
-      final result = await harness.repository.reverify(
-        documentImageBytes: _sampleBytes,
-        field: FieldKey.documentNumber,
-        candidateValue: 'CC 9.999.999.999',
-      );
+    final result = await harness.repository.reverify(
+      documentImageBytes: _sampleBytes,
+      field: FieldKey.documentNumber,
+      candidateValue: 'CC 9.999.999.999',
+    );
 
-      expect(
-        result,
-        const Result<FieldReverificationOutcome>.ok(
-          FieldReverificationOutcome.disagreed(),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<FieldReverificationOutcome>.ok(
+        FieldReverificationOutcome.disagreed(),
+      ),
+    );
+  });
 
   test('3. Offline / transport failure -> Error', () async {
     final harness = factory.create();
@@ -88,27 +82,24 @@ void _runContractTests(_HarnessFactory factory) {
     expect(result.isError, isTrue);
   });
 
-  test(
-    '4. A field the processor cannot re-read -> the mapping still resolves '
-    'to disagreed(), never an unhandled exception',
-    () async {
-      final harness = factory.create();
-      harness.givenUnrecognizedResponse();
+  test('4. A field the processor cannot re-read -> the mapping still resolves '
+      'to disagreed(), never an unhandled exception', () async {
+    final harness = factory.create();
+    harness.givenUnrecognizedResponse();
 
-      final result = await harness.repository.reverify(
-        documentImageBytes: _sampleBytes,
-        field: FieldKey.expiryDate,
-        candidateValue: '2031-03-14',
-      );
+    final result = await harness.repository.reverify(
+      documentImageBytes: _sampleBytes,
+      field: FieldKey.expiryDate,
+      candidateValue: '2031-03-14',
+    );
 
-      expect(
-        result,
-        const Result<FieldReverificationOutcome>.ok(
-          FieldReverificationOutcome.disagreed(),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<FieldReverificationOutcome>.ok(
+        FieldReverificationOutcome.disagreed(),
+      ),
+    );
+  });
 }
 
 /// Stages a contract scenario's preconditions, independently of which

@@ -32,7 +32,9 @@ class FakeLivenessVerificationRepository
   /// the sequence is exhausted, so a test scripting `[inProgress,
   /// inProgress, completed(success)]` doesn't need to know exactly how many
   /// times the ViewModel's loop samples.
-  void scriptSubmitSampleSequence(List<Result<LivenessSampleOutcome>> responses) {
+  void scriptSubmitSampleSequence(
+    List<Result<LivenessSampleOutcome>> responses,
+  ) {
     _submitSampleQueue
       ..clear()
       ..addAll(responses);

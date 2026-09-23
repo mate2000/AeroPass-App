@@ -31,21 +31,18 @@ void main() {
   );
 
   group('T012 [US1]: entry', () {
-    test(
-      'construction advances the enrollment session to selfieCapture and emits entry analytics',
-      () {
-        buildViewModel();
+    test('construction advances the enrollment session to selfieCapture and emits entry analytics', () {
+      buildViewModel();
 
-        expect(
-          sessionController.current!.stepReached,
-          const EnrollmentStep.selfieCapture(),
-        );
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          contains('selfie_instructions_step_entered'),
-        );
-      },
-    );
+      expect(
+        sessionController.current!.stepReached,
+        const EnrollmentStep.selfieCapture(),
+      );
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        contains('selfie_instructions_step_entered'),
+      );
+    });
   });
 
   group('T012 [US1]: advance', () {

@@ -29,6 +29,25 @@ void main() {
 
   group('Real implementation', () {
     _runContractTests(_RealHarnessFactory());
+
+    // 012-mis-viajes T002: the home strip names a suspended credential.
+    test(
+      'a cached credential reported suspended -> ExpiredOrRevoked(suspended)',
+      () async {
+        final harness = _RealHarness();
+        await harness.givenCachedCredentialReportedRevoked();
+        harness._adapter.respondWith({'status': 'suspended'});
+
+        final result = await harness.repository.getStatus();
+
+        expect(
+          result.valueOrNull,
+          const CredentialStatus.expiredOrRevoked(
+            reason: ExpiryReason.suspended,
+          ),
+        );
+      },
+    );
   });
 }
 

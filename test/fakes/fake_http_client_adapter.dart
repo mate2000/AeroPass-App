@@ -12,6 +12,12 @@ class FakeHttpClientAdapter implements HttpClientAdapter {
   int _statusCode = 200;
   Object? _error;
 
+  /// 007: lets a contract test assert that no request was sent.
+  int requestCount = 0;
+
+  /// The most recent request, for asserting its path and query.
+  RequestOptions? lastRequest;
+
   void respondWith(Map<String, dynamic> json, {int statusCode = 200}) {
     _jsonBody = json;
     _statusCode = statusCode;
@@ -29,6 +35,8 @@ class FakeHttpClientAdapter implements HttpClientAdapter {
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
   ) async {
+    requestCount++;
+    lastRequest = options;
     final error = _error;
     if (error != null) {
       throw error;

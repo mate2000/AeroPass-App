@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 /// (005-instrucciones-selfie).
 ///
 /// Each flag is a `bool.fromEnvironment(...)` compile-time constant, set at
-/// build time via `--dart-define=...` (see `.vscode/launch.json`'s "dev,
-/// offline demo" config) — never a runtime toggle. [assertReleaseSafe] is
+/// build time via `--dart-define=...` (see `env/dev-offline.env`, used by
+/// `.vscode/launch.json`'s "dev, offline demo" config) — never a runtime toggle. [assertReleaseSafe] is
 /// the interim enforcement of the constitution's "the release pipeline
 /// MUST fail if one is enabled" requirement: this project has no CI/release
 /// pipeline yet, so the app itself fails fast instead (research.md §4,
@@ -42,6 +42,11 @@ abstract final class HappyPathFlags {
   /// `--dart-define` — real callers (`main()`) never pass it, so the real
   /// flags (compile-time constants) are what's actually checked in
   /// production.
+  /// 014-qr-pase FR-019 (contracts/release-gate.md): shows "Simular
+  /// expirado" on the pass. It manipulates pass validity through the fake
+  /// backend only, and a release build refuses to start with it on.
+  static const bool devPassControls = bool.fromEnvironment('DEV_PASS_CONTROLS');
+
   static void assertReleaseSafe({
     bool releaseMode = kReleaseMode,
     List<String>? enabledFlagNamesOverride,
@@ -52,6 +57,7 @@ abstract final class HappyPathFlags {
         <String>[
           if (useFakeConsentBackend) 'USE_FAKE_CONSENT_BACKEND',
           if (useFakeVerificationBackend) 'USE_FAKE_VERIFICATION_BACKEND',
+          if (devPassControls) 'DEV_PASS_CONTROLS',
         ];
     if (enabled.isEmpty) return;
     throw StateError(

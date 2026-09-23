@@ -34,104 +34,95 @@ void main() {
 Uint8List get _sampleBytes => Uint8List.fromList(List.filled(16, 1));
 
 void _runContractTests(_HarnessFactory factory) {
-  test(
-    '1. Submission accepted by the processor -> Ok(CaptureOutcome.accepted) '
-    'with every field present (contracts/document-verification-port-addendum.md)',
-    () async {
-      final harness = factory.create();
-      harness.givenAccepted();
+  test('1. Submission accepted by the processor -> Ok(CaptureOutcome.accepted) '
+      'with every field present (contracts/document-verification-port-addendum.md)', () async {
+    final harness = factory.create();
+    harness.givenAccepted();
 
-      final result = await harness.repository.submit(_sampleBytes);
+    final result = await harness.repository.submit(_sampleBytes);
 
-      expect(
-        result,
-        const Result<CaptureOutcome>.ok(
-          CaptureOutcome.accepted(
-            extraction: ExtractionResult(
-              fields: [
-                ExtractedField.present(
-                  key: FieldKey.fullName,
-                  value: 'Mateo González Restrepo',
-                  confidence: 0.98,
-                ),
-                ExtractedField.present(
-                  key: FieldKey.documentNumber,
-                  value: 'CC 1.234.567.890',
-                  confidence: 0.97,
-                ),
-                ExtractedField.present(
-                  key: FieldKey.nationality,
-                  value: 'Colombiana',
-                  confidence: 0.99,
-                ),
-                ExtractedField.present(
-                  key: FieldKey.expiryDate,
-                  value: '2031-03-14',
-                  confidence: 0.95,
-                ),
-              ],
-            ),
+    expect(
+      result,
+      const Result<CaptureOutcome>.ok(
+        CaptureOutcome.accepted(
+          extraction: ExtractionResult(
+            fields: [
+              ExtractedField.present(
+                key: FieldKey.fullName,
+                value: 'Mateo González Restrepo',
+                confidence: 0.98,
+              ),
+              ExtractedField.present(
+                key: FieldKey.documentNumber,
+                value: 'CC 1.234.567.890',
+                confidence: 0.97,
+              ),
+              ExtractedField.present(
+                key: FieldKey.nationality,
+                value: 'Colombiana',
+                confidence: 0.99,
+              ),
+              ExtractedField.present(
+                key: FieldKey.expiryDate,
+                value: '2031-03-14',
+                confidence: 0.95,
+              ),
+            ],
           ),
         ),
-      );
-    },
-  );
+      ),
+    );
+  });
 
-  test(
-    '1b. Submission accepted with one field absent from the response -> '
-    'that field maps to ExtractedField.missing, others unaffected',
-    () async {
-      final harness = factory.create();
-      harness.givenAcceptedWithMissingField(FieldKey.nationality);
+  test('1b. Submission accepted with one field absent from the response -> '
+      'that field maps to ExtractedField.missing, others unaffected', () async {
+    final harness = factory.create();
+    harness.givenAcceptedWithMissingField(FieldKey.nationality);
 
-      final result = await harness.repository.submit(_sampleBytes);
+    final result = await harness.repository.submit(_sampleBytes);
 
-      final outcome = result.valueOrNull;
-      expect(outcome, isA<CaptureOutcomeAccepted>());
-      final extraction = (outcome as CaptureOutcomeAccepted).extraction;
-      expect(
-        extraction.fieldFor(FieldKey.nationality),
-        const ExtractedField.missing(key: FieldKey.nationality),
-      );
-      expect(extraction.fieldFor(FieldKey.fullName), isA<ExtractedFieldPresent>());
-    },
-  );
+    final outcome = result.valueOrNull;
+    expect(outcome, isA<CaptureOutcomeAccepted>());
+    final extraction = (outcome as CaptureOutcomeAccepted).extraction;
+    expect(
+      extraction.fieldFor(FieldKey.nationality),
+      const ExtractedField.missing(key: FieldKey.nationality),
+    );
+    expect(
+      extraction.fieldFor(FieldKey.fullName),
+      isA<ExtractedFieldPresent>(),
+    );
+  });
 
-  test(
-    '2. Submission rejected for blur -> '
-    'Ok(CaptureOutcome.rejected(CaptureRejectionReason.blur))',
-    () async {
-      final harness = factory.create();
-      harness.givenRejected('blur');
+  test('2. Submission rejected for blur -> '
+      'Ok(CaptureOutcome.rejected(CaptureRejectionReason.blur))', () async {
+    final harness = factory.create();
+    harness.givenRejected('blur');
 
-      final result = await harness.repository.submit(_sampleBytes);
+    final result = await harness.repository.submit(_sampleBytes);
 
-      expect(
-        result,
-        const Result<CaptureOutcome>.ok(
-          CaptureOutcome.rejected(reason: CaptureRejectionReason.blur),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<CaptureOutcome>.ok(
+        CaptureOutcome.rejected(reason: CaptureRejectionReason.blur),
+      ),
+    );
+  });
 
-  test(
-    '3. Submission rejected for glare -> '
-    'Ok(CaptureOutcome.rejected(CaptureRejectionReason.glare))',
-    () async {
-      final harness = factory.create();
-      harness.givenRejected('glare');
+  test('3. Submission rejected for glare -> '
+      'Ok(CaptureOutcome.rejected(CaptureRejectionReason.glare))', () async {
+    final harness = factory.create();
+    harness.givenRejected('glare');
 
-      final result = await harness.repository.submit(_sampleBytes);
+    final result = await harness.repository.submit(_sampleBytes);
 
-      expect(
-        result,
-        const Result<CaptureOutcome>.ok(
-          CaptureOutcome.rejected(reason: CaptureRejectionReason.glare),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<CaptureOutcome>.ok(
+        CaptureOutcome.rejected(reason: CaptureRejectionReason.glare),
+      ),
+    );
+  });
 
   test(
     '4. Submission rejected as wrong document -> '
@@ -151,23 +142,20 @@ void _runContractTests(_HarnessFactory factory) {
     },
   );
 
-  test(
-    '5. Submission rejected for a processor-only reason with no device-side '
-    'equivalent -> Ok(CaptureOutcome.rejected(CaptureRejectionReason.unreadable))',
-    () async {
-      final harness = factory.create();
-      harness.givenRejected('illegible_document');
+  test('5. Submission rejected for a processor-only reason with no device-side '
+      'equivalent -> Ok(CaptureOutcome.rejected(CaptureRejectionReason.unreadable))', () async {
+    final harness = factory.create();
+    harness.givenRejected('illegible_document');
 
-      final result = await harness.repository.submit(_sampleBytes);
+    final result = await harness.repository.submit(_sampleBytes);
 
-      expect(
-        result,
-        const Result<CaptureOutcome>.ok(
-          CaptureOutcome.rejected(reason: CaptureRejectionReason.unreadable),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<CaptureOutcome>.ok(
+        CaptureOutcome.rejected(reason: CaptureRejectionReason.unreadable),
+      ),
+    );
+  });
 
   test('6. Offline / transport failure -> Error', () async {
     final harness = factory.create();
@@ -178,24 +166,21 @@ void _runContractTests(_HarnessFactory factory) {
     expect(result.isError, isTrue);
   });
 
-  test(
-    '7. A malformed/unrecognized processor error code -> the mapping still '
-    'resolves to a defined CaptureRejectionReason (falls back to '
-    'unreadable), never an unhandled exception',
-    () async {
-      final harness = factory.create();
-      harness.givenRejected(null);
+  test('7. A malformed/unrecognized processor error code -> the mapping still '
+      'resolves to a defined CaptureRejectionReason (falls back to '
+      'unreadable), never an unhandled exception', () async {
+    final harness = factory.create();
+    harness.givenRejected(null);
 
-      final result = await harness.repository.submit(_sampleBytes);
+    final result = await harness.repository.submit(_sampleBytes);
 
-      expect(
-        result,
-        const Result<CaptureOutcome>.ok(
-          CaptureOutcome.rejected(reason: CaptureRejectionReason.unreadable),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<CaptureOutcome>.ok(
+        CaptureOutcome.rejected(reason: CaptureRejectionReason.unreadable),
+      ),
+    );
+  });
 }
 
 /// Stages a contract scenario's preconditions, independently of which
@@ -339,7 +324,10 @@ class _RealHarness implements _Harness {
 
   @override
   void givenAccepted() {
-    _adapter.respondWith({'outcome': 'accepted', 'fields': _acceptedFieldsJson});
+    _adapter.respondWith({
+      'outcome': 'accepted',
+      'fields': _acceptedFieldsJson,
+    });
   }
 
   @override

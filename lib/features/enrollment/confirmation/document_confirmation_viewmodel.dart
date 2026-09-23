@@ -247,7 +247,8 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
     final current = _state;
     if (current is! DocumentConfirmationViewReady) return;
     final fields = [
-      for (final f in current.fields) if (f.key == updated.key) updated else f,
+      for (final f in current.fields)
+        if (f.key == updated.key) updated else f,
     ];
     _setState(current.copyWith(fields: fields));
   }

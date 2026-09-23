@@ -136,21 +136,26 @@ void main() {
       expect(cameraCaptureService.startCallCount, 0);
     });
 
-    test('current active consent record -> camera starts, state becomes ready', () async {
-      consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
-      consentRepository.seedLocalRecord(activeRecord());
-      final viewModel = buildViewModel();
+    test(
+      'current active consent record -> camera starts, state becomes ready',
+      () async {
+        consentRepository.scriptCurrentText(
+          Result.ok(currentText().toDomain()),
+        );
+        consentRepository.seedLocalRecord(activeRecord());
+        final viewModel = buildViewModel();
 
-      await pumpEventQueue();
+        await pumpEventQueue();
 
-      expect(viewModel.pendingNavigation, isNull);
-      expect(cameraCaptureService.startCallCount, 1);
-      expect(viewModel.state, const CaptureViewState.ready());
-      expect(
-        analyticsEmitter.events.map((e) => e.name),
-        contains('capture_step_entered'),
-      );
-    });
+        expect(viewModel.pendingNavigation, isNull);
+        expect(cameraCaptureService.startCallCount, 1);
+        expect(viewModel.state, const CaptureViewState.ready());
+        expect(
+          analyticsEmitter.events.map((e) => e.name),
+          contains('capture_step_entered'),
+        );
+      },
+    );
   });
 
   group('T018/US3: permission gating (FR-002/FR-014)', () {
@@ -168,61 +173,58 @@ void main() {
       );
     });
 
-    test(
-      'retryPermission after a temporary denial re-attempts start() and can '
-      'succeed',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
-        consentRepository.seedLocalRecord(activeRecord());
-        cameraCaptureService.failStartWith(StateError('denied'));
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
-        expect(
-          viewModel.state,
-          const CaptureViewState.permissionDenied(permanent: false),
-        );
+    test('retryPermission after a temporary denial re-attempts start() and can '
+        'succeed', () async {
+      consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
+      consentRepository.seedLocalRecord(activeRecord());
+      cameraCaptureService.failStartWith(StateError('denied'));
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
+      expect(
+        viewModel.state,
+        const CaptureViewState.permissionDenied(permanent: false),
+      );
 
-        // Simulate the passenger having granted permission before retrying.
-        cameraCaptureService.failStartWith(StateError('denied again'));
-        await viewModel.retryPermission.run();
+      // Simulate the passenger having granted permission before retrying.
+      cameraCaptureService.failStartWith(StateError('denied again'));
+      await viewModel.retryPermission.run();
 
-        expect(
-          viewModel.state,
-          const CaptureViewState.permissionDenied(permanent: true),
-        );
-        expect(cameraCaptureService.startCallCount, 2);
-      },
-    );
+      expect(
+        viewModel.state,
+        const CaptureViewState.permissionDenied(permanent: true),
+      );
+      expect(cameraCaptureService.startCallCount, 2);
+    });
 
-    test(
-      'a second denial in this screen\'s lifetime is permanent and does '
-      'not re-attempt start() on a further retryPermission() call',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
-        consentRepository.seedLocalRecord(activeRecord());
-        cameraCaptureService.failStartWith(StateError('denied'));
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
-        await viewModel.retryPermission.run();
-        expect(
-          viewModel.state,
-          const CaptureViewState.permissionDenied(permanent: true),
-        );
+    test('a second denial in this screen\'s lifetime is permanent and does '
+        'not re-attempt start() on a further retryPermission() call', () async {
+      consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
+      consentRepository.seedLocalRecord(activeRecord());
+      cameraCaptureService.failStartWith(StateError('denied'));
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
+      await viewModel.retryPermission.run();
+      expect(
+        viewModel.state,
+        const CaptureViewState.permissionDenied(permanent: true),
+      );
 
-        final callsBefore = cameraCaptureService.startCallCount;
-        await viewModel.retryPermission.run();
+      final callsBefore = cameraCaptureService.startCallCount;
+      await viewModel.retryPermission.run();
 
-        expect(cameraCaptureService.startCallCount, callsBefore);
-      },
-    );
+      expect(cameraCaptureService.startCallCount, callsBefore);
+    });
   });
 
   group('T018/US1: happy path — capture, assess, submit, advance', () {
     test(
       'usable assessment + accepted verification -> advances to data '
-      'confirmation, resets attempt counter, no bytes retained by the VM',
+      'confirmation, leaves the attempt counter unchanged (009 FR-017: only '
+      'a verification match resets it), no bytes retained by the VM',
       () async {
-        consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
+        consentRepository.scriptCurrentText(
+          Result.ok(currentText().toDomain()),
+        );
         consentRepository.seedLocalRecord(activeRecord());
         final viewModel = buildViewModel();
         await pumpEventQueue();
@@ -234,7 +236,10 @@ void main() {
         );
         attemptCounterRepository.seed(
           AttemptCounterScope.documentCapture,
-          CaptureAttemptCounter(count: 2, lastResetAt: DateTime.utc(2026, 1, 1)),
+          CaptureAttemptCounter(
+            count: 2,
+            lastResetAt: DateTime.utc(2026, 1, 1),
+          ),
         );
 
         await viewModel.capture.run();
@@ -248,12 +253,15 @@ void main() {
         final counter = (await attemptCounterRepository.read(
           AttemptCounterScope.documentCapture,
         )).valueOrNull!;
-        expect(counter.count, 0);
+        expect(counter.count, 2);
         // 004-confirmar-datos research.md §1: the captured bytes and the
         // extraction are handed to PendingDocumentController before
         // navigating, never retained by the ViewModel itself.
         expect(pendingDocumentController.hasPendingDocument, isTrue);
-        expect(pendingDocumentController.documentImageBytes, _frame().submissionBytes);
+        expect(
+          pendingDocumentController.documentImageBytes,
+          _frame().submissionBytes,
+        );
         expect(pendingDocumentController.extraction, _extraction);
         expect(
           analyticsEmitter.events.map((e) => e.name),
@@ -263,21 +271,21 @@ void main() {
     );
   });
 
-  group('T031/US2: device-side and verification rejections (FR-006-FR-009)', () {
-    test(
-      'a device-rejected capture increments the counter and never calls '
-      'submit()',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
+  group(
+    'T031/US2: device-side and verification rejections (FR-006-FR-009)',
+    () {
+      test('a device-rejected capture increments the counter and never calls '
+          'submit()', () async {
+        consentRepository.scriptCurrentText(
+          Result.ok(currentText().toDomain()),
+        );
         consentRepository.seedLocalRecord(activeRecord());
         final viewModel = buildViewModel();
         await pumpEventQueue();
 
         cameraCaptureService.scriptCapture(_frame());
         qualityAssessor.scriptAssessment(
-          const QualityAssessment.rejected(
-            reason: QualityRejectionReason.blur,
-          ),
+          const QualityAssessment.rejected(reason: QualityRejectionReason.blur),
         );
 
         await viewModel.capture.run();
@@ -297,105 +305,105 @@ void main() {
           analyticsEmitter.events.map((e) => e.name),
           contains('capture_device_rejected'),
         );
-      },
-    );
+      });
 
-    test(
-      'a verification rejection maps to the same actionable vocabulary and '
-      'increments the counter',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
-        consentRepository.seedLocalRecord(activeRecord());
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
+      test(
+        'a verification rejection maps to the same actionable vocabulary and '
+        'increments the counter',
+        () async {
+          consentRepository.scriptCurrentText(
+            Result.ok(currentText().toDomain()),
+          );
+          consentRepository.seedLocalRecord(activeRecord());
+          final viewModel = buildViewModel();
+          await pumpEventQueue();
 
-        cameraCaptureService.scriptCapture(_frame());
-        qualityAssessor.scriptAssessment(const QualityAssessment.usable());
-        verificationRepository.scriptSubmit(
-          const Result.ok(
-            CaptureOutcome.rejected(reason: CaptureRejectionReason.glare),
-          ),
-        );
+          cameraCaptureService.scriptCapture(_frame());
+          qualityAssessor.scriptAssessment(const QualityAssessment.usable());
+          verificationRepository.scriptSubmit(
+            const Result.ok(
+              CaptureOutcome.rejected(reason: CaptureRejectionReason.glare),
+            ),
+          );
 
-        await viewModel.capture.run();
+          await viewModel.capture.run();
 
-        expect(
-          viewModel.state,
-          const CaptureViewState.ready(
-            lastRejectionReason: CaptureRejectionReason.glare,
-          ),
-        );
-        final counter = (await attemptCounterRepository.read(
-          AttemptCounterScope.documentCapture,
-        )).valueOrNull!;
-        expect(counter.count, 1);
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          contains('capture_verification_rejected'),
-        );
-      },
-    );
+          expect(
+            viewModel.state,
+            const CaptureViewState.ready(
+              lastRejectionReason: CaptureRejectionReason.glare,
+            ),
+          );
+          final counter = (await attemptCounterRepository.read(
+            AttemptCounterScope.documentCapture,
+          )).valueOrNull!;
+          expect(counter.count, 1);
+          expect(
+            analyticsEmitter.events.map((e) => e.name),
+            contains('capture_verification_rejected'),
+          );
+        },
+      );
 
-    test(
-      'reaching 3 failures routes to retry guidance and resets the counter',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
-        consentRepository.seedLocalRecord(activeRecord());
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
+      test(
+        'reaching 3 failures routes to retry guidance and leaves the counter '
+        'at the limit (009 FR-017)',
+        () async {
+          consentRepository.scriptCurrentText(
+            Result.ok(currentText().toDomain()),
+          );
+          consentRepository.seedLocalRecord(activeRecord());
+          final viewModel = buildViewModel();
+          await pumpEventQueue();
 
-        cameraCaptureService.scriptCapture(_frame());
-        qualityAssessor.scriptAssessment(
-          const QualityAssessment.rejected(
-            reason: QualityRejectionReason.blur,
-          ),
-        );
+          cameraCaptureService.scriptCapture(_frame());
+          qualityAssessor.scriptAssessment(
+            const QualityAssessment.rejected(
+              reason: QualityRejectionReason.blur,
+            ),
+          );
 
-        await viewModel.capture.run();
-        await viewModel.capture.run();
-        await viewModel.capture.run();
+          await viewModel.capture.run();
+          await viewModel.capture.run();
+          await viewModel.capture.run();
 
-        expect(
-          viewModel.pendingNavigation,
-          CaptureNavigationTarget.retryGuidance,
-        );
-        final counter = (await attemptCounterRepository.read(
-          AttemptCounterScope.documentCapture,
-        )).valueOrNull!;
-        expect(counter.count, 0);
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          contains('capture_attempt_limit_reached'),
-        );
-      },
-    );
-  });
+          expect(
+            viewModel.pendingNavigation,
+            CaptureNavigationTarget.retryGuidance,
+          );
+          final counter = (await attemptCounterRepository.read(
+            AttemptCounterScope.documentCapture,
+          )).valueOrNull!;
+          expect(counter.count, captureAttemptLimit);
+          expect(
+            analyticsEmitter.events.map((e) => e.name),
+            contains('capture_attempt_limit_reached'),
+          );
+        },
+      );
+    },
+  );
 
   group('T039/US3: offline submission (FR-015)', () {
-    test(
-      'a transport failure on submit shows offline/retry messaging, does '
-      'not increment the attempt counter, and is not queued',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
-        consentRepository.seedLocalRecord(activeRecord());
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
+    test('a transport failure on submit shows offline/retry messaging, does '
+        'not increment the attempt counter, and is not queued', () async {
+      consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
+      consentRepository.seedLocalRecord(activeRecord());
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
 
-        cameraCaptureService.scriptCapture(_frame());
-        qualityAssessor.scriptAssessment(const QualityAssessment.usable());
-        verificationRepository.scriptSubmit(
-          Result.error(StateError('offline')),
-        );
+      cameraCaptureService.scriptCapture(_frame());
+      qualityAssessor.scriptAssessment(const QualityAssessment.usable());
+      verificationRepository.scriptSubmit(Result.error(StateError('offline')));
 
-        await viewModel.capture.run();
+      await viewModel.capture.run();
 
-        expect(viewModel.state, const CaptureViewState.ready(offline: true));
-        final counter = (await attemptCounterRepository.read(
-          AttemptCounterScope.documentCapture,
-        )).valueOrNull!;
-        expect(counter.count, 0);
-      },
-    );
+      expect(viewModel.state, const CaptureViewState.ready(offline: true));
+      final counter = (await attemptCounterRepository.read(
+        AttemptCounterScope.documentCapture,
+      )).valueOrNull!;
+      expect(counter.count, 0);
+    });
   });
 
   group('T039/US3: back navigation abandonment (FR-012)', () {
@@ -413,25 +421,30 @@ void main() {
       );
     });
 
-    test('onBackNavigation does not emit abandoned after an accepted capture', () async {
-      consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
-      consentRepository.seedLocalRecord(activeRecord());
-      final viewModel = buildViewModel();
-      await pumpEventQueue();
-      cameraCaptureService.scriptCapture(_frame());
-      qualityAssessor.scriptAssessment(const QualityAssessment.usable());
-      verificationRepository.scriptSubmit(
-        const Result.ok(CaptureOutcome.accepted(extraction: _extraction)),
-      );
-      await viewModel.capture.run();
+    test(
+      'onBackNavigation does not emit abandoned after an accepted capture',
+      () async {
+        consentRepository.scriptCurrentText(
+          Result.ok(currentText().toDomain()),
+        );
+        consentRepository.seedLocalRecord(activeRecord());
+        final viewModel = buildViewModel();
+        await pumpEventQueue();
+        cameraCaptureService.scriptCapture(_frame());
+        qualityAssessor.scriptAssessment(const QualityAssessment.usable());
+        verificationRepository.scriptSubmit(
+          const Result.ok(CaptureOutcome.accepted(extraction: _extraction)),
+        );
+        await viewModel.capture.run();
 
-      viewModel.onBackNavigation();
+        viewModel.onBackNavigation();
 
-      expect(
-        analyticsEmitter.events.map((e) => e.name),
-        isNot(contains('capture_step_abandoned')),
-      );
-    });
+        expect(
+          analyticsEmitter.events.map((e) => e.name),
+          isNot(contains('capture_step_abandoned')),
+        );
+      },
+    );
   });
 
   group('lifecycle (research.md §5)', () {
@@ -456,6 +469,29 @@ void main() {
       await viewModel.onAppResumed();
 
       expect(cameraCaptureService.startCallCount, 2);
+    });
+  });
+  // 009-reintento addendum case 3: an exhausted limit stays in force.
+  group('009: entering document capture at the limit', () {
+    test('targets retry guidance and never starts the camera', () async {
+      consentRepository.scriptCurrentText(Result.ok(currentText().toDomain()));
+      consentRepository.seedLocalRecord(activeRecord());
+      attemptCounterRepository.seed(
+        AttemptCounterScope.documentCapture,
+        CaptureAttemptCounter(
+          count: captureAttemptLimit,
+          lastResetAt: DateTime.utc(2026, 1, 1),
+        ),
+      );
+
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
+
+      expect(
+        viewModel.pendingNavigation,
+        CaptureNavigationTarget.retryGuidance,
+      );
+      expect(cameraCaptureService.startCallCount, 0);
     });
   });
 }

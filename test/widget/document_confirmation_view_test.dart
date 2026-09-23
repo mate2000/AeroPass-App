@@ -67,7 +67,8 @@ Future<void> _pumpConfirmationView(
       ),
       GoRoute(
         path: AppRoutes.documentConfirmation,
-        builder: (context, state) => DocumentConfirmationView(viewModel: viewModel),
+        builder: (context, state) =>
+            DocumentConfirmationView(viewModel: viewModel),
       ),
       GoRoute(
         path: AppRoutes.selfieInstructions,
@@ -110,36 +111,42 @@ void main() {
     sessionController.startOrResume();
   });
 
-  DocumentConfirmationViewModel buildViewModel() => DocumentConfirmationViewModel(
-    pendingDocumentController: pendingDocumentController,
-    fieldReverificationRepository: fieldReverificationRepository,
-    identityRecordRepository: identityRecordRepository,
-    analyticsEmitter: analyticsEmitter,
-    enrollmentSessionController: sessionController,
-    clock: clock,
-  );
+  DocumentConfirmationViewModel buildViewModel() =>
+      DocumentConfirmationViewModel(
+        pendingDocumentController: pendingDocumentController,
+        fieldReverificationRepository: fieldReverificationRepository,
+        identityRecordRepository: identityRecordRepository,
+        analyticsEmitter: analyticsEmitter,
+        enrollmentSessionController: sessionController,
+        clock: clock,
+      );
 
   group('T021 [US1] clean confirmation', () {
-    testWidgets('shows the thumbnail, badge, notice, and every field read-only', (
+    testWidgets(
+      'shows the thumbnail, badge, notice, and every field read-only',
+      (tester) async {
+        pendingDocumentController.set(_sampleBytes, _cleanExtraction());
+        await _pumpConfirmationView(tester, viewModel: buildViewModel());
+
+        expect(find.text('Capturado'), findsOneWidget);
+        expect(
+          find.text(
+            'Verifica que los datos coincidan exactamente con tu documento original.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Mateo González Restrepo'), findsOneWidget);
+        expect(find.text('CC 1.234.567.890'), findsOneWidget);
+        expect(find.text('Colombiana'), findsOneWidget);
+        expect(find.text('14 mar 2031'), findsOneWidget);
+        expect(find.text('Los datos son correctos'), findsOneWidget);
+        expect(find.text('Escanear de nuevo'), findsOneWidget);
+      },
+    );
+
+    testWidgets('confirming navigates to the selfie-instructions route', (
       tester,
     ) async {
-      pendingDocumentController.set(_sampleBytes, _cleanExtraction());
-      await _pumpConfirmationView(tester, viewModel: buildViewModel());
-
-      expect(find.text('Capturado'), findsOneWidget);
-      expect(
-        find.text('Verifica que los datos coincidan exactamente con tu documento original.'),
-        findsOneWidget,
-      );
-      expect(find.text('Mateo González Restrepo'), findsOneWidget);
-      expect(find.text('CC 1.234.567.890'), findsOneWidget);
-      expect(find.text('Colombiana'), findsOneWidget);
-      expect(find.text('14 mar 2031'), findsOneWidget);
-      expect(find.text('Los datos son correctos'), findsOneWidget);
-      expect(find.text('Escanear de nuevo'), findsOneWidget);
-    });
-
-    testWidgets('confirming navigates to the selfie-instructions route', (tester) async {
       pendingDocumentController.set(_sampleBytes, _cleanExtraction());
       identityRecordRepository.scriptConfirm(
         Result.ok(
@@ -164,13 +171,13 @@ void main() {
   });
 
   group('T033 [US2] field correction', () {
-    testWidgets('tapping the edit affordance opens the in-place editor', (tester) async {
+    testWidgets('tapping the edit affordance opens the in-place editor', (
+      tester,
+    ) async {
       pendingDocumentController.set(_sampleBytes, _cleanExtraction());
       await _pumpConfirmationView(tester, viewModel: buildViewModel());
 
-      await tester.tap(
-        find.bySemanticsLabel('Editar Nacionalidad'),
-      );
+      await tester.tap(find.bySemanticsLabel('Editar Nacionalidad'));
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsOneWidget);
@@ -193,7 +200,9 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('No pudimos confirmar este dato con tu documento. Puedes intentarlo de nuevo o escanear otra vez.'),
+          find.text(
+            'No pudimos confirmar este dato con tu documento. Puedes intentarlo de nuevo o escanear otra vez.',
+          ),
           findsOneWidget,
         );
         final confirmButton = tester.widget<FilledButton>(
@@ -205,46 +214,57 @@ void main() {
   });
 
   group('T041 [US3] expired and missing-field blocking', () {
-    testWidgets('an expired document replaces the field list with the blocked message', (
-      tester,
-    ) async {
-      final expired = ExtractionResult(
-        fields: [
-          ..._cleanExtraction().fields.where((f) => f.key != FieldKey.expiryDate),
-          const ExtractedField.present(
-            key: FieldKey.expiryDate,
-            value: '2020-01-01',
-            confidence: 0.95,
-          ),
-        ],
-      );
-      pendingDocumentController.set(_sampleBytes, expired);
-      await _pumpConfirmationView(tester, viewModel: buildViewModel());
+    testWidgets(
+      'an expired document replaces the field list with the blocked message',
+      (tester) async {
+        final expired = ExtractionResult(
+          fields: [
+            ..._cleanExtraction().fields.where(
+              (f) => f.key != FieldKey.expiryDate,
+            ),
+            const ExtractedField.present(
+              key: FieldKey.expiryDate,
+              value: '2020-01-01',
+              confidence: 0.95,
+            ),
+          ],
+        );
+        pendingDocumentController.set(_sampleBytes, expired);
+        await _pumpConfirmationView(tester, viewModel: buildViewModel());
 
-      expect(find.text('Tu documento está vencido'), findsOneWidget);
-      expect(find.text('Los datos son correctos'), findsNothing);
-      expect(find.text('Escanear de nuevo'), findsOneWidget);
-    });
+        expect(find.text('Tu documento está vencido'), findsOneWidget);
+        expect(find.text('Los datos son correctos'), findsNothing);
+        expect(find.text('Escanear de nuevo'), findsOneWidget);
+      },
+    );
 
-    testWidgets('a missing required field shows the gap-blocked message, not a blank field', (
-      tester,
-    ) async {
-      final missingNationality = ExtractionResult(
-        fields: [
-          ..._cleanExtraction().fields.where((f) => f.key != FieldKey.nationality),
-          const ExtractedField.missing(key: FieldKey.nationality),
-        ],
-      );
-      pendingDocumentController.set(_sampleBytes, missingNationality);
-      await _pumpConfirmationView(tester, viewModel: buildViewModel());
+    testWidgets(
+      'a missing required field shows the gap-blocked message, not a blank field',
+      (tester) async {
+        final missingNationality = ExtractionResult(
+          fields: [
+            ..._cleanExtraction().fields.where(
+              (f) => f.key != FieldKey.nationality,
+            ),
+            const ExtractedField.missing(key: FieldKey.nationality),
+          ],
+        );
+        pendingDocumentController.set(_sampleBytes, missingNationality);
+        await _pumpConfirmationView(tester, viewModel: buildViewModel());
 
-      expect(find.text('No pudimos leer todos los datos de tu documento'), findsOneWidget);
-      expect(find.text('Los datos son correctos'), findsNothing);
-    });
+        expect(
+          find.text('No pudimos leer todos los datos de tu documento'),
+          findsOneWidget,
+        );
+        expect(find.text('Los datos son correctos'), findsNothing);
+      },
+    );
   });
 
   group('T049: accessibility (FR-015, Constitution Principle VI)', () {
-    testWidgets('every interactive control has a semantic label', (tester) async {
+    testWidgets('every interactive control has a semantic label', (
+      tester,
+    ) async {
       pendingDocumentController.set(_sampleBytes, _cleanExtraction());
       final handle = tester.ensureSemantics();
       await _pumpConfirmationView(tester, viewModel: buildViewModel());
@@ -256,23 +276,24 @@ void main() {
   });
 
   group('T048: "Atrás" back navigation (FR-013)', () {
-    testWidgets('pops the route, discards the pending document, and records abandonment exactly once', (
-      tester,
-    ) async {
-      pendingDocumentController.set(_sampleBytes, _cleanExtraction());
-      await _pumpConfirmationView(tester, viewModel: buildViewModel());
+    testWidgets(
+      'pops the route, discards the pending document, and records abandonment exactly once',
+      (tester) async {
+        pendingDocumentController.set(_sampleBytes, _cleanExtraction());
+        await _pumpConfirmationView(tester, viewModel: buildViewModel());
 
-      await tester.tap(find.text('Atrás'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Atrás'));
+        await tester.pumpAndSettle();
 
-      expect(find.text('document-capture-stub'), findsOneWidget);
-      expect(pendingDocumentController.hasPendingDocument, isFalse);
-      expect(
-        analyticsEmitter.events
-            .where((e) => e.name == 'confirmation_step_abandoned')
-            .length,
-        1,
-      );
-    });
+        expect(find.text('document-capture-stub'), findsOneWidget);
+        expect(pendingDocumentController.hasPendingDocument, isFalse);
+        expect(
+          analyticsEmitter.events
+              .where((e) => e.name == 'confirmation_step_abandoned')
+              .length,
+          1,
+        );
+      },
+    );
   });
 }

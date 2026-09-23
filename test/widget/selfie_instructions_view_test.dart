@@ -32,7 +32,8 @@ Future<void> _pumpSelfieInstructionsView(
       ),
       GoRoute(
         path: AppRoutes.selfieInstructions,
-        builder: (context, state) => SelfieInstructionsView(viewModel: viewModel),
+        builder: (context, state) =>
+            SelfieInstructionsView(viewModel: viewModel),
       ),
       GoRoute(
         path: AppRoutes.livenessCapture,
@@ -91,7 +92,10 @@ void main() {
         find.text('Necesitamos confirmar que eres el titular del documento.'),
         findsOneWidget,
       );
-      expect(find.text('Buena iluminación, de frente a la luz'), findsOneWidget);
+      expect(
+        find.text('Buena iluminación, de frente a la luz'),
+        findsOneWidget,
+      );
       expect(
         find.text('Rostro descubierto y visible por completo'),
         findsOneWidget,
@@ -170,7 +174,9 @@ void main() {
   });
 
   group('T025: accessibility (FR-011/SC-006, Constitution Principle VI)', () {
-    testWidgets('every interactive control has a semantic label', (tester) async {
+    testWidgets('every interactive control has a semantic label', (
+      tester,
+    ) async {
       final handle = tester.ensureSemantics();
       await _pumpSelfieInstructionsView(tester, viewModel: buildViewModel());
 
@@ -195,7 +201,10 @@ void main() {
           find.text('Necesitamos confirmar que eres el titular del documento.'),
           findsOneWidget,
         );
-        expect(find.text('Buena iluminación, de frente a la luz'), findsOneWidget);
+        expect(
+          find.text('Buena iluminación, de frente a la luz'),
+          findsOneWidget,
+        );
         expect(
           find.text('Rostro descubierto y visible por completo'),
           findsOneWidget,

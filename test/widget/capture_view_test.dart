@@ -162,29 +162,31 @@ void main() {
   );
 
   group('T019 [US1] permission states', () {
-    testWidgets('a temporary permission denial shows the retry message, no capture button', (
-      tester,
-    ) async {
-      cameraCaptureService.failStartWith(StateError('denied'));
-      await _pumpCaptureView(tester, viewModel: buildViewModel());
+    testWidgets(
+      'a temporary permission denial shows the retry message, no capture button',
+      (tester) async {
+        cameraCaptureService.failStartWith(StateError('denied'));
+        await _pumpCaptureView(tester, viewModel: buildViewModel());
 
-      expect(find.text('Necesitamos acceso a tu cámara'), findsOneWidget);
-      expect(find.text('Reintentar'), findsOneWidget);
-      expect(find.bySemanticsLabel('Capturar documento'), findsNothing);
-    });
+        expect(find.text('Necesitamos acceso a tu cámara'), findsOneWidget);
+        expect(find.text('Reintentar'), findsOneWidget);
+        expect(find.bySemanticsLabel('Capturar documento'), findsNothing);
+      },
+    );
 
-    testWidgets('the live-preview (ready) state shows the instruction and capture control', (
-      tester,
-    ) async {
-      await _pumpCaptureView(tester, viewModel: buildViewModel());
+    testWidgets(
+      'the live-preview (ready) state shows the instruction and capture control',
+      (tester) async {
+        await _pumpCaptureView(tester, viewModel: buildViewModel());
 
-      expect(
-        find.text('Ubica tu cédula o pasaporte dentro del marco'),
-        findsOneWidget,
-      );
-      expect(find.text('Documento'), findsOneWidget);
-      expect(find.bySemanticsLabel('Capturar documento'), findsOneWidget);
-    });
+        expect(
+          find.text('Ubica tu cédula o pasaporte dentro del marco'),
+          findsOneWidget,
+        );
+        expect(find.text('Documento'), findsOneWidget);
+        expect(find.bySemanticsLabel('Capturar documento'), findsOneWidget);
+      },
+    );
   });
 
   group('T019 [US1] successful capture', () {
@@ -209,25 +211,28 @@ void main() {
   });
 
   group('T032 [US2] device/verification rejection error states', () {
-    testWidgets('a blur rejection shows the specific actionable message with retry available', (
+    testWidgets(
+      'a blur rejection shows the specific actionable message with retry available',
+      (tester) async {
+        await _pumpCaptureView(tester, viewModel: buildViewModel());
+        cameraCaptureService.scriptCapture(_frame());
+        qualityAssessor.scriptAssessment(
+          const QualityAssessment.rejected(reason: QualityRejectionReason.blur),
+        );
+
+        await tester.tap(find.bySemanticsLabel('Capturar documento'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('La imagen está borrosa'), findsOneWidget);
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+        // Retry is immediately available on the same screen.
+        expect(find.bySemanticsLabel('Capturar documento'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a glare rejection shows its own distinct message', (
       tester,
     ) async {
-      await _pumpCaptureView(tester, viewModel: buildViewModel());
-      cameraCaptureService.scriptCapture(_frame());
-      qualityAssessor.scriptAssessment(
-        const QualityAssessment.rejected(reason: QualityRejectionReason.blur),
-      );
-
-      await tester.tap(find.bySemanticsLabel('Capturar documento'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('La imagen está borrosa'), findsOneWidget);
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      // Retry is immediately available on the same screen.
-      expect(find.bySemanticsLabel('Capturar documento'), findsOneWidget);
-    });
-
-    testWidgets('a glare rejection shows its own distinct message', (tester) async {
       await _pumpCaptureView(tester, viewModel: buildViewModel());
       cameraCaptureService.scriptCapture(_frame());
       qualityAssessor.scriptAssessment(
@@ -248,7 +253,9 @@ void main() {
         qualityAssessor.scriptAssessment(const QualityAssessment.usable());
         verificationRepository.scriptSubmit(
           const Result.ok(
-            CaptureOutcome.rejected(reason: CaptureRejectionReason.wrongDocument),
+            CaptureOutcome.rejected(
+              reason: CaptureRejectionReason.wrongDocument,
+            ),
           ),
         );
 
@@ -259,22 +266,23 @@ void main() {
       },
     );
 
-    testWidgets('reaching the attempt limit navigates to the retry-guidance route', (
-      tester,
-    ) async {
-      await _pumpCaptureView(tester, viewModel: buildViewModel());
-      cameraCaptureService.scriptCapture(_frame());
-      qualityAssessor.scriptAssessment(
-        const QualityAssessment.rejected(reason: QualityRejectionReason.blur),
-      );
+    testWidgets(
+      'reaching the attempt limit navigates to the retry-guidance route',
+      (tester) async {
+        await _pumpCaptureView(tester, viewModel: buildViewModel());
+        cameraCaptureService.scriptCapture(_frame());
+        qualityAssessor.scriptAssessment(
+          const QualityAssessment.rejected(reason: QualityRejectionReason.blur),
+        );
 
-      for (var i = 0; i < 3; i++) {
-        await tester.tap(find.bySemanticsLabel('Capturar documento'));
-        await tester.pumpAndSettle();
-      }
+        for (var i = 0; i < 3; i++) {
+          await tester.tap(find.bySemanticsLabel('Capturar documento'));
+          await tester.pumpAndSettle();
+        }
 
-      expect(find.text('retry-guidance-stub'), findsOneWidget);
-    });
+        expect(find.text('retry-guidance-stub'), findsOneWidget);
+      },
+    );
   });
 
   group('T040 [US3] permission-denied settings route', () {
@@ -288,7 +296,10 @@ void main() {
         await viewModel.retryPermission.run();
         await tester.pumpAndSettle();
 
-        expect(find.text('El acceso a la cámara está bloqueado'), findsOneWidget);
+        expect(
+          find.text('El acceso a la cámara está bloqueado'),
+          findsOneWidget,
+        );
         expect(
           find.text(
             'Mientras tanto, puedes continuar con el proceso habitual en '
@@ -329,7 +340,9 @@ void main() {
   });
 
   group('T048: accessibility (FR-007, Constitution Principle VI)', () {
-    testWidgets('every interactive control has a semantic label', (tester) async {
+    testWidgets('every interactive control has a semantic label', (
+      tester,
+    ) async {
       final handle = tester.ensureSemantics();
       await _pumpCaptureView(tester, viewModel: buildViewModel());
 
@@ -365,23 +378,22 @@ void main() {
   });
 
   group('T040 [US3] "Atrás" back navigation (FR-012)', () {
-    testWidgets(
-      '"Atrás" pops the route and records abandonment exactly once',
-      (tester) async {
-        final viewModel = buildViewModel();
-        await _pumpCaptureView(tester, viewModel: viewModel);
+    testWidgets('"Atrás" pops the route and records abandonment exactly once', (
+      tester,
+    ) async {
+      final viewModel = buildViewModel();
+      await _pumpCaptureView(tester, viewModel: viewModel);
 
-        await tester.tap(find.text('Atrás'));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text('Atrás'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('consent-stub'), findsOneWidget);
-        expect(
-          analyticsEmitter.events
-              .where((e) => e.name == 'capture_step_abandoned')
-              .length,
-          1,
-        );
-      },
-    );
+      expect(find.text('consent-stub'), findsOneWidget);
+      expect(
+        analyticsEmitter.events
+            .where((e) => e.name == 'capture_step_abandoned')
+            .length,
+        1,
+      );
+    });
   });
 }

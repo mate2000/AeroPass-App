@@ -26,9 +26,7 @@ class DocumentVerificationRepositoryImpl
   final DocumentVerificationService _service;
 
   @override
-  Future<Result<CaptureOutcome>> submit(
-    Uint8List documentImageBytes,
-  ) async {
+  Future<Result<CaptureOutcome>> submit(Uint8List documentImageBytes) async {
     try {
       final response = await _service.submit(documentImageBytes);
       return Result.ok(_mapResponse(response));

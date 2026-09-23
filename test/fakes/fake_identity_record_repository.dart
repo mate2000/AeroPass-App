@@ -27,7 +27,9 @@ class FakeIdentityRecordRepository implements IdentityRecordRepository {
     final response =
         _response ?? Result.error(StateError('no confirm() response scripted'));
     if (response.isOk) {
-      cachedSubset = {for (final field in record.fields) field.key.name: field.value};
+      cachedSubset = {
+        for (final field in record.fields) field.key.name: field.value,
+      };
     }
     return response;
   }

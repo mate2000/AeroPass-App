@@ -202,7 +202,9 @@ class _ReadyBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (documentImageBytes != null)
-                    DocumentThumbnailCard(documentImageBytes: documentImageBytes),
+                    DocumentThumbnailCard(
+                      documentImageBytes: documentImageBytes,
+                    ),
                   const SizedBox(height: 16),
                   Text(
                     l10n.confirmationNoticeText,

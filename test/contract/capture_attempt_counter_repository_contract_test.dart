@@ -50,68 +50,62 @@ void _runContractTests(_HarnessFactory factory, AttemptCounterScope scope) {
 
     final counter = result.when(
       ok: (c) => c,
-      error: (e, st) => fail('expected Ok(CaptureAttemptCounter), got Error: $e'),
+      error: (e, st) =>
+          fail('expected Ok(CaptureAttemptCounter), got Error: $e'),
     );
     expect(counter.count, 0);
   });
 
-  test(
-    '2. increment() three times in a row -> read() afterward reflects '
-    'count: 3 with the same lastResetAt each time',
-    () async {
-      final harness = factory.create();
+  test('2. increment() three times in a row -> read() afterward reflects '
+      'count: 3 with the same lastResetAt each time', () async {
+    final harness = factory.create();
 
-      final first = (await harness.repository.increment(scope)).valueOrNull!;
-      final second = (await harness.repository.increment(scope)).valueOrNull!;
-      final third = (await harness.repository.increment(scope)).valueOrNull!;
+    final first = (await harness.repository.increment(scope)).valueOrNull!;
+    final second = (await harness.repository.increment(scope)).valueOrNull!;
+    final third = (await harness.repository.increment(scope)).valueOrNull!;
 
-      expect(third.count, 3);
-      expect(second.lastResetAt, first.lastResetAt);
-      expect(third.lastResetAt, first.lastResetAt);
+    expect(third.count, 3);
+    expect(second.lastResetAt, first.lastResetAt);
+    expect(third.lastResetAt, first.lastResetAt);
 
-      final afterRead = (await harness.repository.read(scope)).valueOrNull!;
-      expect(afterRead.count, 3);
-      expect(afterRead.lastResetAt, first.lastResetAt);
-    },
-  );
+    final afterRead = (await harness.repository.read(scope)).valueOrNull!;
+    expect(afterRead.count, 3);
+    expect(afterRead.lastResetAt, first.lastResetAt);
+  });
 
-  test(
-    '3. reset() after a nonzero count -> read() afterward reflects count: 0 '
-    'and a new lastResetAt strictly later than the previous one',
-    () async {
-      final harness = factory.create();
+  test('3. reset() after a nonzero count -> read() afterward reflects count: 0 '
+      'and a new lastResetAt strictly later than the previous one', () async {
+    final harness = factory.create();
 
-      final beforeReset = (await harness.repository.increment(scope)).valueOrNull!;
-      harness.advanceClock(const Duration(seconds: 1));
-      final afterReset = (await harness.repository.reset(scope)).valueOrNull!;
+    final beforeReset = (await harness.repository.increment(scope))
+        .valueOrNull!;
+    harness.advanceClock(const Duration(seconds: 1));
+    final afterReset = (await harness.repository.reset(scope)).valueOrNull!;
 
-      expect(afterReset.count, 0);
-      expect(afterReset.lastResetAt.isAfter(beforeReset.lastResetAt), isTrue);
+    expect(afterReset.count, 0);
+    expect(afterReset.lastResetAt.isAfter(beforeReset.lastResetAt), isTrue);
 
-      final read = (await harness.repository.read(scope)).valueOrNull!;
-      expect(read.count, 0);
-      expect(read.lastResetAt, afterReset.lastResetAt);
-    },
-  );
+    final read = (await harness.repository.read(scope)).valueOrNull!;
+    expect(read.count, 0);
+    expect(read.lastResetAt, afterReset.lastResetAt);
+  });
 
-  test(
-    '4. The counter survives being read by a new instance of the repository '
-    '(simulating an app restart)',
-    () async {
-      final harness = factory.create();
-      final _ = await harness.repository.increment(scope);
-      final _ = await harness.repository.increment(scope);
+  test('4. The counter survives being read by a new instance of the repository '
+      '(simulating an app restart)', () async {
+    final harness = factory.create();
+    final _ = await harness.repository.increment(scope);
+    final _ = await harness.repository.increment(scope);
 
-      final restarted = harness.createNewInstance();
-      final result = await restarted.read(scope);
+    final restarted = harness.createNewInstance();
+    final result = await restarted.read(scope);
 
-      final counter = result.when(
-        ok: (c) => c,
-        error: (e, st) => fail('expected Ok(CaptureAttemptCounter), got Error: $e'),
-      );
-      expect(counter.count, 2);
-    },
-  );
+    final counter = result.when(
+      ok: (c) => c,
+      error: (e, st) =>
+          fail('expected Ok(CaptureAttemptCounter), got Error: $e'),
+    );
+    expect(counter.count, 2);
+  });
 }
 
 void _runIndependenceTests(_HarnessFactory factory) {
@@ -121,8 +115,12 @@ void _runIndependenceTests(_HarnessFactory factory) {
       () async {
         final harness = factory.create();
 
-        final _ = await harness.repository.increment(AttemptCounterScope.documentCapture);
-        final _ = await harness.repository.increment(AttemptCounterScope.documentCapture);
+        final _ = await harness.repository.increment(
+          AttemptCounterScope.documentCapture,
+        );
+        final _ = await harness.repository.increment(
+          AttemptCounterScope.documentCapture,
+        );
 
         final documentCount = (await harness.repository.read(
           AttemptCounterScope.documentCapture,
@@ -141,11 +139,19 @@ void _runIndependenceTests(_HarnessFactory factory) {
       () async {
         final harness = factory.create();
 
-        final _ = await harness.repository.increment(AttemptCounterScope.documentCapture);
-        final _ = await harness.repository.increment(AttemptCounterScope.selfieLiveness);
-        final _ = await harness.repository.increment(AttemptCounterScope.selfieLiveness);
+        final _ = await harness.repository.increment(
+          AttemptCounterScope.documentCapture,
+        );
+        final _ = await harness.repository.increment(
+          AttemptCounterScope.selfieLiveness,
+        );
+        final _ = await harness.repository.increment(
+          AttemptCounterScope.selfieLiveness,
+        );
 
-        final _ = await harness.repository.reset(AttemptCounterScope.documentCapture);
+        final _ = await harness.repository.reset(
+          AttemptCounterScope.documentCapture,
+        );
 
         final documentCount = (await harness.repository.read(
           AttemptCounterScope.documentCapture,

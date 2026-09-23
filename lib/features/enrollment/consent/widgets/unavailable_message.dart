@@ -68,7 +68,10 @@ class UnavailableMessage extends StatelessWidget {
           ],
           if (onRetry != null) ...[
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: onRetry, child: Text(l10n.consentRetryLabel)),
+            OutlinedButton(
+              onPressed: onRetry,
+              child: Text(l10n.consentRetryLabel),
+            ),
           ],
         ],
       ),

@@ -1,3 +1,4 @@
+import 'dart:async' show Completer;
 import 'dart:typed_data';
 
 import 'package:aeropass_app/data/services/liveness_camera_service.dart';
@@ -10,6 +11,13 @@ class FakeLivenessCameraService implements LivenessCameraService {
   bool started = false;
   int startCallCount = 0;
   int stopCallCount = 0;
+
+  /// When set, [start] waits for this to complete, simulating a camera
+  /// that's slow to open (e.g. behind the permission dialog).
+  Completer<void>? startGate;
+
+  /// Called at the beginning of every [stop], before it takes effect.
+  void Function()? onStop;
 
   Uint8List? _nextFrame;
   Object? _startError;
@@ -32,6 +40,8 @@ class FakeLivenessCameraService implements LivenessCameraService {
   @override
   Future<void> start() async {
     startCallCount++;
+    final gate = startGate;
+    if (gate != null) await gate.future;
     final error = _startError;
     if (error != null) {
       throw error;
@@ -41,6 +51,7 @@ class FakeLivenessCameraService implements LivenessCameraService {
 
   @override
   Future<void> stop() async {
+    onStop?.call();
     stopCallCount++;
     started = false;
   }

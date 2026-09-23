@@ -3,7 +3,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'credential_status.freezed.dart';
 
 /// Why a credential is no longer usable, per data-model.md.
-enum ExpiryReason { expired, revoked }
+/// 012-mis-viajes research.md §2: `suspended` added, so the home strip can
+/// name it instead of calling it expired.
+enum ExpiryReason { expired, revoked, suspended }
 
 /// The classification `WelcomeViewModel` uses to decide what to render,
 /// per data-model.md. Returned wrapped in `Result<CredentialStatus>` by

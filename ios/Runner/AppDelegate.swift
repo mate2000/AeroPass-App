@@ -33,5 +33,43 @@ import UIKit
         result(FlutterMethodNotImplemented)
       }
     }
+ 
+    // 014-qr-pase / FR-006, FR-023 (contracts/pass-display-and-posture.md):
+    // brightness and the idle timer while a pass code is shown, and
+    // jailbreak signals. iOS cannot block screenshots; that limitation is
+    // recorded in research.md §6. Not verified to compile here (no Xcode).
+    let passChannel = FlutterMethodChannel(
+      name: "aeropass/pass_display",
+      binaryMessenger: engineBridge.pluginRegistry.messenger()
+    )
+    passChannel.setMethodCallHandler { [weak self] call, result in
+      switch call.method {
+      case "enterPassMode":
+        if self?.savedBrightness == nil {
+          self?.savedBrightness = UIScreen.main.brightness
+        }
+        UIScreen.main.brightness = 1.0
+        UIApplication.shared.isIdleTimerDisabled = true
+        result(nil)
+      case "exitPassMode":
+        if let saved = self?.savedBrightness {
+          UIScreen.main.brightness = saved
+        }
+        self?.savedBrightness = nil
+        UIApplication.shared.isIdleTimerDisabled = false
+        result(nil)
+      case "devicePosture":
+        let paths = [
+          "/Applications/Cydia.app", "/Library/MobileSubstrate/MobileSubstrate.dylib",
+          "/bin/bash", "/usr/sbin/sshd", "/etc/apt", "/private/var/lib/apt/",
+        ]
+        let jailbroken = paths.contains { FileManager.default.fileExists(atPath: $0) }
+        result(jailbroken ? ["jailbreak_paths"] : [])
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
+
+  private var savedBrightness: CGFloat?
 }

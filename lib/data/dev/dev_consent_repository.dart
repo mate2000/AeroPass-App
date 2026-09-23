@@ -4,6 +4,7 @@ import '../../domain/entities/consent_text_version.dart';
 import '../../domain/entities/enrollment_attempt_id.dart';
 import '../../domain/entities/processing_scope.dart';
 import '../../domain/repositories/consent_repository.dart';
+import '../services/credential_service.dart';
 
 /// A local, in-memory `ConsentRepository` used only when the app is
 /// launched with `--dart-define=USE_FAKE_CONSENT_BACKEND=true` (see
@@ -21,6 +22,13 @@ import '../../domain/repositories/consent_repository.dart';
 /// Reference section flags in the raw screenshot (retention period,
 /// processor disclosure) rather than reproducing them.
 class DevConsentRepository implements ConsentRepository {
+  /// 008-identidad-activa: the dev issuance fake writes a real cached
+  /// credential, so withdrawal in the offline demo must delete it too, just
+  /// like `ConsentRepositoryImpl.withdraw()` (research.md §6).
+  DevConsentRepository({required CredentialService credentialService})
+    : _credentialService = credentialService;
+
+  final CredentialService _credentialService;
   ConsentRecord? _localRecord;
 
   static final _demoText = ConsentTextVersion(
@@ -100,6 +108,11 @@ class DevConsentRepository implements ConsentRepository {
       withdrawalRequestedAt: DateTime.now(),
     );
     _localRecord = withdrawn;
+    try {
+      await _credentialService.clearCachedCredential();
+    } catch (e, st) {
+      return Result.error(e, st);
+    }
     return Result.ok(withdrawn);
   }
 

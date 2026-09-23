@@ -139,6 +139,17 @@ class CaptureViewModel extends ChangeNotifier {
       return;
     }
 
+    // 009-reintento (retry-policy addendum): an exhausted limit stays in
+    // force — entering at the limit goes to retry guidance, camera unopened.
+    final counter = await _attemptCounterRepository.read(
+      AttemptCounterScope.documentCapture,
+    );
+    if ((counter.valueOrNull?.count ?? 0) >= captureAttemptLimit) {
+      _pendingNavigation = CaptureNavigationTarget.retryGuidance;
+      notifyListeners();
+      return;
+    }
+
     _enrollmentSessionController.advanceTo(
       const EnrollmentStep.documentCapture(),
     );
@@ -220,9 +231,13 @@ class CaptureViewModel extends ChangeNotifier {
     final result = await _verificationRepository.submit(frame.submissionBytes);
     return result.when(
       ok: (outcome) => switch (outcome) {
-        CaptureOutcomeAccepted(:final extraction) =>
-          _registerAccepted(frame.submissionBytes, extraction),
-        CaptureOutcomeRejected(:final reason) => _registerVerificationRejection(reason),
+        CaptureOutcomeAccepted(:final extraction) => _registerAccepted(
+          frame.submissionBytes,
+          extraction,
+        ),
+        CaptureOutcomeRejected(:final reason) => _registerVerificationRejection(
+          reason,
+        ),
       },
       error: (_, _) {
         // FR-015: transport failure only (contracts/document-verification
@@ -245,9 +260,9 @@ class CaptureViewModel extends ChangeNotifier {
     Uint8List documentImageBytes,
     ExtractionResult extraction,
   ) async {
-    final _ = await _attemptCounterRepository.reset(
-      AttemptCounterScope.documentCapture,
-    );
+    // 009-reintento FR-017: an accepted photo no longer resets the counter.
+    // Only a verification match (007) or an agent does; otherwise a later
+    // verification rejection could never add up to the limit.
     // 004-confirmar-datos research.md §1: hand the retained bytes and the
     // processor's extraction forward, in memory only, before navigating —
     // this is the one hand-off point `PendingDocumentController` exists for.
@@ -270,9 +285,8 @@ class CaptureViewModel extends ChangeNotifier {
     if (count >= captureAttemptLimit) {
       _outcomeRecorded = true;
       _analyticsEmitter.captureAttemptLimitReached();
-      final _ = await _attemptCounterRepository.reset(
-        AttemptCounterScope.documentCapture,
-      );
+      // 009-reintento FR-017: reaching the limit keeps the count, so the
+      // limit stays in force until a verification match or an agent resets it.
       _pendingNavigation = CaptureNavigationTarget.retryGuidance;
       notifyListeners();
       return const Result.ok(null);

@@ -19,8 +19,7 @@ class SelfieInstructionsView extends StatefulWidget {
   final SelfieInstructionsViewModel viewModel;
 
   @override
-  State<SelfieInstructionsView> createState() =>
-      _SelfieInstructionsViewState();
+  State<SelfieInstructionsView> createState() => _SelfieInstructionsViewState();
 }
 
 class _SelfieInstructionsViewState extends State<SelfieInstructionsView> {
@@ -156,7 +155,10 @@ class _TopBar extends StatelessWidget {
             icon: const Icon(Icons.chevron_left),
             label: Text(l10n.captureTopBarBackLabel),
           ),
-          TextButton(onPressed: onHelp, child: Text(l10n.captureTopBarHelpLabel)),
+          TextButton(
+            onPressed: onHelp,
+            child: Text(l10n.captureTopBarHelpLabel),
+          ),
         ],
       ),
     );

@@ -175,24 +175,23 @@ void main() {
   );
 
   group('T029 [US1]: the capture surface', () {
-    testWidgets(
-      'renders with no shutter control anywhere on the surface',
-      (tester) async {
-        livenessVerificationRepository.scriptSubmitSample(
-          Result.ok(_inProgress(0, 4)),
-        );
-        final viewModel = await _pumpLivenessCaptureView(
-          tester,
-          createViewModel: buildViewModel,
-        );
+    testWidgets('renders with no shutter control anywhere on the surface', (
+      tester,
+    ) async {
+      livenessVerificationRepository.scriptSubmitSample(
+        Result.ok(_inProgress(0, 4)),
+      );
+      final viewModel = await _pumpLivenessCaptureView(
+        tester,
+        createViewModel: buildViewModel,
+      );
 
-        expect(find.byIcon(Icons.camera_alt), findsNothing);
-        expect(find.byIcon(Icons.fiber_manual_record), findsNothing);
-        expect(find.byType(FilledButton), findsNothing);
+      expect(find.byIcon(Icons.camera_alt), findsNothing);
+      expect(find.byIcon(Icons.fiber_manual_record), findsNothing);
+      expect(find.byType(FilledButton), findsNothing);
 
-        await _stopAndFlush(tester, viewModel);
-      },
-    );
+      await _stopAndFlush(tester, viewModel);
+    });
 
     testWidgets(
       'the instruction text and phase dots update as the ViewModel\'s '
@@ -255,36 +254,34 @@ void main() {
       },
     );
 
-    testWidgets(
-      'unclassifiedFailure and attackDetected render the exact same '
-      'widget tree — same text, same type, never a reason-specific string',
-      (tester) async {
-        livenessVerificationRepository.scriptSubmitSample(
-          const Result.ok(
-            LivenessSampleOutcome.completed(
-              outcome: LivenessOutcome.unclassifiedFailure(),
-            ),
+    testWidgets('unclassifiedFailure and attackDetected render the exact same '
+        'widget tree — same text, same type, never a reason-specific string', (
+      tester,
+    ) async {
+      livenessVerificationRepository.scriptSubmitSample(
+        const Result.ok(
+          LivenessSampleOutcome.completed(
+            outcome: LivenessOutcome.unclassifiedFailure(),
           ),
-        );
-        await _pumpLivenessCaptureView(tester, createViewModel: buildViewModel);
-        expect(find.text('No pudimos completar la captura'), findsOneWidget);
-      },
-    );
+        ),
+      );
+      await _pumpLivenessCaptureView(tester, createViewModel: buildViewModel);
+      expect(find.text('No pudimos completar la captura'), findsOneWidget);
+    });
 
-    testWidgets(
-      'attackDetected renders identically to unclassifiedFailure',
-      (tester) async {
-        livenessVerificationRepository.scriptSubmitSample(
-          const Result.ok(
-            LivenessSampleOutcome.completed(
-              outcome: LivenessOutcome.attackDetected(),
-            ),
+    testWidgets('attackDetected renders identically to unclassifiedFailure', (
+      tester,
+    ) async {
+      livenessVerificationRepository.scriptSubmitSample(
+        const Result.ok(
+          LivenessSampleOutcome.completed(
+            outcome: LivenessOutcome.attackDetected(),
           ),
-        );
-        await _pumpLivenessCaptureView(tester, createViewModel: buildViewModel);
-        expect(find.text('No pudimos completar la captura'), findsOneWidget);
-      },
-    );
+        ),
+      );
+      await _pumpLivenessCaptureView(tester, createViewModel: buildViewModel);
+      expect(find.text('No pudimos completar la captura'), findsOneWidget);
+    });
 
     testWidgets(
       'reaching the attempt limit navigates to the retry-guidance route, '
@@ -301,7 +298,10 @@ void main() {
         );
 
         for (var i = 0; i < 3; i++) {
-          await _pumpLivenessCaptureView(tester, createViewModel: buildViewModel);
+          await _pumpLivenessCaptureView(
+            tester,
+            createViewModel: buildViewModel,
+          );
         }
 
         expect(find.text('retry-guidance-stub'), findsOneWidget);
@@ -348,24 +348,23 @@ void main() {
       await _stopAndFlush(tester, viewModel);
     });
 
-    testWidgets(
-      'a simulated lifecycle-paused event stops the camera preview',
-      (tester) async {
-        livenessVerificationRepository.scriptSubmitSample(
-          Result.ok(_inProgress(0, 4)),
-        );
-        await _pumpLivenessCaptureView(tester, createViewModel: buildViewModel);
-        final stopCountBefore = livenessCameraService.stopCallCount;
+    testWidgets('a simulated lifecycle-paused event stops the camera preview', (
+      tester,
+    ) async {
+      livenessVerificationRepository.scriptSubmitSample(
+        Result.ok(_inProgress(0, 4)),
+      );
+      await _pumpLivenessCaptureView(tester, createViewModel: buildViewModel);
+      final stopCountBefore = livenessCameraService.stopCallCount;
 
-        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-        await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
 
-        expect(livenessCameraService.stopCallCount, greaterThan(stopCountBefore));
+      expect(livenessCameraService.stopCallCount, greaterThan(stopCountBefore));
 
-        await tester.pump(_testSampleInterval * 10);
-        await tester.pump();
-      },
-    );
+      await tester.pump(_testSampleInterval * 10);
+      await tester.pump();
+    });
   });
 
   group('T055: accessibility (FR-005/SC-009, Constitution Principle VI)', () {

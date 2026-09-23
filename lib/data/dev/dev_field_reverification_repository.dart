@@ -14,7 +14,8 @@ import '../../domain/repositories/field_reverification_repository.dart';
 /// processor. Demoing the disagreed/unresolved path currently requires the
 /// real backend — a deliberate simplification for a visual-review aid, not
 /// a substitute for the contract test suite.
-class DevFieldReverificationRepository implements FieldReverificationRepository {
+class DevFieldReverificationRepository
+    implements FieldReverificationRepository {
   @override
   Future<Result<FieldReverificationOutcome>> reverify({
     required Uint8List documentImageBytes,

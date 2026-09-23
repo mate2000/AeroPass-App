@@ -28,7 +28,11 @@ class ConsentPointTile extends StatelessWidget {
                 color: AppColors.mintChipBackground,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(_iconFor(point.icon), color: AppColors.teal, size: 18),
+              child: Icon(
+                _iconFor(point.icon),
+                color: AppColors.teal,
+                size: 18,
+              ),
             ),
           ),
           const SizedBox(width: 12),

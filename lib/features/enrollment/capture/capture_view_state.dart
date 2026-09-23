@@ -26,9 +26,8 @@ part 'capture_view_state.freezed.dart';
 sealed class CaptureViewState with _$CaptureViewState {
   const factory CaptureViewState.checking() = CaptureViewChecking;
 
-  const factory CaptureViewState.permissionDenied({
-    required bool permanent,
-  }) = CaptureViewPermissionDenied;
+  const factory CaptureViewState.permissionDenied({required bool permanent}) =
+      CaptureViewPermissionDenied;
 
   const factory CaptureViewState.ready({
     CaptureRejectionReason? lastRejectionReason,

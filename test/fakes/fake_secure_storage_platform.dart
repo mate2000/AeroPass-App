@@ -12,12 +12,20 @@ class FakeSecureStoragePlatform extends FlutterSecureStoragePlatform {
 
   void clearAll() => _store.clear();
 
+  /// When set, every [write] throws it (008: storage-write failure cases).
+  Object? writeError;
+
+  /// When set, every [delete] throws it (008: withdrawal clear failure).
+  Object? deleteError;
+
   @override
   Future<void> write({
     required String key,
     required String value,
     required Map<String, String> options,
   }) async {
+    final error = writeError;
+    if (error != null) throw error;
     _store[key] = value;
   }
 
@@ -38,6 +46,8 @@ class FakeSecureStoragePlatform extends FlutterSecureStoragePlatform {
     required String key,
     required Map<String, String> options,
   }) async {
+    final error = deleteError;
+    if (error != null) throw error;
     _store.remove(key);
   }
 

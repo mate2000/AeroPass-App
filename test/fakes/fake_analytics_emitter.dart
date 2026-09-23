@@ -1,3 +1,7 @@
+import 'package:aeropass_app/domain/entities/pass.dart';
+import 'package:aeropass_app/domain/entities/trip.dart';
+import 'package:aeropass_app/domain/entities/service_failure.dart';
+import 'package:aeropass_app/domain/entities/service_status.dart';
 import 'package:aeropass_app/domain/repositories/analytics_emitter.dart';
 
 /// A single recorded funnel-event call, for widget/unit test assertions.
@@ -180,7 +184,9 @@ class FakeAnalyticsEmitter implements AnalyticsEmitter {
   @override
   void confirmationCorrectionAttemptLimitReached() {
     events.add(
-      const RecordedAnalyticsEvent('confirmation_correction_attempt_limit_reached'),
+      const RecordedAnalyticsEvent(
+        'confirmation_correction_attempt_limit_reached',
+      ),
     );
   }
 
@@ -217,7 +223,9 @@ class FakeAnalyticsEmitter implements AnalyticsEmitter {
 
   @override
   void selfieInstructionsStepEntered() {
-    events.add(const RecordedAnalyticsEvent('selfie_instructions_step_entered'));
+    events.add(
+      const RecordedAnalyticsEvent('selfie_instructions_step_entered'),
+    );
   }
 
   @override
@@ -290,5 +298,309 @@ class FakeAnalyticsEmitter implements AnalyticsEmitter {
   @override
   void livenessStepAbandoned() {
     events.add(const RecordedAnalyticsEvent('liveness_step_abandoned'));
+  }
+
+  @override
+  void credentialIssuanceRequested() {
+    events.add(const RecordedAnalyticsEvent('credential_issuance_requested'));
+  }
+
+  @override
+  void credentialIssuanceOutcome({required IssuanceOutcomeKind kind}) {
+    events.add(
+      RecordedAnalyticsEvent('credential_issuance_outcome', {
+        'kind': kind.name,
+      }),
+    );
+  }
+
+  @override
+  void credentialActivatedShown() {
+    events.add(const RecordedAnalyticsEvent('credential_activated_shown'));
+  }
+
+  @override
+  void credentialActivatedRouteTaken({required OnwardRoute route}) {
+    events.add(
+      RecordedAnalyticsEvent('credential_activated_route_taken', {
+        'route': route.name,
+      }),
+    );
+  }
+
+  @override
+  void verificationStepEntered() {
+    events.add(const RecordedAnalyticsEvent('verification_step_entered'));
+  }
+
+  @override
+  void verificationStageReached({
+    required VerificationStage stage,
+    required StageStatus status,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('verification_stage_reached', {
+        'stage': stage.name,
+        'status': status.name,
+      }),
+    );
+  }
+
+  @override
+  void verificationSlowNoticeShown() {
+    events.add(const RecordedAnalyticsEvent('verification_slow_notice_shown'));
+  }
+
+  @override
+  void verificationHelpOpened() {
+    events.add(const RecordedAnalyticsEvent('verification_help_opened'));
+  }
+
+  @override
+  void verificationTimedOut() {
+    events.add(const RecordedAnalyticsEvent('verification_timed_out'));
+  }
+
+  @override
+  void verificationOutcome({
+    required VerificationOutcomeKind kind,
+    required int elapsedSeconds,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('verification_outcome', {
+        'kind': kind.name,
+        'elapsedSeconds': elapsedSeconds,
+      }),
+    );
+  }
+
+  @override
+  void retryGuidanceShown({required RetryGuidanceState state}) {
+    events.add(
+      RecordedAnalyticsEvent('retry_guidance_shown', {'state': state.name}),
+    );
+  }
+
+  @override
+  void retryGuidanceRetryTaken() {
+    events.add(const RecordedAnalyticsEvent('retry_guidance_retry_taken'));
+  }
+
+  @override
+  void retryGuidanceAgentRouteTaken({required RetryGuidanceState state}) {
+    events.add(
+      RecordedAnalyticsEvent('retry_guidance_agent_route_taken', {
+        'state': state.name,
+      }),
+    );
+  }
+
+  @override
+  void escalationShown({required EscalationArrival arrival}) {
+    events.add(
+      RecordedAnalyticsEvent('escalation_shown', {'arrival': arrival.name}),
+    );
+  }
+
+  @override
+  void escalationChannelsOffered({
+    required bool moduleAvailable,
+    required bool chatAvailable,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('escalation_channels_offered', {
+        'moduleAvailable': moduleAvailable,
+        'chatAvailable': chatAvailable,
+      }),
+    );
+  }
+
+  @override
+  void escalationChannelSelected({required AgentChannelKind channel}) {
+    events.add(
+      RecordedAnalyticsEvent('escalation_channel_selected', {
+        'channel': channel.name,
+      }),
+    );
+  }
+
+  @override
+  void escalationHandoffStarted({required AgentChannelKind channel}) {
+    events.add(
+      RecordedAnalyticsEvent('escalation_handoff_started', {
+        'channel': channel.name,
+      }),
+    );
+  }
+
+  @override
+  void escalationOutcome({
+    required EscalationOutcomeKind kind,
+    required int elapsedSeconds,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('escalation_outcome', {
+        'kind': kind.name,
+        'elapsedSeconds': elapsedSeconds,
+      }),
+    );
+  }
+
+  @override
+  void technicalErrorShown({
+    required ServiceFailureClass failureClass,
+    required VerificationStage? stage,
+    required bool jobTerminal,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('technical_error_shown', {
+        'failureClass': failureClass.name,
+        'stage': stage?.name,
+        'jobTerminal': jobTerminal,
+      }),
+    );
+  }
+
+  @override
+  void technicalErrorStatusShown({
+    required StepHealth documentScan,
+    required StepHealth selfie,
+    required StepHealth issuance,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('technical_error_status_shown', {
+        'documentScan': documentScan.name,
+        'selfie': selfie.name,
+        'issuance': issuance.name,
+      }),
+    );
+  }
+
+  @override
+  void technicalErrorRetry({
+    required TechnicalErrorRetryDestination destination,
+    required int arrival,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('technical_error_retry', {
+        'destination': destination.name,
+        'arrival': arrival,
+      }),
+    );
+  }
+
+  @override
+  void technicalErrorExit() {
+    events.add(RecordedAnalyticsEvent('technical_error_exit', {}));
+  }
+
+  @override
+  void technicalErrorResolved({required int elapsedSeconds}) {
+    events.add(
+      RecordedAnalyticsEvent('technical_error_resolved', {
+        'elapsedSeconds': elapsedSeconds,
+      }),
+    );
+  }
+
+  @override
+  void tripsHomeShown({
+    required bool hasNextTrip,
+    required bool credentialConfirmed,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('trips_home_shown', {
+        'hasNextTrip': hasNextTrip,
+        'credentialConfirmed': credentialConfirmed,
+      }),
+    );
+  }
+
+  @override
+  void tripDisplayed({
+    required TripStatus status,
+    required bool live,
+    required bool withinWindow,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('trip_displayed', {
+        'status': status.name,
+        'live': live,
+        'withinWindow': withinWindow,
+      }),
+    );
+  }
+
+  @override
+  void tripStarted({required int completedTripsLast90Days}) {
+    events.add(
+      RecordedAnalyticsEvent('trip_started', {
+        'completedTripsLast90Days': completedTripsLast90Days,
+      }),
+    );
+  }
+
+  @override
+  void tripsHistoryViewed({required int rowCount}) {
+    events.add(
+      RecordedAnalyticsEvent('trips_history_viewed', {'rowCount': rowCount}),
+    );
+  }
+
+  @override
+  void tripsEmptyShown() {
+    events.add(RecordedAnalyticsEvent('trips_empty_shown', {}));
+  }
+
+  @override
+  void passDisplayed({
+    required Checkpoint checkpoint,
+    required bool offlineCapable,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('pass_displayed', {
+        'checkpoint': checkpoint.name,
+        'offlineCapable': offlineCapable,
+      }),
+    );
+  }
+
+  @override
+  void passRotated({required Checkpoint checkpoint}) {
+    events.add(
+      RecordedAnalyticsEvent('pass_rotated', {'checkpoint': checkpoint.name}),
+    );
+  }
+
+  @override
+  void passValidated({
+    required Checkpoint checkpoint,
+    required int secondsSinceOpened,
+  }) {
+    events.add(
+      RecordedAnalyticsEvent('pass_validated', {
+        'checkpoint': checkpoint.name,
+        'secondsSinceOpened': secondsSinceOpened,
+      }),
+    );
+  }
+
+  @override
+  void passUnavailable({required PassUnavailableReason reason}) {
+    events.add(RecordedAnalyticsEvent('pass_expired', {'reason': reason.name}));
+  }
+
+  @override
+  void passReissueRequested({required bool succeeded}) {
+    events.add(
+      RecordedAnalyticsEvent('pass_reissue_requested', {
+        'succeeded': succeeded,
+      }),
+    );
+  }
+
+  @override
+  void passHelpOpened() {
+    events.add(RecordedAnalyticsEvent('pass_help_opened', {}));
   }
 }

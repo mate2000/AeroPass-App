@@ -1,16 +1,37 @@
 import '../entities/capture_outcome.dart' show CaptureRejectionReason;
 import '../entities/consent_unavailable_reason.dart' show UnavailableReason;
 import '../entities/document_validity.dart' show DocumentBlockReason;
+import '../entities/escalation.dart'
+    show AgentChannelKind, EscalationArrival, EscalationOutcomeKind;
 import '../entities/extraction_result.dart' show FieldKey;
+import '../entities/issuance_outcome.dart' show IssuanceOutcomeKind;
 import '../entities/liveness_outcome.dart' show LivenessQualityReason;
+import '../entities/onward_route.dart' show OnwardRoute;
+import '../entities/retry_guidance_state.dart' show RetryGuidanceState;
+import '../entities/pass.dart' show Checkpoint, PassUnavailableReason;
+import '../entities/service_failure.dart'
+    show ServiceFailureClass, TechnicalErrorRetryDestination;
+import '../entities/service_status.dart' show StepHealth;
+import '../entities/trip.dart' show TripStatus;
+import '../entities/verification_outcome.dart' show VerificationOutcomeKind;
+import '../entities/verification_stage.dart'
+    show StageStatus, VerificationStage;
 import '../entities/welcome_content_variant.dart'
     show DeviceUnsupportedReason, WelcomeScreenVariant;
 
 export '../entities/capture_outcome.dart' show CaptureRejectionReason;
 export '../entities/consent_unavailable_reason.dart' show UnavailableReason;
 export '../entities/document_validity.dart' show DocumentBlockReason;
+export '../entities/escalation.dart'
+    show AgentChannelKind, EscalationArrival, EscalationOutcomeKind;
 export '../entities/extraction_result.dart' show FieldKey;
+export '../entities/issuance_outcome.dart' show IssuanceOutcomeKind;
 export '../entities/liveness_outcome.dart' show LivenessQualityReason;
+export '../entities/onward_route.dart' show OnwardRoute;
+export '../entities/retry_guidance_state.dart' show RetryGuidanceState;
+export '../entities/verification_outcome.dart' show VerificationOutcomeKind;
+export '../entities/verification_stage.dart'
+    show StageStatus, VerificationStage;
 export '../entities/welcome_content_variant.dart'
     show DeviceUnsupportedReason, WelcomeScreenVariant;
 
@@ -163,7 +184,10 @@ abstract class AnalyticsEmitter {
   void livenessStepEntered();
 
   /// A new phase begins (FR-007: index only ever increases).
-  void livenessPhaseReached({required int phaseIndex, required int totalPhases});
+  void livenessPhaseReached({
+    required int phaseIndex,
+    required int totalPhases,
+  });
 
   /// An attempt reaches a terminal outcome. [reason] is present only when
   /// [outcome] is [LivenessOutcomeKind.qualityFailure]. Per research.md §8:
@@ -186,4 +210,169 @@ abstract class AnalyticsEmitter {
 
   /// The screen is left (back navigation) with no outcome recorded.
   void livenessStepAbandoned();
+
+  // --- 008-identidad-activa: contracts/analytics-events.md ---------------
+  // No event carries a name, document digits, country, date, token or
+  // enrollment attempt id (FR-015, not relaxable in any mode).
+
+  /// Each issuance request, including retries.
+  void credentialIssuanceRequested();
+
+  /// Each issuance result, as a bucket only.
+  void credentialIssuanceOutcome({required IssuanceOutcomeKind kind});
+
+  /// Screen 08 is created (once per issued credential, FR-009).
+  void credentialActivatedShown();
+
+  /// The passenger leaves screen 08 by one of its onward routes.
+  void credentialActivatedRouteTaken({required OnwardRoute route});
+
+  // --- 007-validando: contracts/analytics-events.md ----------------------
+  // Enum and integer payloads only; attack detection is folded into
+  // `biometricRejected` (FR-015, SC-007).
+
+  /// The verification screen opens.
+  void verificationStepEntered();
+
+  /// A stage becomes running, passed or failed.
+  void verificationStageReached({
+    required VerificationStage stage,
+    required StageStatus status,
+  });
+
+  /// The 10-second "taking longer than usual" notice appears.
+  void verificationSlowNoticeShown();
+
+  /// "Ayuda" is tapped from the notice.
+  void verificationHelpOpened();
+
+  /// The 30-second hard timeout is reached.
+  void verificationTimedOut();
+
+  /// Once, when the screen routes onward. [elapsedSeconds] is rounded and
+  /// measured from the screen opening (FR-016).
+  void verificationOutcome({
+    required VerificationOutcomeKind kind,
+    required int elapsedSeconds,
+  });
+
+  // --- 009-reintento: contracts/analytics-events.md ----------------------
+  // The state is the failure class: which capture, and whether at the limit.
+  // No event distinguishes attack detection (FR-015, SC-003).
+
+  /// The retry screen opens and its state is known.
+  void retryGuidanceShown({required RetryGuidanceState state});
+
+  /// "Intentar de nuevo" is tapped.
+  void retryGuidanceRetryTaken();
+
+  /// "Hablar con un agente" is tapped.
+  void retryGuidanceAgentRouteTaken({required RetryGuidanceState state});
+
+  // --- 010-escalar-agente: contracts/analytics-events.md -----------------
+  // No personal data; the agent's document-number lookup never passes
+  // through the app (FR-017, FR-023).
+
+  /// The escalation is open and shown.
+  void escalationShown({required EscalationArrival arrival});
+
+  /// Channels are first shown, or their availability changes.
+  void escalationChannelsOffered({
+    required bool moduleAvailable,
+    required bool chatAvailable,
+  });
+
+  /// The passenger selects a channel.
+  void escalationChannelSelected({required AgentChannelKind channel});
+
+  /// The primary action is tapped.
+  void escalationHandoffStarted({required AgentChannelKind channel});
+
+  /// Once, when an outcome or expiry is shown (FR-018).
+  void escalationOutcome({
+    required EscalationOutcomeKind kind,
+    required int elapsedSeconds,
+  });
+
+  // --- 011-error-tecnico (contracts/analytics-events.md) --------------------
+
+  /// Once, when screen 11 opens (FR-015).
+  void technicalErrorShown({
+    required ServiceFailureClass failureClass,
+    required VerificationStage? stage,
+    required bool jobTerminal,
+  });
+
+  /// Once, on the first successful live status read (FR-015).
+  void technicalErrorStatusShown({
+    required StepHealth documentScan,
+    required StepHealth selfie,
+    required StepHealth issuance,
+  });
+
+  /// When "Reintentar" is taken; [arrival] counts screen 11 visits this run.
+  void technicalErrorRetry({
+    required TechnicalErrorRetryDestination destination,
+    required int arrival,
+  });
+
+  /// When "Salir" is taken.
+  void technicalErrorExit();
+
+  /// When a credential activates after an earlier technical error this run.
+  void technicalErrorResolved({required int elapsedSeconds});
+
+  // --- 012-mis-viajes (contracts/analytics-events.md) -----------------------
+  // No payload carries a flight number, route, airport, date, seat or trip id.
+
+  /// Once per visit, when the home screen first shows content.
+  void tripsHomeShown({
+    required bool hasNextTrip,
+    required bool credentialConfirmed,
+  });
+
+  /// Once per visit, when a next trip is shown.
+  void tripDisplayed({
+    required TripStatus status,
+    required bool live,
+    required bool withinWindow,
+  });
+
+  /// When "Iniciar viaje" is taken. The count makes repeat use derivable
+  /// from events alone (research.md §9).
+  void tripStarted({required int completedTripsLast90Days});
+
+  /// Once per visit, when the history section first scrolls into view.
+  void tripsHistoryViewed({required int rowCount});
+
+  /// Once per visit, when there is no next trip.
+  void tripsEmptyShown();
+
+  // --- 014-qr-pase (contracts/analytics-events.md) --------------------------
+  // No payload carries a pass payload, pass id, secret, flight or date.
+
+  /// When a code is first shown in a visit.
+  void passDisplayed({
+    required Checkpoint checkpoint,
+    required bool offlineCapable,
+  });
+
+  /// At each rotation.
+  void passRotated({required Checkpoint checkpoint});
+
+  /// When the backend reports a checkpoint validated. [secondsSinceOpened]
+  /// is FR-018's time to validation.
+  void passValidated({
+    required Checkpoint checkpoint,
+    required int secondsSinceOpened,
+  });
+
+  /// When the pass stops being usable, and why.
+  void passUnavailable({required PassUnavailableReason reason});
+
+  /// When a new code is requested.
+  void passReissueRequested({required bool succeeded});
+
+  /// When help is opened from the pass.
+  void passHelpOpened();
 }

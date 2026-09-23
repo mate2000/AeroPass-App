@@ -13,6 +13,8 @@ CredentialStatusResponse _$CredentialStatusResponseFromJson(
   validUntil: json['validUntil'] == null
       ? null
       : DateTime.parse(json['validUntil'] as String),
+  holderName: json['holderName'] as String?,
+  documentLast4: json['documentLast4'] as String?,
 );
 
 Map<String, dynamic> _$CredentialStatusResponseToJson(
@@ -20,4 +22,6 @@ Map<String, dynamic> _$CredentialStatusResponseToJson(
 ) => <String, dynamic>{
   'status': instance.status,
   'validUntil': instance.validUntil?.toIso8601String(),
+  'holderName': instance.holderName,
+  'documentLast4': instance.documentLast4,
 };

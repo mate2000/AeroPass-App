@@ -1,3 +1,4 @@
+import 'package:aeropass_app/app/activated_credential_handoff.dart';
 import 'package:aeropass_app/domain/entities/consent_record.dart';
 import 'package:aeropass_app/domain/entities/enrollment_attempt_id.dart';
 import 'package:aeropass_app/domain/entities/processing_scope.dart';
@@ -32,41 +33,43 @@ Future<void> _pumpWithdrawalView(
 
 void main() {
   group('T031 [US3] withdrawal placeholder', () {
-    testWidgets(
-      'confirming withdrawal invalidates the local record within the '
-      'local-effect budget with no network dependency (SC-005)',
-      (tester) async {
-        // FakeConsentRepository never touches the network, mirroring
-        // SC-005's "no network dependency for the local effect" — this
-        // repository double has none to depend on in the first place.
-        final consentRepository = FakeConsentRepository();
-        consentRepository.seedLocalRecord(_activeRecord());
-        final viewModel = WithdrawalViewModel(
-          consentRepository: consentRepository,
-        );
-        await _pumpWithdrawalView(tester, viewModel: viewModel);
-        await tester.pumpAndSettle();
+    testWidgets('confirming withdrawal invalidates the local record within the '
+        'local-effect budget with no network dependency (SC-005)', (
+      tester,
+    ) async {
+      // FakeConsentRepository never touches the network, mirroring
+      // SC-005's "no network dependency for the local effect" — this
+      // repository double has none to depend on in the first place.
+      final consentRepository = FakeConsentRepository();
+      consentRepository.seedLocalRecord(_activeRecord());
+      final viewModel = WithdrawalViewModel(
+        consentRepository: consentRepository,
+        activatedCredentialHandoff: ActivatedCredentialHandoff(),
+      );
+      await _pumpWithdrawalView(tester, viewModel: viewModel);
+      await tester.pumpAndSettle();
 
-        expect(find.text('Retirar consentimiento'), findsOneWidget);
+      expect(find.text('Retirar consentimiento'), findsOneWidget);
 
-        await tester.tap(find.text('Retirar consentimiento'));
-        // A single pump (not pumpAndSettle) stands in for SC-005's ≤1s
-        // budget: the local effect must already be applied almost
-        // immediately, not after a network round trip.
-        await tester.pump();
+      await tester.tap(find.text('Retirar consentimiento'));
+      // A single pump (not pumpAndSettle) stands in for SC-005's ≤1s
+      // budget: the local effect must already be applied almost
+      // immediately, not after a network round trip.
+      await tester.pump();
 
-        final localResult = await consentRepository.getLocalRecord();
-        final record = localResult.valueOrNull;
-        expect(record, isNotNull);
-        expect(record!.status, isNot(ConsentRecordStatus.active));
+      final localResult = await consentRepository.getLocalRecord();
+      final record = localResult.valueOrNull;
+      expect(record, isNotNull);
+      expect(record!.status, isNot(ConsentRecordStatus.active));
 
-        await tester.pumpAndSettle();
-        expect(
-          find.text('Tu consentimiento fue retirado. Tu credencial ya no es válida.'),
-          findsOneWidget,
-        );
-      },
-    );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Tu consentimiento fue retirado. Tu credencial ya no es válida.',
+        ),
+        findsOneWidget,
+      );
+    });
 
     testWidgets(
       'with no local record, shows the no-active-consent message instead '
@@ -76,6 +79,7 @@ void main() {
         consentRepository.seedLocalRecord(null);
         final viewModel = WithdrawalViewModel(
           consentRepository: consentRepository,
+          activatedCredentialHandoff: ActivatedCredentialHandoff(),
         );
         await _pumpWithdrawalView(tester, viewModel: viewModel);
         await tester.pumpAndSettle();

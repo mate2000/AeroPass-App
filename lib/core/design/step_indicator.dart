@@ -16,9 +16,23 @@ enum EnrollmentProgressStep { document, selfie, done }
 /// step it represents explicitly via [currentStep] rather than the widget
 /// guessing or defaulting.
 class StepIndicator extends StatelessWidget {
-  const StepIndicator({required this.currentStep, super.key});
+  const StepIndicator({
+    required this.currentStep,
+    this.currentStepReached = true,
+    this.onLightSurface = false,
+    super.key,
+  });
 
   final EnrollmentProgressStep currentStep;
+
+  /// 007-validando (FR-006): when `false`, [currentStep] renders as upcoming
+  /// rather than active — screen 07 shows Listo pending until the credential
+  /// exists. Defaults to today's behaviour, so 003–006 are unchanged.
+  final bool currentStepReached;
+
+  /// 007-validando: a dark-grey upcoming colour, since `white54` disappears
+  /// on a light background. Defaults to the dark-surface style.
+  final bool onLightSurface;
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +46,37 @@ class StepIndicator extends StatelessWidget {
       container: true,
       label:
           '${labels[currentStep]} ${currentStep.index + 1}/'
-          '${EnrollmentProgressStep.values.length}',
+          '${EnrollmentProgressStep.values.length}'
+          '${currentStepReached ? '' : ', ${l10n.stepIndicatorPendingSuffix}'}',
       child: ExcludeSemantics(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (final step in EnrollmentProgressStep.values) ...[
-              if (step != EnrollmentProgressStep.values.first)
-                const SizedBox(width: 8),
-              _Segment(label: labels[step]!, state: _stateFor(step)),
+        // Scales the row down only when large text makes it wider than the
+        // screen (Principle VI); at normal sizes it renders unchanged.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (final step in EnrollmentProgressStep.values) ...[
+                if (step != EnrollmentProgressStep.values.first)
+                  const SizedBox(width: 8),
+                _Segment(
+                  label: labels[step]!,
+                  state: _stateFor(step),
+                  onLightSurface: onLightSurface,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
   _SegmentState _stateFor(EnrollmentProgressStep step) {
-    if (step == currentStep) return _SegmentState.active;
+    if (step == currentStep) {
+      return currentStepReached ? _SegmentState.active : _SegmentState.upcoming;
+    }
     if (step.index < currentStep.index) return _SegmentState.complete;
     return _SegmentState.upcoming;
   }
@@ -58,15 +85,22 @@ class StepIndicator extends StatelessWidget {
 enum _SegmentState { complete, active, upcoming }
 
 class _Segment extends StatelessWidget {
-  const _Segment({required this.label, required this.state});
+  const _Segment({
+    required this.label,
+    required this.state,
+    required this.onLightSurface,
+  });
 
   final String label;
   final _SegmentState state;
+  final bool onLightSurface;
+
+  static const _upcomingOnLight = Color(0xFFB8C0CC);
 
   @override
   Widget build(BuildContext context) {
     final color = state == _SegmentState.upcoming
-        ? Colors.white54
+        ? (onLightSurface ? _upcomingOnLight : Colors.white54)
         : AppColors.teal;
     return Column(
       mainAxisSize: MainAxisSize.min,

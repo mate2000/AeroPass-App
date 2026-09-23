@@ -90,8 +90,6 @@ class LivenessFailureMessage extends StatelessWidget {
     };
   }
 
-  (String, String) _genericCopy(AppLocalizations l10n) => (
-    l10n.livenessFailureGenericHeadline,
-    l10n.livenessFailureGenericBody,
-  );
+  (String, String) _genericCopy(AppLocalizations l10n) =>
+      (l10n.livenessFailureGenericHeadline, l10n.livenessFailureGenericBody);
 }

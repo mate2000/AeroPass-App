@@ -915,6 +915,1096 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Reintentar'**
   String get livenessStalledRetryLabel;
+
+  /// No description provided for @credentialActivatedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu identidad digital está activa'**
+  String get credentialActivatedTitle;
+
+  /// FR-002/CONFLICT-004: qualified to where AeroPass is accepted; must never imply acceptance everywhere.
+  ///
+  /// In es, this message translates to:
+  /// **'A partir de ahora, pasa los filtros de seguridad donde AeroPass está disponible sin mostrar documentos físicos.'**
+  String get credentialActivatedSubtitle;
+
+  /// No description provided for @credentialCardLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'IDENTIDAD DIGITAL'**
+  String get credentialCardLabel;
+
+  /// No description provided for @credentialCardIssuedOn.
+  ///
+  /// In es, this message translates to:
+  /// **'Creada el {date}'**
+  String credentialCardIssuedOn(String date);
+
+  /// FR-004: the backend-issued validity; never computed by the app.
+  ///
+  /// In es, this message translates to:
+  /// **'Válida hasta {date}'**
+  String credentialCardValidUntil(String date);
+
+  /// No description provided for @credentialCardActiveBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'ACTIVA'**
+  String get credentialCardActiveBadge;
+
+  /// No description provided for @credentialCardMaskedDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'•••• {last4} · {countryCode}'**
+  String credentialCardMaskedDocument(String last4, String countryCode);
+
+  /// FR-014: what assistive technology announces instead of the bullet characters.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento terminado en {last4}, {country}'**
+  String credentialCardMaskedDocumentSemantics(String last4, String country);
+
+  /// FR-018: no portrait is ever shown; this labels the generic icon.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen genérica de perfil'**
+  String get credentialCardPortraitSemantics;
+
+  /// No description provided for @countryNameCol.
+  ///
+  /// In es, this message translates to:
+  /// **'Colombia'**
+  String get countryNameCol;
+
+  /// No description provided for @credentialActivatedPrimaryAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a mis viajes'**
+  String get credentialActivatedPrimaryAction;
+
+  /// No description provided for @credentialActivatedSecondaryAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver mi identidad'**
+  String get credentialActivatedSecondaryAction;
+
+  /// No description provided for @verificationProgressMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Estamos activando tu identidad digital…'**
+  String get verificationProgressMessage;
+
+  /// No description provided for @verificationProgressFailedMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos completar la activación. Revisa tu conexión y vuelve a intentarlo.'**
+  String get verificationProgressFailedMessage;
+
+  /// No description provided for @verificationProgressRetryLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get verificationProgressRetryLabel;
+
+  /// FR-010 destination placeholder until its own spec arrives.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos activar tu identidad digital. (Pantalla pendiente de su propia especificación.)'**
+  String get credentialNotActivePlaceholderMessage;
+
+  /// No description provided for @credentialDetailPlaceholderMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu identidad digital (pantalla pendiente de su propia especificación).'**
+  String get credentialDetailPlaceholderMessage;
+
+  /// No description provided for @tripsGreetingMorning.
+  ///
+  /// In es, this message translates to:
+  /// **'Buenos días,'**
+  String get tripsGreetingMorning;
+
+  /// No description provided for @tripsGreetingAfternoon.
+  ///
+  /// In es, this message translates to:
+  /// **'Buenas tardes,'**
+  String get tripsGreetingAfternoon;
+
+  /// No description provided for @tripsGreetingEvening.
+  ///
+  /// In es, this message translates to:
+  /// **'Buenas noches,'**
+  String get tripsGreetingEvening;
+
+  /// No description provided for @tripsMaskedDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'•••• {last4}'**
+  String tripsMaskedDocument(String last4);
+
+  /// No description provided for @tripsBadgeActive.
+  ///
+  /// In es, this message translates to:
+  /// **'ACTIVA'**
+  String get tripsBadgeActive;
+
+  /// No description provided for @tripsBadgeExpired.
+  ///
+  /// In es, this message translates to:
+  /// **'VENCIDA'**
+  String get tripsBadgeExpired;
+
+  /// No description provided for @tripsBadgeRevoked.
+  ///
+  /// In es, this message translates to:
+  /// **'REVOCADA'**
+  String get tripsBadgeRevoked;
+
+  /// No description provided for @tripsBadgeSuspended.
+  ///
+  /// In es, this message translates to:
+  /// **'SUSPENDIDA'**
+  String get tripsBadgeSuspended;
+
+  /// No description provided for @tripsBadgeUnconfirmed.
+  ///
+  /// In es, this message translates to:
+  /// **'sin confirmar'**
+  String get tripsBadgeUnconfirmed;
+
+  /// No description provided for @tripsNextHeading.
+  ///
+  /// In es, this message translates to:
+  /// **'PRÓXIMO VIAJE'**
+  String get tripsNextHeading;
+
+  /// No description provided for @tripsHistoryHeading.
+  ///
+  /// In es, this message translates to:
+  /// **'VIAJES RECIENTES'**
+  String get tripsHistoryHeading;
+
+  /// No description provided for @tripsToday.
+  ///
+  /// In es, this message translates to:
+  /// **'Hoy · {hora}'**
+  String tripsToday(String hora);
+
+  /// No description provided for @tripsTomorrow.
+  ///
+  /// In es, this message translates to:
+  /// **'Mañana · {hora}'**
+  String tripsTomorrow(String hora);
+
+  /// No description provided for @tripsOnDate.
+  ///
+  /// In es, this message translates to:
+  /// **'{fecha} · {hora}'**
+  String tripsOnDate(String fecha, String hora);
+
+  /// No description provided for @tripsLocalTimeOf.
+  ///
+  /// In es, this message translates to:
+  /// **'(hora local de {ciudad})'**
+  String tripsLocalTimeOf(String ciudad);
+
+  /// No description provided for @tripsGate.
+  ///
+  /// In es, this message translates to:
+  /// **'Puerta {gate}'**
+  String tripsGate(String gate);
+
+  /// No description provided for @tripsSeat.
+  ///
+  /// In es, this message translates to:
+  /// **'Asiento {seat}'**
+  String tripsSeat(String seat);
+
+  /// No description provided for @tripsDetailsUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalles no disponibles'**
+  String get tripsDetailsUnavailable;
+
+  /// No description provided for @tripsStatusDelayed.
+  ///
+  /// In es, this message translates to:
+  /// **'Retrasado'**
+  String get tripsStatusDelayed;
+
+  /// No description provided for @tripsStatusCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Vuelo cancelado'**
+  String get tripsStatusCancelled;
+
+  /// No description provided for @tripsStatusUnknown.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado no disponible'**
+  String get tripsStatusUnknown;
+
+  /// No description provided for @tripsConnectsTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Conexión a {ciudad}'**
+  String tripsConnectsTo(String ciudad);
+
+  /// No description provided for @tripsUpdatedAgo.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizado hace {min} min'**
+  String tripsUpdatedAgo(int min);
+
+  /// No description provided for @tripsStart.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar viaje'**
+  String get tripsStart;
+
+  /// No description provided for @tripsReasonUnconfirmed.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión: no pudimos confirmar tu identidad'**
+  String get tripsReasonUnconfirmed;
+
+  /// No description provided for @tripsReasonExpired.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu identidad está vencida'**
+  String get tripsReasonExpired;
+
+  /// No description provided for @tripsReasonRevoked.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu identidad está revocada'**
+  String get tripsReasonRevoked;
+
+  /// No description provided for @tripsReasonSuspended.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu identidad está suspendida'**
+  String get tripsReasonSuspended;
+
+  /// No description provided for @tripsReasonDeparted.
+  ///
+  /// In es, this message translates to:
+  /// **'Este vuelo ya salió'**
+  String get tripsReasonDeparted;
+
+  /// No description provided for @tripsReasonAvailableFrom.
+  ///
+  /// In es, this message translates to:
+  /// **'Disponible desde el {dia} a las {hora}'**
+  String tripsReasonAvailableFrom(String dia, String hora);
+
+  /// No description provided for @tripsRouteSemantics.
+  ///
+  /// In es, this message translates to:
+  /// **'De {origen} a {destino}, vuelo {vuelo}, {cuando}'**
+  String tripsRouteSemantics(
+    String origen,
+    String destino,
+    String vuelo,
+    String cuando,
+  );
+
+  /// No description provided for @tripsEmptyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no tienes viajes'**
+  String get tripsEmptyTitle;
+
+  /// No description provided for @tripsEmptyBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuando reserves un vuelo nacional con el mismo documento con el que te registraste, tu aerolínea lo agregará aquí. No tienes que hacer nada.'**
+  String get tripsEmptyBody;
+
+  /// No description provided for @tripsHistoryRetention.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostramos tus viajes de los últimos 90 días.'**
+  String get tripsHistoryRetention;
+
+  /// No description provided for @tripsHistoryRow.
+  ///
+  /// In es, this message translates to:
+  /// **'{vuelo} · {fecha}'**
+  String tripsHistoryRow(String vuelo, String fecha);
+
+  /// No description provided for @tripsUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos cargar tus viajes'**
+  String get tripsUnavailableTitle;
+
+  /// No description provided for @tripsRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get tripsRetry;
+
+  /// No description provided for @homeTabTrips.
+  ///
+  /// In es, this message translates to:
+  /// **'Viajes'**
+  String get homeTabTrips;
+
+  /// No description provided for @homeTabIdentity.
+  ///
+  /// In es, this message translates to:
+  /// **'Identidad'**
+  String get homeTabIdentity;
+
+  /// No description provided for @homeTabProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Perfil'**
+  String get homeTabProfile;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Perfil'**
+  String get profileTitle;
+
+  /// No description provided for @profileWithdrawConsent.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirar consentimiento'**
+  String get profileWithdrawConsent;
+
+  /// No description provided for @tripVerificationTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Validación automática'**
+  String get tripVerificationTitle;
+
+  /// No description provided for @tripVerificationBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Aquí confirmaremos que eres tú antes de emitir tu pase. Esta pantalla llegará pronto.'**
+  String get tripVerificationBody;
+
+  /// No description provided for @tripVerificationBack.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver'**
+  String get tripVerificationBack;
+
+  /// No description provided for @verificationHeader.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificando'**
+  String get verificationHeader;
+
+  /// No description provided for @verificationTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estamos validando tu identidad'**
+  String get verificationTitle;
+
+  /// CONFLICT-002: softened in the same change that ships FR-010's relaunch recovery.
+  ///
+  /// In es, this message translates to:
+  /// **'Esto toma unos segundos. No cierres la aplicación.'**
+  String get verificationSubtitle;
+
+  /// No description provided for @verificationStageDocumentRunning.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificando documento'**
+  String get verificationStageDocumentRunning;
+
+  /// No description provided for @verificationStageDocumentPassed.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento verificado'**
+  String get verificationStageDocumentPassed;
+
+  /// No description provided for @verificationStageFaceRunning.
+  ///
+  /// In es, this message translates to:
+  /// **'Comparando rostro'**
+  String get verificationStageFaceRunning;
+
+  /// No description provided for @verificationStageFacePassed.
+  ///
+  /// In es, this message translates to:
+  /// **'Rostro verificado'**
+  String get verificationStageFacePassed;
+
+  /// No description provided for @verificationStageIssuanceRunning.
+  ///
+  /// In es, this message translates to:
+  /// **'Creando identidad digital'**
+  String get verificationStageIssuanceRunning;
+
+  /// FR-005: shown only after the backend confirms issuance.
+  ///
+  /// In es, this message translates to:
+  /// **'Identidad digital creada'**
+  String get verificationStageIssuancePassed;
+
+  /// FR-012/FR-013: identical for every failure class, so it never reveals attack detection.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos completar la verificación'**
+  String get verificationFailureLine;
+
+  /// No description provided for @verificationSlowNotice.
+  ///
+  /// In es, this message translates to:
+  /// **'Está tardando más de lo habitual'**
+  String get verificationSlowNotice;
+
+  /// No description provided for @verificationKeepWaiting.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir esperando'**
+  String get verificationKeepWaiting;
+
+  /// No description provided for @verificationHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayuda'**
+  String get verificationHelp;
+
+  /// No description provided for @technicalErrorHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayuda'**
+  String get technicalErrorHelp;
+
+  /// 011 research §10: a known service failure.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos completar la validación'**
+  String get technicalErrorServiceTitle;
+
+  /// 011 FR-001: shown only for a known service failure.
+  ///
+  /// In es, this message translates to:
+  /// **'Es un problema nuestro, no tuyo.'**
+  String get technicalErrorServiceSubtitle;
+
+  /// 011 FR-006: shown only when an alert is actually raised.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuestro equipo ya fue notificado.'**
+  String get technicalErrorNotified;
+
+  /// No description provided for @technicalErrorConnectivityTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos conectarnos'**
+  String get technicalErrorConnectivityTitle;
+
+  /// No description provided for @technicalErrorConnectivitySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Parece que se perdió la conexión a internet.'**
+  String get technicalErrorConnectivitySubtitle;
+
+  /// 011 FR-009.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión y vuelve a intentarlo.'**
+  String get technicalErrorConnectivityGuidance;
+
+  /// No description provided for @technicalErrorUndeterminedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos completar la validación'**
+  String get technicalErrorUndeterminedTitle;
+
+  /// 011 FR-010: asserts no cause.
+  ///
+  /// In es, this message translates to:
+  /// **'No fue por algo que hayas hecho.'**
+  String get technicalErrorUndeterminedSubtitle;
+
+  /// No description provided for @technicalErrorRetryAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes reintentar a las {hora}.'**
+  String technicalErrorRetryAt(String hora);
+
+  /// 011 FR-003/FR-004: never implies a capture was kept.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus datos del documento quedaron guardados. Al reintentar, solo tendrás que tomarte una nueva selfie.'**
+  String get technicalErrorPreservedNewSelfie;
+
+  /// No description provided for @technicalErrorPreservedRecheck.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus datos del documento quedaron guardados. Al reintentar, revisaremos tu validación sin repetir fotos.'**
+  String get technicalErrorPreservedRecheck;
+
+  /// 011 FR-012.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes retomar tu registro durante las próximas 24 horas.'**
+  String get technicalErrorResumeWindow;
+
+  /// No description provided for @technicalErrorStatusTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado del servicio'**
+  String get technicalErrorStatusTitle;
+
+  /// No description provided for @technicalErrorStepDocumentScan.
+  ///
+  /// In es, this message translates to:
+  /// **'Escaneo de documento'**
+  String get technicalErrorStepDocumentScan;
+
+  /// No description provided for @technicalErrorStepSelfie.
+  ///
+  /// In es, this message translates to:
+  /// **'Selfie'**
+  String get technicalErrorStepSelfie;
+
+  /// No description provided for @technicalErrorStepIssuance.
+  ///
+  /// In es, this message translates to:
+  /// **'Emisión de tu identidad'**
+  String get technicalErrorStepIssuance;
+
+  /// No description provided for @technicalErrorHealthOperational.
+  ///
+  /// In es, this message translates to:
+  /// **'Operativo'**
+  String get technicalErrorHealthOperational;
+
+  /// No description provided for @technicalErrorHealthDegraded.
+  ///
+  /// In es, this message translates to:
+  /// **'Con fallas'**
+  String get technicalErrorHealthDegraded;
+
+  /// No description provided for @technicalErrorHealthUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No disponible'**
+  String get technicalErrorHealthUnavailable;
+
+  /// No description provided for @technicalErrorRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get technicalErrorRetry;
+
+  /// No description provided for @technicalErrorRetryIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar en {segundos} s'**
+  String technicalErrorRetryIn(int segundos);
+
+  /// No description provided for @technicalErrorRetryHeldSemantics.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar no disponible por {segundos} segundos'**
+  String technicalErrorRetryHeldSemantics(int segundos);
+
+  /// No description provided for @technicalErrorExit.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir'**
+  String get technicalErrorExit;
+
+  /// Constitution product budget: the agent path is one tap away from any failure state.
+  ///
+  /// In es, this message translates to:
+  /// **'Hablar con un agente'**
+  String get technicalErrorAgent;
+
+  /// Constitution contingency budget: what to do at the checkpoint instead.
+  ///
+  /// In es, this message translates to:
+  /// **'También puedes usar el control de documentos habitual en el aeropuerto.'**
+  String get technicalErrorCheckpointLine;
+
+  /// 007 FR-006: appended to the step indicator label when the current step is not yet reached.
+  ///
+  /// In es, this message translates to:
+  /// **'pendiente'**
+  String get stepIndicatorPendingSuffix;
+
+  /// No description provided for @retryGuidanceHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayuda'**
+  String get retryGuidanceHelp;
+
+  /// No description provided for @retryGuidanceIconSemantics.
+  ///
+  /// In es, this message translates to:
+  /// **'Aviso'**
+  String get retryGuidanceIconSemantics;
+
+  /// No description provided for @retrySelfieTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos confirmar que eres tú'**
+  String get retrySelfieTitle;
+
+  /// 009 FR-003: shared by face mismatch, liveness rejection and attack detection; names no comparison and no threshold.
+  ///
+  /// In es, this message translates to:
+  /// **'No logramos verificar tu identidad con esta selfie. ¡Sin problema, inténtalo otra vez!'**
+  String get retrySelfieBody;
+
+  /// No description provided for @retryAdviceHeading.
+  ///
+  /// In es, this message translates to:
+  /// **'Consejos para el siguiente intento:'**
+  String get retryAdviceHeading;
+
+  /// No description provided for @retryTipLighting.
+  ///
+  /// In es, this message translates to:
+  /// **'Busca un lugar con buena iluminación, de preferencia natural.'**
+  String get retryTipLighting;
+
+  /// 009 FR-005: same wording as 005's rule; never asks to remove glasses or a religious head covering.
+  ///
+  /// In es, this message translates to:
+  /// **'Asegúrate de que tu rostro esté descubierto y visible por completo.'**
+  String get retryTipFaceVisible;
+
+  /// No description provided for @retryTipHoldStill.
+  ///
+  /// In es, this message translates to:
+  /// **'Sostén el teléfono a la altura de tus ojos y quédate quieto.'**
+  String get retryTipHoldStill;
+
+  /// No description provided for @retrySelfieLimitTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Alcanzaste el número máximo de intentos'**
+  String get retrySelfieLimitTitle;
+
+  /// No description provided for @retrySelfieLimitBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Por ahora no puedes volver a tomar la selfie. Habla con un agente para volver a intentarlo, o usa el control de documentos habitual en el aeropuerto.'**
+  String get retrySelfieLimitBody;
+
+  /// No description provided for @retryDocumentLimitTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Alcanzaste el número máximo de intentos con tu documento'**
+  String get retryDocumentLimitTitle;
+
+  /// No description provided for @retryDocumentLimitBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Por ahora no puedes volver a escanear tu documento. Habla con un agente para volver a intentarlo, o usa el control de documentos habitual en el aeropuerto.'**
+  String get retryDocumentLimitBody;
+
+  /// No description provided for @retryAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Intentar de nuevo'**
+  String get retryAction;
+
+  /// No description provided for @retryAgentAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Hablar con un agente'**
+  String get retryAgentAction;
+
+  /// No description provided for @escalationHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayuda'**
+  String get escalationHelp;
+
+  /// 010 Clarifications: accurate, since only the airport module can verify.
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitamos verificarte en persona'**
+  String get escalationTitle;
+
+  /// 010 CONFLICT-005: never says the passenger ran out of attempts.
+  ///
+  /// In es, this message translates to:
+  /// **'Un agente en el módulo AeroPass puede ayudarte a completar tu verificación.'**
+  String get escalationBodyByChoice;
+
+  /// No description provided for @escalationBodyAfterLimit.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos confirmar tu identidad automáticamente. Un agente en el módulo AeroPass puede ayudarte a completar el proceso.'**
+  String get escalationBodyAfterLimit;
+
+  /// No description provided for @escalationModuleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Módulo AeroPass'**
+  String get escalationModuleTitle;
+
+  /// No description provided for @escalationChatTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Chat con un agente'**
+  String get escalationChatTitle;
+
+  /// 010 FR-021: the chat is informational and cannot complete verification.
+  ///
+  /// In es, this message translates to:
+  /// **'Resuelve tus dudas; la verificación se completa en el módulo.'**
+  String get escalationChatPurpose;
+
+  /// No description provided for @escalationAvailableNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Disponible ahora'**
+  String get escalationAvailableNow;
+
+  /// No description provided for @escalationUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No disponible'**
+  String get escalationUnavailable;
+
+  /// No description provided for @escalationOpensAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Abre {when}'**
+  String escalationOpensAt(String when);
+
+  /// 010 FR-006: shown only when the channel supplies a wait.
+  ///
+  /// In es, this message translates to:
+  /// **'Espera estimada: {min}–{max} minutos'**
+  String escalationEstimatedWait(int min, int max);
+
+  /// No description provided for @escalationDirectionsAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Cómo llegar al módulo'**
+  String get escalationDirectionsAction;
+
+  /// No description provided for @escalationStartChatAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar chat'**
+  String get escalationStartChatAction;
+
+  /// No description provided for @escalationHomeAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver al inicio'**
+  String get escalationHomeAction;
+
+  /// No description provided for @escalationReopenAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir nueva solicitud'**
+  String get escalationReopenAction;
+
+  /// No description provided for @escalationRetryAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get escalationRetryAction;
+
+  /// 010 FR-008: stated in every state.
+  ///
+  /// In es, this message translates to:
+  /// **'También puedes usar el control de documentos habitual en el aeropuerto.'**
+  String get escalationCheckpointLine;
+
+  /// No description provided for @escalationNoChannelOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'En este momento no hay canales abiertos. Revisa cuándo abren o usa el control de documentos habitual.'**
+  String get escalationNoChannelOpen;
+
+  /// 010 FR-013: a module agent declined to verify.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos completar tu verificación'**
+  String get escalationDeclinedTitle;
+
+  /// No description provided for @escalationDeclinedBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El agente no pudo verificar tu identidad. Puedes usar el control de documentos habitual en el aeropuerto.'**
+  String get escalationDeclinedBody;
+
+  /// No description provided for @escalationExpiredTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu solicitud expiró'**
+  String get escalationExpiredTitle;
+
+  /// No description provided for @escalationExpiredBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasaron más de 24 horas. Puedes abrir una nueva solicitud; tu inscripción sigue guardada.'**
+  String get escalationExpiredBody;
+
+  /// No description provided for @escalationUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos abrir tu solicitud'**
+  String get escalationUnavailableTitle;
+
+  /// No description provided for @escalationUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión y vuelve a intentarlo.'**
+  String get escalationUnavailableBody;
+
+  /// No description provided for @escalationLocationSheetTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Dónde encontrar el módulo'**
+  String get escalationLocationSheetTitle;
+
+  /// No description provided for @escalationLocationHours.
+  ///
+  /// In es, this message translates to:
+  /// **'Horario: {hours}'**
+  String escalationLocationHours(String hours);
+
+  /// No description provided for @agentChatTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Chat con un agente'**
+  String get agentChatTitle;
+
+  /// 010 FR-014/FR-021.
+  ///
+  /// In es, this message translates to:
+  /// **'Este chat responde tus dudas. No puede completar tu verificación y nunca recibe documentos.'**
+  String get agentChatNotice;
+
+  /// No description provided for @agentChatHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe tu mensaje'**
+  String get agentChatHint;
+
+  /// No description provided for @agentChatSend.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar'**
+  String get agentChatSend;
+
+  /// No description provided for @agentChatNotSent.
+  ///
+  /// In es, this message translates to:
+  /// **'No enviado'**
+  String get agentChatNotSent;
+
+  /// No description provided for @passBack.
+  ///
+  /// In es, this message translates to:
+  /// **'Atrás'**
+  String get passBack;
+
+  /// No description provided for @passHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayuda'**
+  String get passHelp;
+
+  /// No description provided for @passSeat.
+  ///
+  /// In es, this message translates to:
+  /// **'Asiento {seat}'**
+  String passSeat(String seat);
+
+  /// No description provided for @passTripLine.
+  ///
+  /// In es, this message translates to:
+  /// **'{vuelo} · {origen} → {destino} · {cuando}'**
+  String passTripLine(
+    String vuelo,
+    String origen,
+    String destino,
+    String cuando,
+  );
+
+  /// No description provided for @passCheckpointSecurity.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguridad'**
+  String get passCheckpointSecurity;
+
+  /// No description provided for @passCheckpointBoarding.
+  ///
+  /// In es, this message translates to:
+  /// **'Embarque'**
+  String get passCheckpointBoarding;
+
+  /// No description provided for @passStepDone.
+  ///
+  /// In es, this message translates to:
+  /// **'{paso}, completado'**
+  String passStepDone(String paso);
+
+  /// No description provided for @passStepCurrent.
+  ///
+  /// In es, this message translates to:
+  /// **'{paso}, siguiente'**
+  String passStepCurrent(String paso);
+
+  /// No description provided for @passStepPending.
+  ///
+  /// In es, this message translates to:
+  /// **'{paso}, pendiente'**
+  String passStepPending(String paso);
+
+  /// No description provided for @passRefreshesIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Se actualiza en {tiempo}'**
+  String passRefreshesIn(String tiempo);
+
+  /// No description provided for @passCodeUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Código actualizado'**
+  String get passCodeUpdated;
+
+  /// No description provided for @passCodeSemantics.
+  ///
+  /// In es, this message translates to:
+  /// **'Código de tu pase'**
+  String get passCodeSemantics;
+
+  /// No description provided for @passFooterSecurity.
+  ///
+  /// In es, this message translates to:
+  /// **'Presenta este código en el lector de seguridad'**
+  String get passFooterSecurity;
+
+  /// No description provided for @passFooterBoarding.
+  ///
+  /// In es, this message translates to:
+  /// **'Presenta este código en el lector de embarque'**
+  String get passFooterBoarding;
+
+  /// No description provided for @passCheckpointLine.
+  ///
+  /// In es, this message translates to:
+  /// **'Si tienes problemas, puedes usar el control habitual con tu documento.'**
+  String get passCheckpointLine;
+
+  /// No description provided for @passBoardedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Abordaje confirmado'**
+  String get passBoardedTitle;
+
+  /// No description provided for @passBoardedBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Buen viaje'**
+  String get passBoardedBody;
+
+  /// No description provided for @passExpiredTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Este código expiró'**
+  String get passExpiredTitle;
+
+  /// No description provided for @passRequestNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Solicitar nuevo código'**
+  String get passRequestNew;
+
+  /// No description provided for @passRevokedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu identidad ya no está activa'**
+  String get passRevokedTitle;
+
+  /// No description provided for @passFlightChangedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu vuelo cambió'**
+  String get passFlightChangedTitle;
+
+  /// No description provided for @passFlightCancelledTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu vuelo fue cancelado'**
+  String get passFlightCancelledTitle;
+
+  /// No description provided for @passBackToTrips.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a Mis viajes'**
+  String get passBackToTrips;
+
+  /// No description provided for @passClockTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'La hora de tu teléfono no coincide'**
+  String get passClockTitle;
+
+  /// No description provided for @passClockBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Activa la hora automática en los ajustes de tu teléfono.'**
+  String get passClockBody;
+
+  /// No description provided for @passRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get passRetry;
+
+  /// No description provided for @passCompromisedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No podemos mostrar tu pase en este dispositivo'**
+  String get passCompromisedTitle;
+
+  /// No description provided for @passTalkToAgent.
+  ///
+  /// In es, this message translates to:
+  /// **'Hablar con un agente'**
+  String get passTalkToAgent;
+
+  /// No description provided for @passIssuanceFailedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos emitir tu código'**
+  String get passIssuanceFailedTitle;
+
+  /// No description provided for @passOfflineTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitas conexión para obtener tu código'**
+  String get passOfflineTitle;
+
+  /// No description provided for @passDevExpire.
+  ///
+  /// In es, this message translates to:
+  /// **'Simular expirado'**
+  String get passDevExpire;
+
+  /// No description provided for @passContinueToPass.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar a tu pase'**
+  String get passContinueToPass;
+
+  /// No description provided for @tripsViewPass.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver pase'**
+  String get tripsViewPass;
 }
 
 class _AppLocalizationsDelegate

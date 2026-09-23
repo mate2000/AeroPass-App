@@ -69,6 +69,10 @@ class CredentialRepositoryImpl implements CredentialRepository {
         return const CredentialStatus.expiredOrRevoked(
           reason: ExpiryReason.revoked,
         );
+      case 'suspended':
+        return const CredentialStatus.expiredOrRevoked(
+          reason: ExpiryReason.suspended,
+        );
       case 'expired':
       default:
         return const CredentialStatus.expiredOrRevoked(

@@ -56,16 +56,28 @@ class _Corner extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             top: isTop
-                ? BorderSide(color: color, width: ViewfinderOverlay._borderWidth)
+                ? BorderSide(
+                    color: color,
+                    width: ViewfinderOverlay._borderWidth,
+                  )
                 : BorderSide.none,
             bottom: !isTop
-                ? BorderSide(color: color, width: ViewfinderOverlay._borderWidth)
+                ? BorderSide(
+                    color: color,
+                    width: ViewfinderOverlay._borderWidth,
+                  )
                 : BorderSide.none,
             left: isLeft
-                ? BorderSide(color: color, width: ViewfinderOverlay._borderWidth)
+                ? BorderSide(
+                    color: color,
+                    width: ViewfinderOverlay._borderWidth,
+                  )
                 : BorderSide.none,
             right: !isLeft
-                ? BorderSide(color: color, width: ViewfinderOverlay._borderWidth)
+                ? BorderSide(
+                    color: color,
+                    width: ViewfinderOverlay._borderWidth,
+                  )
                 : BorderSide.none,
           ),
         ),

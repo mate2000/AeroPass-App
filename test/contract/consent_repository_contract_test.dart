@@ -9,6 +9,8 @@ import 'dart:io';
 
 import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/core/result.dart';
+import 'package:aeropass_app/data/dev/dev_consent_repository.dart';
+import 'package:aeropass_app/data/services/credential_service.dart';
 import 'package:aeropass_app/data/services/consent_repository_impl.dart';
 import 'package:aeropass_app/data/services/consent_service.dart';
 import 'package:aeropass_app/domain/entities/consent_record.dart';
@@ -39,6 +41,85 @@ void main() {
 
   group('Real implementation', () {
     _runContractTests(_RealHarnessFactory());
+  });
+
+  group('008 addendum: withdrawal deletes the cached credential', () {
+    _runWithdrawalClearsCredentialTests();
+  });
+}
+
+// contracts/consent-withdrawal-addendum.md (008-identidad-activa). Real
+// implementation only: the credential cache lives in secure storage, which
+// the in-memory fake repository has no notion of. The dev repository gets
+// the one case its offline-demo role needs.
+void _runWithdrawalClearsCredentialTests() {
+  late FakeSecureStoragePlatform storage;
+  late FakeHttpClientAdapter adapter;
+  late Dio dio;
+  late CredentialService credentialService;
+  late ConsentRepositoryImpl repository;
+
+  setUp(() {
+    storage = FakeSecureStoragePlatform();
+    FlutterSecureStoragePlatform.instance = storage;
+    adapter = FakeHttpClientAdapter()..respondWith(const <String, dynamic>{});
+    dio = Dio(BaseOptions(baseUrl: 'https://api.test.aeropass.example'))
+      ..httpClientAdapter = adapter;
+    credentialService = CredentialService(
+      dio: dio,
+      secureStorage: const FlutterSecureStorage(),
+    );
+    repository = ConsentRepositoryImpl(
+      ConsentService(dio: dio, secureStorage: const FlutterSecureStorage()),
+      clock: _FixedClock(DateTime.utc(2026, 1, 1)),
+      credentialService: credentialService,
+    );
+    storage.seed({
+      ConsentService.textVersionIdKey: 'v1',
+      ConsentService.enrollmentAttemptIdKey: 'attempt-1',
+      ConsentService.scopeKey: 'identityVerification',
+      ConsentService.confirmedAtKey: DateTime.utc(2026, 1, 1).toIso8601String(),
+      ConsentService.statusKey: 'active',
+      CredentialService.tokenKey: 'tok-1',
+      CredentialService.validUntilKey: DateTime.utc(2031).toIso8601String(),
+    });
+  });
+
+  test('A1. after withdraw() succeeds, no cached credential remains', () async {
+    final result = await repository.withdraw();
+
+    expect(result.isOk, isTrue);
+    expect(await credentialService.readCachedCredential(), isNull);
+  });
+
+  test('A3. offline withdraw() still clears the credential locally', () async {
+    adapter.failWith(const SocketException('unreachable'));
+
+    final result = await repository.withdraw();
+
+    expect(result.isOk, isTrue);
+    expect(await credentialService.readCachedCredential(), isNull);
+  });
+
+  test(
+    'A4. a failure clearing the credential makes withdraw() an Error',
+    () async {
+      storage.deleteError = StateError('keystore unavailable');
+
+      final result = await repository.withdraw();
+
+      expect(result.isError, isTrue);
+    },
+  );
+
+  test('A6. the dev repository also clears the cached credential', () async {
+    final dev = DevConsentRepository(credentialService: credentialService);
+    await dev.recordConsent(textVersionId: 'dev-demo-v1');
+
+    final result = await dev.withdraw();
+
+    expect(result.isOk, isTrue);
+    expect(await credentialService.readCachedCredential(), isNull);
   });
 }
 
@@ -73,47 +154,37 @@ void _runContractTests(_HarnessFactory factory) {
     expect(result.isError, isTrue);
   });
 
-  test(
-    '3. recordConsent() while online, backend accepts -> Ok(ConsentRecord) '
-    'with status=active, a freshly-generated enrollmentAttemptId, and the '
-    'local copy persisted',
-    () async {
-      final harness = factory.create();
-      await harness.givenRecordConsentSucceeds();
+  test('3. recordConsent() while online, backend accepts -> Ok(ConsentRecord) '
+      'with status=active, a freshly-generated enrollmentAttemptId, and the '
+      'local copy persisted', () async {
+    final harness = factory.create();
+    await harness.givenRecordConsentSucceeds();
 
-      final result = await harness.repository.recordConsent(
-        textVersionId: 'v1',
-      );
+    final result = await harness.repository.recordConsent(textVersionId: 'v1');
 
-      final record = result.when(
-        ok: (r) => r,
-        error: (e, st) => fail('expected Ok(ConsentRecord), got Error: $e'),
-      );
-      expect(record.status, ConsentRecordStatus.active);
-      expect(record.textVersionId, 'v1');
-      expect(record.enrollmentAttemptId.value, isNotEmpty);
+    final record = result.when(
+      ok: (r) => r,
+      error: (e, st) => fail('expected Ok(ConsentRecord), got Error: $e'),
+    );
+    expect(record.status, ConsentRecordStatus.active);
+    expect(record.textVersionId, 'v1');
+    expect(record.enrollmentAttemptId.value, isNotEmpty);
 
-      final localResult = await harness.repository.getLocalRecord();
-      expect(localResult, Result<ConsentRecord?>.ok(record));
-    },
-  );
+    final localResult = await harness.repository.getLocalRecord();
+    expect(localResult, Result<ConsentRecord?>.ok(record));
+  });
 
-  test(
-    '4. recordConsent() while offline/backend rejects -> Error; '
-    'getLocalRecord() afterward still returns Ok(null)',
-    () async {
-      final harness = factory.create();
-      await harness.givenRecordConsentFails();
+  test('4. recordConsent() while offline/backend rejects -> Error; '
+      'getLocalRecord() afterward still returns Ok(null)', () async {
+    final harness = factory.create();
+    await harness.givenRecordConsentFails();
 
-      final result = await harness.repository.recordConsent(
-        textVersionId: 'v1',
-      );
-      expect(result.isError, isTrue);
+    final result = await harness.repository.recordConsent(textVersionId: 'v1');
+    expect(result.isError, isTrue);
 
-      final localResult = await harness.repository.getLocalRecord();
-      expect(localResult, const Result<ConsentRecord?>.ok(null));
-    },
-  );
+    final localResult = await harness.repository.getLocalRecord();
+    expect(localResult, const Result<ConsentRecord?>.ok(null));
+  });
 
   test('5. getLocalRecord() with no prior consent -> Ok(null)', () async {
     final harness = factory.create();
@@ -124,30 +195,27 @@ void _runContractTests(_HarnessFactory factory) {
     expect(result, const Result<ConsentRecord?>.ok(null));
   });
 
-  test(
-    '6. withdraw() with an active local record, backend reachable -> '
-    'Ok(ConsentRecord) whose status is no longer active immediately after '
-    'the call returns',
-    () async {
-      final harness = factory.create();
-      await harness.givenActiveLocalRecordAndReachableBackend();
+  test('6. withdraw() with an active local record, backend reachable -> '
+      'Ok(ConsentRecord) whose status is no longer active immediately after '
+      'the call returns', () async {
+    final harness = factory.create();
+    await harness.givenActiveLocalRecordAndReachableBackend();
 
-      final result = await harness.repository.withdraw();
+    final result = await harness.repository.withdraw();
 
-      final record = result.when(
-        ok: (r) => r,
-        error: (e, st) => fail('expected Ok(ConsentRecord), got Error: $e'),
-      );
-      expect(record.status, isNot(ConsentRecordStatus.active));
-      expect(
-        record.status,
-        anyOf(
-          ConsentRecordStatus.withdrawn,
-          ConsentRecordStatus.withdrawalPending,
-        ),
-      );
-    },
-  );
+    final record = result.when(
+      ok: (r) => r,
+      error: (e, st) => fail('expected Ok(ConsentRecord), got Error: $e'),
+    );
+    expect(record.status, isNot(ConsentRecordStatus.active));
+    expect(
+      record.status,
+      anyOf(
+        ConsentRecordStatus.withdrawn,
+        ConsentRecordStatus.withdrawalPending,
+      ),
+    );
+  });
 
   test('7. withdraw() with no local record -> Error', () async {
     final harness = factory.create();
@@ -177,19 +245,13 @@ void _runContractTests(_HarnessFactory factory) {
     },
   );
 
-  test(
-    '9. retryPendingWithdrawal() with no withdrawalPending record -> no-op, '
-    "doesn't throw",
-    () async {
-      final harness = factory.create();
-      await harness.givenNoLocalRecord();
+  test('9. retryPendingWithdrawal() with no withdrawalPending record -> no-op, '
+      "doesn't throw", () async {
+    final harness = factory.create();
+    await harness.givenNoLocalRecord();
 
-      await expectLater(
-        harness.repository.retryPendingWithdrawal(),
-        completes,
-      );
-    },
-  );
+    await expectLater(harness.repository.retryPendingWithdrawal(), completes);
+  });
 }
 
 /// Stages a contract scenario's preconditions, independently of which
@@ -258,9 +320,7 @@ class _FakeHarness implements _Harness {
 
   @override
   Future<void> givenRecordConsentFails() async {
-    _repo.scriptRecordConsent(
-      Result.error(const SocketException('offline')),
-    );
+    _repo.scriptRecordConsent(Result.error(const SocketException('offline')));
   }
 
   @override
@@ -319,6 +379,10 @@ class _RealHarness implements _Harness {
   late final ConsentRepositoryImpl _repo = ConsentRepositoryImpl(
     _service,
     clock: _clock,
+    credentialService: CredentialService(
+      dio: _dio,
+      secureStorage: const FlutterSecureStorage(),
+    ),
   );
 
   @override

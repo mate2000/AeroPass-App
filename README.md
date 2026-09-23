@@ -66,7 +66,19 @@ flutter test                                                 # full suite, headl
 
 ### Running the app
 
-Two VS Code launch configs exist in `.vscode/launch.json`:
+Build-time values (backend URL, Sentry DSN and environment, dev-only flags) live in env files under
+`env/`, one per launch config. Flutter reads them with `--dart-define-from-file`:
+
+```bash
+flutter run --dart-define-from-file=env/dev.env           # dev backend
+flutter run --dart-define-from-file=env/dev-offline.env   # dev fakes, no backend needed
+flutter run --release --dart-define-from-file=env/prod.env
+```
+
+Set `SENTRY_SEND_TEST_EVENT=true` in an env file to report one test error at startup. With no
+`SENTRY_DSN`, Sentry stays off. The files hold nothing secret, since the DSN is a public client key.
+
+The VS Code launch configs in `.vscode/launch.json` pass the matching file:
 
 - **`aeropass_app (dev)`** — debug mode, points at the (nonexistent) dev backend URL.
 - **`aeropass_app (prod)`** — release mode, points at the (nonexistent) prod backend URL.
@@ -80,8 +92,8 @@ screen falls back to "last known state" when the credential check is unreachable
 gate's text is intentionally never faked or cached on a failed fetch — that's a legal/audit
 requirement, not a bug (see `specs/002-consentimiento/spec.md`'s Edge Cases and
 `research.md` §5). To actually see the consent gate's content without a backend, use the
-**`aeropass_app (dev, offline demo)`** launch config, which sets
-`--dart-define=USE_FAKE_CONSENT_BACKEND=true` and swaps in `lib/data/dev/dev_consent_repository.dart`
+**`aeropass_app (dev, offline demo)`** launch config (or `env/dev-offline.env`), which sets
+`USE_FAKE_CONSENT_BACKEND=true` and swaps in `lib/data/dev/dev_consent_repository.dart`
 — an explicitly-flagged, dev-only in-memory substitute. It does not weaken the real
 `ConsentRepositoryImpl`'s behavior in any build where the flag isn't set.
 

@@ -8,7 +8,11 @@ part 'document_verification_response.g.dart';
 /// "repositories return domain models and Result, never DTOs").
 @JsonSerializable()
 class DocumentVerificationResponse {
-  DocumentVerificationResponse({required this.outcome, this.reason, this.fields});
+  DocumentVerificationResponse({
+    required this.outcome,
+    this.reason,
+    this.fields,
+  });
 
   factory DocumentVerificationResponse.fromJson(Map<String, dynamic> json) =>
       _$DocumentVerificationResponseFromJson(json);

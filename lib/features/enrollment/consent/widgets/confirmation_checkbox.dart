@@ -26,14 +26,20 @@ class ConfirmationCheckbox extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(value: checked, onChanged: (value) => onChanged(value ?? false)),
+          Checkbox(
+            value: checked,
+            onChanged: (value) => onChanged(value ?? false),
+          ),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => onChanged(!checked),
               child: Padding(
                 padding: const EdgeInsets.only(top: 14),
-                child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
             ),
           ),

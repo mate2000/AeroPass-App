@@ -24,7 +24,10 @@ class _DocumentBounds {
   int get area => width * height;
 
   bool touchesEdge(int frameWidth, int frameHeight) =>
-      minX == 0 || minY == 0 || maxX == frameWidth - 1 || maxY == frameHeight - 1;
+      minX == 0 ||
+      minY == 0 ||
+      maxX == frameWidth - 1 ||
+      maxY == frameHeight - 1;
 }
 
 /// The real, heuristic (non-ML) `DocumentQualityAssessor` implementation

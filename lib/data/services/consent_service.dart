@@ -17,9 +17,11 @@ import '../models/consent_text_version_response.dart';
 /// storage failure is left to throw — mapping that into `Result.error` is
 /// `ConsentRepositoryImpl`'s job, at the service boundary (Principle IX).
 class ConsentService {
-  ConsentService({required Dio dio, required FlutterSecureStorage secureStorage})
-    : _dio = dio,
-      _secureStorage = secureStorage;
+  ConsentService({
+    required Dio dio,
+    required FlutterSecureStorage secureStorage,
+  }) : _dio = dio,
+       _secureStorage = secureStorage;
 
   final Dio _dio;
   final FlutterSecureStorage _secureStorage;

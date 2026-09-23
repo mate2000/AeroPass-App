@@ -36,7 +36,11 @@ class PermissionDeniedMessage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.no_photography_outlined, color: Colors.white70, size: 40),
+            const Icon(
+              Icons.no_photography_outlined,
+              color: Colors.white70,
+              size: 40,
+            ),
             const SizedBox(height: 16),
             Text(
               headline,

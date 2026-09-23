@@ -46,6 +46,10 @@ dependencies:
   crypto: ^3.0.7
   meta: ^1.19.0
   camera: ^0.12.1
+  sentry_flutter: ^9.30.0
+  # 014-qr-pase research.md §3: a pure-Dart QR encoder (no camera, storage,
+  # network or device-identifier access), drawn with a CustomPainter.
+  qr: ^4.0.0
 
 dev_dependencies:
   flutter_test:

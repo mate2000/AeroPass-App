@@ -33,16 +33,19 @@ void main() {
 Uint8List get _sampleFrame => Uint8List.fromList(List.filled(16, 1));
 
 void _runContractTests(_HarnessFactory factory) {
-  test('1. startSession() succeeds -> Ok(sessionId), a non-empty string', () async {
-    final harness = factory.create();
-    harness.givenStartSessionSucceeds('session-abc');
+  test(
+    '1. startSession() succeeds -> Ok(sessionId), a non-empty string',
+    () async {
+      final harness = factory.create();
+      harness.givenStartSessionSucceeds('session-abc');
 
-    final result = await harness.repository.startSession();
+      final result = await harness.repository.startSession();
 
-    final sessionId = result.valueOrNull;
-    expect(sessionId, isNotNull);
-    expect(sessionId, isNotEmpty);
-  });
+      final sessionId = result.valueOrNull;
+      expect(sessionId, isNotNull);
+      expect(sessionId, isNotEmpty);
+    },
+  );
 
   test('2. startSession() transport failure -> Error', () async {
     final harness = factory.create();
@@ -53,50 +56,44 @@ void _runContractTests(_HarnessFactory factory) {
     expect(result.isError, isTrue);
   });
 
-  test(
-    '3. submitSample() mid-attempt, processor reports phase 2 of 4 -> '
-    'Ok(inProgress(phase: index 1, totalPhases 4))',
-    () async {
-      final harness = factory.create();
-      harness.givenStartSessionSucceeds('session-abc');
-      final sessionId = (await harness.repository.startSession()).valueOrNull!;
-      harness.givenSampleInProgress(phaseIndex: 1, totalPhases: 4);
+  test('3. submitSample() mid-attempt, processor reports phase 2 of 4 -> '
+      'Ok(inProgress(phase: index 1, totalPhases 4))', () async {
+    final harness = factory.create();
+    harness.givenStartSessionSucceeds('session-abc');
+    final sessionId = (await harness.repository.startSession()).valueOrNull!;
+    harness.givenSampleInProgress(phaseIndex: 1, totalPhases: 4);
 
-      final result = await harness.repository.submitSample(
-        sessionId: sessionId,
-        frameBytes: _sampleFrame,
-      );
+    final result = await harness.repository.submitSample(
+      sessionId: sessionId,
+      frameBytes: _sampleFrame,
+    );
 
-      final outcome = result.valueOrNull;
-      expect(outcome, isA<LivenessSampleOutcomeInProgress>());
-      final phase = (outcome as LivenessSampleOutcomeInProgress).phase;
-      expect(phase.index, 1);
-      expect(phase.totalPhases, 4);
-    },
-  );
+    final outcome = result.valueOrNull;
+    expect(outcome, isA<LivenessSampleOutcomeInProgress>());
+    final phase = (outcome as LivenessSampleOutcomeInProgress).phase;
+    expect(phase.index, 1);
+    expect(phase.totalPhases, 4);
+  });
 
-  test(
-    '4. submitSample() final sample, processor reports success -> '
-    'Ok(completed(outcome: success))',
-    () async {
-      final harness = factory.create();
-      harness.givenStartSessionSucceeds('session-abc');
-      final sessionId = (await harness.repository.startSession()).valueOrNull!;
-      harness.givenSampleSuccess();
+  test('4. submitSample() final sample, processor reports success -> '
+      'Ok(completed(outcome: success))', () async {
+    final harness = factory.create();
+    harness.givenStartSessionSucceeds('session-abc');
+    final sessionId = (await harness.repository.startSession()).valueOrNull!;
+    harness.givenSampleSuccess();
 
-      final result = await harness.repository.submitSample(
-        sessionId: sessionId,
-        frameBytes: _sampleFrame,
-      );
+    final result = await harness.repository.submitSample(
+      sessionId: sessionId,
+      frameBytes: _sampleFrame,
+    );
 
-      expect(
-        result,
-        const Result<LivenessSampleOutcome>.ok(
-          LivenessSampleOutcome.completed(outcome: LivenessOutcome.success()),
-        ),
-      );
-    },
-  );
+    expect(
+      result,
+      const Result<LivenessSampleOutcome>.ok(
+        LivenessSampleOutcome.completed(outcome: LivenessOutcome.success()),
+      ),
+    );
+  });
 
   test(
     '5. submitSample(), processor reports a known quality-failure code '
@@ -125,54 +122,48 @@ void _runContractTests(_HarnessFactory factory) {
     },
   );
 
-  test(
-    '6. submitSample(), processor reports an attack-detection code -> '
-    'Ok(completed(outcome: attackDetected())), a distinct domain value from '
-    'unclassifiedFailure()',
-    () async {
-      final harness = factory.create();
-      harness.givenStartSessionSucceeds('session-abc');
-      final sessionId = (await harness.repository.startSession()).valueOrNull!;
-      harness.givenSampleAttackDetected();
+  test('6. submitSample(), processor reports an attack-detection code -> '
+      'Ok(completed(outcome: attackDetected())), a distinct domain value from '
+      'unclassifiedFailure()', () async {
+    final harness = factory.create();
+    harness.givenStartSessionSucceeds('session-abc');
+    final sessionId = (await harness.repository.startSession()).valueOrNull!;
+    harness.givenSampleAttackDetected();
 
-      final result = await harness.repository.submitSample(
-        sessionId: sessionId,
-        frameBytes: _sampleFrame,
-      );
+    final result = await harness.repository.submitSample(
+      sessionId: sessionId,
+      frameBytes: _sampleFrame,
+    );
 
-      final outcome = result.valueOrNull;
-      expect(outcome, isA<LivenessSampleOutcomeCompleted>());
-      final terminal = (outcome as LivenessSampleOutcomeCompleted).outcome;
-      expect(terminal, isA<LivenessOutcomeAttackDetected>());
-      expect(terminal, isNot(isA<LivenessOutcomeUnclassifiedFailure>()));
-    },
-  );
+    final outcome = result.valueOrNull;
+    expect(outcome, isA<LivenessSampleOutcomeCompleted>());
+    final terminal = (outcome as LivenessSampleOutcomeCompleted).outcome;
+    expect(terminal, isA<LivenessOutcomeAttackDetected>());
+    expect(terminal, isNot(isA<LivenessOutcomeUnclassifiedFailure>()));
+  });
 
-  test(
-    '7. submitSample(), processor reports a code the mapping does not '
-    'recognize -> still resolves to Ok(completed(outcome: '
-    'unclassifiedFailure())), never an unhandled exception',
-    () async {
-      final harness = factory.create();
-      harness.givenStartSessionSucceeds('session-abc');
-      final sessionId = (await harness.repository.startSession()).valueOrNull!;
-      harness.givenSampleUnrecognizedOutcome();
+  test('7. submitSample(), processor reports a code the mapping does not '
+      'recognize -> still resolves to Ok(completed(outcome: '
+      'unclassifiedFailure())), never an unhandled exception', () async {
+    final harness = factory.create();
+    harness.givenStartSessionSucceeds('session-abc');
+    final sessionId = (await harness.repository.startSession()).valueOrNull!;
+    harness.givenSampleUnrecognizedOutcome();
 
-      final result = await harness.repository.submitSample(
-        sessionId: sessionId,
-        frameBytes: _sampleFrame,
-      );
+    final result = await harness.repository.submitSample(
+      sessionId: sessionId,
+      frameBytes: _sampleFrame,
+    );
 
-      expect(
-        result,
-        const Result<LivenessSampleOutcome>.ok(
-          LivenessSampleOutcome.completed(
-            outcome: LivenessOutcome.unclassifiedFailure(),
-          ),
+    expect(
+      result,
+      const Result<LivenessSampleOutcome>.ok(
+        LivenessSampleOutcome.completed(
+          outcome: LivenessOutcome.unclassifiedFailure(),
         ),
-      );
-    },
-  );
+      ),
+    );
+  });
 
   test('8. submitSample() transport failure -> Error', () async {
     final harness = factory.create();
@@ -196,7 +187,10 @@ abstract class _Harness {
 
   void givenStartSessionSucceeds(String sessionId);
   void givenStartSessionTransportFailure();
-  void givenSampleInProgress({required int phaseIndex, required int totalPhases});
+  void givenSampleInProgress({
+    required int phaseIndex,
+    required int totalPhases,
+  });
   void givenSampleSuccess();
   void givenSampleQualityFailure(String reasonCode);
   void givenSampleAttackDetected();
@@ -365,10 +359,7 @@ class _RealHarness implements _Harness {
 
   @override
   void givenSampleAttackDetected() {
-    _adapter.respondWith({
-      'status': 'completed',
-      'outcome': 'attack_detected',
-    });
+    _adapter.respondWith({'status': 'completed', 'outcome': 'attack_detected'});
   }
 
   @override

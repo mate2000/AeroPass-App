@@ -62,7 +62,16 @@ class FrontCameraLivenessService implements LivenessCameraService {
     await controller.startImageStream((image) {
       _latestPreviewFrame = image;
     });
+    // Overlapping start() calls (an attempt superseded mid-start) must not
+    // leak the earlier controller and keep holding the camera.
+    final previous = _controller;
     _controller = controller;
+    if (previous != null) {
+      if (previous.value.isStreamingImages) {
+        await previous.stopImageStream();
+      }
+      await previous.dispose();
+    }
   }
 
   @override

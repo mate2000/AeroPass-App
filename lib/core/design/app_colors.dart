@@ -24,4 +24,21 @@ abstract final class AppColors {
   static const link = Color(0xFF1D4ED8);
 
   static const surface = Colors.white;
+
+  /// 008-identidad-activa: the success marker and "ACTIVA" badge.
+  static const turquoise = Color(0xFF1DB9A6);
+
+  /// 008-identidad-activa: the credential card's gradient, navy to blue.
+  static const credentialCardGradientEnd = Color(0xFF1F5A9E);
+
+  /// 009-reintento: the retry screen's warning icon and its tile —
+  /// deliberately amber, never red (FR-002).
+  static const amber = Color(0xFFE8A13A);
+  static const amberTile = Color(0xFFFDF1DC);
+
+  /// 011-error-tecnico: the service-failure icon and its tile. Deliberately
+  /// neutral slate, neither amber nor red: the failure is not the
+  /// passenger's (FR-001).
+  static const slate = Color(0xFF475467);
+  static const slateTile = Color(0xFFE4E8EE);
 }

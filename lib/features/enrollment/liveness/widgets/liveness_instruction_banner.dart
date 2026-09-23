@@ -21,8 +21,7 @@ class LivenessInstructionBanner extends StatefulWidget {
       _LivenessInstructionBannerState();
 }
 
-class _LivenessInstructionBannerState
-    extends State<LivenessInstructionBanner> {
+class _LivenessInstructionBannerState extends State<LivenessInstructionBanner> {
   bool _announcedInitial = false;
 
   @override

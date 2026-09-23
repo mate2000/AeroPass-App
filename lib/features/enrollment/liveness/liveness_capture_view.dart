@@ -104,7 +104,9 @@ class _LivenessCaptureViewState extends State<LivenessCaptureView>
             return SafeArea(
               child: Stack(
                 children: [
-                  Positioned.fill(child: _CameraLayer(viewModel: widget.viewModel)),
+                  Positioned.fill(
+                    child: _CameraLayer(viewModel: widget.viewModel),
+                  ),
                   Column(
                     children: [
                       _TopBar(onBack: _onBack, onHelp: _onHelp),
@@ -208,7 +210,11 @@ class _CaptureBody extends StatelessWidget {
         progress: progress,
       ),
       LivenessCaptureViewOutcome(:final outcome, :final limitReached) =>
-        _OutcomeBody(viewModel: viewModel, outcome: outcome, limitReached: limitReached),
+        _OutcomeBody(
+          viewModel: viewModel,
+          outcome: outcome,
+          limitReached: limitReached,
+        ),
       LivenessCaptureViewStalled() => _StalledBody(viewModel: viewModel),
     };
   }
@@ -255,7 +261,10 @@ class _RunningBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        PhaseIndicator(currentIndex: phase.index, totalPhases: phase.totalPhases),
+        PhaseIndicator(
+          currentIndex: phase.index,
+          totalPhases: phase.totalPhases,
+        ),
         const SizedBox(height: 16),
         Text(
           l10n.livenessFooter,

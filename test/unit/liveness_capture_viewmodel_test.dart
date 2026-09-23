@@ -1,3 +1,4 @@
+import 'dart:async' show Completer;
 import 'dart:typed_data';
 
 import 'package:aeropass_app/app/enrollment_session_controller.dart';
@@ -69,25 +70,22 @@ void main() {
   }
 
   group('T028/FR-001: reachability guard', () {
-    test(
-      'without a confirmed identity record, no attempt runs and '
-      'navigation targets document capture',
-      () async {
-        // No startOrResume()/markIdentityConfirmed() — current is null.
-        final viewModel = buildViewModel();
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+    test('without a confirmed identity record, no attempt runs and '
+        'navigation targets document capture', () async {
+      // No startOrResume()/markIdentityConfirmed() — current is null.
+      final viewModel = buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
-        expect(
-          viewModel.pendingNavigation,
-          LivenessNavigationTarget.documentCapture,
-        );
-        expect(livenessVerificationRepository.startSessionCallCount, 0);
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          isNot(contains('liveness_step_entered')),
-        );
-      },
-    );
+      expect(
+        viewModel.pendingNavigation,
+        LivenessNavigationTarget.documentCapture,
+      );
+      expect(livenessVerificationRepository.startSessionCallCount, 0);
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        isNot(contains('liveness_step_entered')),
+      );
+    });
   });
 
   group('T028/US1: the sample loop and a successful attempt', () {
@@ -99,8 +97,8 @@ void main() {
     test(
       'calls startSession() then repeatedly submitSample(); each '
       'inProgress response updates phase/progress; a terminal success '
-      'resets the selfie-liveness counter and navigates to verification '
-      'progress; no session is retained afterward',
+      'leaves the selfie-liveness counter unchanged (009 FR-017) and '
+      'navigates to verification progress; no session is retained afterward',
       () async {
         livenessVerificationRepository.scriptStartSession(
           const Result.ok('session-1'),
@@ -115,7 +113,10 @@ void main() {
         ]);
         attemptCounterRepository.seed(
           AttemptCounterScope.selfieLiveness,
-          CaptureAttemptCounter(count: 2, lastResetAt: DateTime.utc(2026, 1, 1)),
+          CaptureAttemptCounter(
+            count: 2,
+            lastResetAt: DateTime.utc(2026, 1, 1),
+          ),
         );
 
         final viewModel = buildViewModel();
@@ -138,10 +139,13 @@ void main() {
         final counter = (await attemptCounterRepository.read(
           AttemptCounterScope.selfieLiveness,
         )).valueOrNull!;
-        expect(counter.count, 0);
+        expect(counter.count, 2);
         expect(
           analyticsEmitter.events.map((e) => e.name),
-          containsAllInOrder(['liveness_step_entered', 'liveness_phase_reached']),
+          containsAllInOrder([
+            'liveness_step_entered',
+            'liveness_phase_reached',
+          ]),
         );
       },
     );
@@ -217,91 +221,85 @@ void main() {
       },
     );
 
-    test(
-      'unclassifiedFailure and attackDetected both surface as a non-limit '
-      'outcome state (the view collapses their rendering; the ViewModel '
-      'still relays the true classification)',
-      () async {
-        livenessVerificationRepository.scriptSubmitSample(
-          const Result.ok(
-            LivenessSampleOutcome.completed(
-              outcome: LivenessOutcome.unclassifiedFailure(),
+    test('unclassifiedFailure and attackDetected both surface as a non-limit '
+        'outcome state (the view collapses their rendering; the ViewModel '
+        'still relays the true classification)', () async {
+      livenessVerificationRepository.scriptSubmitSample(
+        const Result.ok(
+          LivenessSampleOutcome.completed(
+            outcome: LivenessOutcome.unclassifiedFailure(),
+          ),
+        ),
+      );
+      final unclassifiedVm = buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      final unclassifiedState =
+          unclassifiedVm.state as LivenessCaptureViewOutcome;
+      expect(
+        unclassifiedState.outcome,
+        isA<LivenessOutcomeUnclassifiedFailure>(),
+      );
+
+      livenessVerificationRepository.scriptSubmitSample(
+        const Result.ok(
+          LivenessSampleOutcome.completed(
+            outcome: LivenessOutcome.attackDetected(),
+          ),
+        ),
+      );
+      final attackVm = buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      final attackState = attackVm.state as LivenessCaptureViewOutcome;
+      expect(attackState.outcome, isA<LivenessOutcomeAttackDetected>());
+    });
+
+    test('the 3rd non-success outcome in a row routes to retry guidance and '
+        'leaves the counter at the limit (009 FR-017)', () async {
+      livenessVerificationRepository.scriptSubmitSample(
+        const Result.ok(
+          LivenessSampleOutcome.completed(
+            outcome: LivenessOutcome.qualityFailure(
+              reason: LivenessQualityReason.tooDark,
             ),
           ),
-        );
-        final unclassifiedVm = buildViewModel();
+        ),
+      );
+
+      LivenessCaptureViewModel? viewModel;
+      for (var i = 0; i < 3; i++) {
+        viewModel = buildViewModel();
         await Future<void>.delayed(const Duration(milliseconds: 100));
-        final unclassifiedState =
-            unclassifiedVm.state as LivenessCaptureViewOutcome;
-        expect(unclassifiedState.outcome, isA<LivenessOutcomeUnclassifiedFailure>());
-
-        livenessVerificationRepository.scriptSubmitSample(
-          const Result.ok(
-            LivenessSampleOutcome.completed(
-              outcome: LivenessOutcome.attackDetected(),
-            ),
-          ),
-        );
-        final attackVm = buildViewModel();
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-        final attackState = attackVm.state as LivenessCaptureViewOutcome;
-        expect(attackState.outcome, isA<LivenessOutcomeAttackDetected>());
-      },
-    );
-
-    test(
-      'the 3rd non-success outcome in a row routes to retry guidance and '
-      'resets the counter',
-      () async {
-        livenessVerificationRepository.scriptSubmitSample(
-          const Result.ok(
-            LivenessSampleOutcome.completed(
-              outcome: LivenessOutcome.qualityFailure(
-                reason: LivenessQualityReason.tooDark,
-              ),
-            ),
-          ),
-        );
-
-        LivenessCaptureViewModel? viewModel;
-        for (var i = 0; i < 3; i++) {
-          viewModel = buildViewModel();
-          await Future<void>.delayed(const Duration(milliseconds: 100));
-          if (i < 2) {
-            expect(viewModel.pendingNavigation, isNull);
-          }
+        if (i < 2) {
+          expect(viewModel.pendingNavigation, isNull);
         }
+      }
 
-        expect(
-          viewModel!.pendingNavigation,
-          LivenessNavigationTarget.retryGuidance,
-        );
-        final state = viewModel.state as LivenessCaptureViewOutcome;
-        expect(state.limitReached, isTrue);
-        final counter = (await attemptCounterRepository.read(
-          AttemptCounterScope.selfieLiveness,
-        )).valueOrNull!;
-        expect(counter.count, 0);
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          contains('liveness_attempt_limit_reached'),
-        );
-      },
-    );
+      expect(
+        viewModel!.pendingNavigation,
+        LivenessNavigationTarget.retryGuidance,
+      );
+      final state = viewModel.state as LivenessCaptureViewOutcome;
+      expect(state.limitReached, isTrue);
+      final counter = (await attemptCounterRepository.read(
+        AttemptCounterScope.selfieLiveness,
+      )).valueOrNull!;
+      expect(counter.count, captureAttemptLimit);
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        contains('liveness_attempt_limit_reached'),
+      );
+    });
   });
 
-  group(
-    'T041: LivenessOutcome.unclassifiedFailure() and .attackDetected() are '
-    'distinct domain values',
-    () {
-      test('are not equal, even though the view renders them identically', () {
-        expect(
-          const LivenessOutcome.unclassifiedFailure(),
-          isNot(const LivenessOutcome.attackDetected()),
-        );
-      });
-    },
-  );
+  group('T041: LivenessOutcome.unclassifiedFailure() and .attackDetected() are '
+      'distinct domain values', () {
+    test('are not equal, even though the view renders them identically', () {
+      expect(
+        const LivenessOutcome.unclassifiedFailure(),
+        isNot(const LivenessOutcome.attackDetected()),
+      );
+    });
+  });
 
   group('T047/US3: interruption and abandonment', () {
     setUp(() {
@@ -309,52 +307,46 @@ void main() {
       sessionController.markIdentityConfirmed();
     });
 
-    test(
-      'onBackNavigation() aborts the capture, discards the held session, '
-      'and emits abandonment when no outcome was recorded yet',
-      () async {
-        livenessVerificationRepository.scriptStartSession(
-          const Result.ok('session-1'),
-        );
-        livenessVerificationRepository.scriptSubmitSample(
-          Result.ok(_inProgress(0, 4)),
-        );
-        final viewModel = buildViewModel();
-        await Future<void>.delayed(const Duration(milliseconds: 5));
+    test('onBackNavigation() aborts the capture, discards the held session, '
+        'and emits abandonment when no outcome was recorded yet', () async {
+      livenessVerificationRepository.scriptStartSession(
+        const Result.ok('session-1'),
+      );
+      livenessVerificationRepository.scriptSubmitSample(
+        Result.ok(_inProgress(0, 4)),
+      );
+      final viewModel = buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 5));
 
-        viewModel.onBackNavigation();
+      viewModel.onBackNavigation();
 
-        expect(viewModel.hasHeldSession, isFalse);
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          contains('liveness_step_abandoned'),
-        );
-      },
-    );
+      expect(viewModel.hasHeldSession, isFalse);
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        contains('liveness_step_abandoned'),
+      );
+    });
 
-    test(
-      'onBackNavigation() after a recorded outcome does not emit '
-      'abandonment',
-      () async {
-        livenessVerificationRepository.scriptStartSession(
-          const Result.ok('session-1'),
-        );
-        livenessVerificationRepository.scriptSubmitSample(
-          const Result.ok(
-            LivenessSampleOutcome.completed(outcome: LivenessOutcome.success()),
-          ),
-        );
-        final viewModel = buildViewModel();
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+    test('onBackNavigation() after a recorded outcome does not emit '
+        'abandonment', () async {
+      livenessVerificationRepository.scriptStartSession(
+        const Result.ok('session-1'),
+      );
+      livenessVerificationRepository.scriptSubmitSample(
+        const Result.ok(
+          LivenessSampleOutcome.completed(outcome: LivenessOutcome.success()),
+        ),
+      );
+      final viewModel = buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
-        viewModel.onBackNavigation();
+      viewModel.onBackNavigation();
 
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          isNot(contains('liveness_step_abandoned')),
-        );
-      },
-    );
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        isNot(contains('liveness_step_abandoned')),
+      );
+    });
 
     test(
       'onAppBackgrounded() stops the camera and discards the held session',
@@ -376,26 +368,102 @@ void main() {
       },
     );
 
+    test('a stall timer firing with no terminal outcome surfaces FR-013\'s '
+        'explanation state', () async {
+      livenessVerificationRepository.scriptStartSession(
+        const Result.ok('session-1'),
+      );
+      // Always in-progress — never reaches a terminal outcome on its own.
+      livenessVerificationRepository.scriptSubmitSample(
+        Result.ok(_inProgress(0, 4)),
+      );
+
+      final viewModel = buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+
+      expect(viewModel.state, isA<LivenessCaptureViewStalled>());
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        contains('liveness_stalled'),
+      );
+    });
+  });
+
+  group('camera teardown ordering', () {
+    setUp(() {
+      sessionController.startOrResume();
+      sessionController.markIdentityConfirmed();
+      livenessVerificationRepository.scriptStartSession(
+        const Result.ok('session-1'),
+      );
+      livenessVerificationRepository.scriptSubmitSample(
+        Result.ok(_inProgress(0, 4)),
+      );
+    });
+
+    test('listeners are notified before the camera is stopped, so the view '
+        'drops CameraPreview before its controller is disposed', () async {
+      final viewModel = buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+
+      var notified = false;
+      viewModel.addListener(() => notified = true);
+      bool? notifiedBeforeStop;
+      livenessCameraService.onStop = () => notifiedBeforeStop ??= notified;
+
+      viewModel.onBackNavigation();
+
+      expect(notifiedBeforeStop, isTrue);
+      expect(viewModel.cameraController, isNull);
+      viewModel.dispose();
+    });
+
+    test('an attempt aborted while the camera is still starting stops the '
+        'camera once it has started', () async {
+      final gate = Completer<void>();
+      livenessCameraService.startGate = gate;
+      final viewModel = buildViewModel();
+      await Future<void>.delayed(Duration.zero);
+
+      await viewModel.onAppBackgrounded();
+      final stopsBeforeStartFinished = livenessCameraService.stopCallCount;
+      gate.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+
+      expect(
+        livenessCameraService.stopCallCount,
+        greaterThan(stopsBeforeStartFinished),
+      );
+      expect(livenessCameraService.started, isFalse);
+      viewModel.dispose();
+    });
+  });
+
+  // 009-reintento addendum case 6: an exhausted limit stays in force.
+  group('009: entering the liveness capture at the limit', () {
     test(
-      'a stall timer firing with no terminal outcome surfaces FR-013\'s '
-      'explanation state',
+      'targets retry guidance and never starts the camera or a session',
       () async {
-        livenessVerificationRepository.scriptStartSession(
-          const Result.ok('session-1'),
-        );
-        // Always in-progress — never reaches a terminal outcome on its own.
-        livenessVerificationRepository.scriptSubmitSample(
-          Result.ok(_inProgress(0, 4)),
+        sessionController.startOrResume();
+        sessionController.markIdentityConfirmed();
+        attemptCounterRepository.seed(
+          AttemptCounterScope.selfieLiveness,
+          CaptureAttemptCounter(
+            count: captureAttemptLimit,
+            lastResetAt: DateTime.utc(2026, 1, 1),
+          ),
         );
 
         final viewModel = buildViewModel();
-        await Future<void>.delayed(const Duration(milliseconds: 60));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
 
-        expect(viewModel.state, isA<LivenessCaptureViewStalled>());
         expect(
-          analyticsEmitter.events.map((e) => e.name),
-          contains('liveness_stalled'),
+          viewModel.pendingNavigation,
+          LivenessNavigationTarget.retryGuidance,
         );
+        expect(livenessCameraService.startCallCount, 0);
+        expect(livenessVerificationRepository.startSessionCallCount, 0);
+        viewModel.dispose();
       },
     );
   });

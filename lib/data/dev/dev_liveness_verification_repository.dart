@@ -19,6 +19,13 @@ import '../../domain/repositories/liveness_verification_repository.dart';
 /// walkable, not to exercise the failure taxonomy.
 class DevLivenessVerificationRepository
     implements LivenessVerificationRepository {
+  DevLivenessVerificationRepository({
+    this.phaseDuration = const Duration(milliseconds: 1500),
+  });
+
+  /// How long each scripted phase lasts before the next one is reported.
+  final Duration phaseDuration;
+
   int _sampleCallCount = 0;
 
   @override
@@ -32,6 +39,7 @@ class DevLivenessVerificationRepository
     required String sessionId,
     required Uint8List frameBytes,
   }) async {
+    await Future<void>.delayed(phaseDuration);
     _sampleCallCount++;
     if (_sampleCallCount >= 4) {
       return const Result.ok(

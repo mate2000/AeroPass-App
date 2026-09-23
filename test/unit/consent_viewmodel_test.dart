@@ -140,66 +140,60 @@ void main() {
   });
 
   group('User Story 1: confirming consent (T011)', () {
-    test(
-      'a successful confirm persists a record with status=active and a '
-      'freshly-generated EnrollmentAttemptId (FR-007)',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(_sampleText()));
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
-        viewModel.toggleCheckbox(true);
+    test('a successful confirm persists a record with status=active and a '
+        'freshly-generated EnrollmentAttemptId (FR-007)', () async {
+      consentRepository.scriptCurrentText(Result.ok(_sampleText()));
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
+      viewModel.toggleCheckbox(true);
 
-        await viewModel.confirm.run();
+      await viewModel.confirm.run();
 
-        expect(viewModel.confirm.completed, isTrue);
-        final localResult = await consentRepository.getLocalRecord();
-        final record = localResult.valueOrNull;
-        expect(record, isNotNull);
-        expect(record!.status, ConsentRecordStatus.active);
-        expect(record.textVersionId, 'v1');
-        expect(record.enrollmentAttemptId.value, isNotEmpty);
-        expect(
-          analyticsEmitter.events,
-          contains(
-            isA<RecordedAnalyticsEvent>().having(
-              (e) => e.name,
-              'name',
-              'consent_confirmed',
-            ),
+      expect(viewModel.confirm.completed, isTrue);
+      final localResult = await consentRepository.getLocalRecord();
+      final record = localResult.valueOrNull;
+      expect(record, isNotNull);
+      expect(record!.status, ConsentRecordStatus.active);
+      expect(record.textVersionId, 'v1');
+      expect(record.enrollmentAttemptId.value, isNotEmpty);
+      expect(
+        analyticsEmitter.events,
+        contains(
+          isA<RecordedAnalyticsEvent>().having(
+            (e) => e.name,
+            'name',
+            'consent_confirmed',
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
 
-    test(
-      'an offline/failed confirm does not advance and surfaces the '
-      'blocked-start message (FR-008)',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(_sampleText()));
-        consentRepository.scriptRecordConsent(
-          Result.error(const SocketException('offline')),
-        );
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
-        viewModel.toggleCheckbox(true);
+    test('an offline/failed confirm does not advance and surfaces the '
+        'blocked-start message (FR-008)', () async {
+      consentRepository.scriptCurrentText(Result.ok(_sampleText()));
+      consentRepository.scriptRecordConsent(
+        Result.error(const SocketException('offline')),
+      );
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
+      viewModel.toggleCheckbox(true);
 
-        await viewModel.confirm.run();
+      await viewModel.confirm.run();
 
-        expect(viewModel.confirm.error, isTrue);
-        final localResult = await consentRepository.getLocalRecord();
-        expect(localResult.valueOrNull, isNull);
-        expect(
-          analyticsEmitter.events,
-          contains(
-            isA<RecordedAnalyticsEvent>().having(
-              (e) => e.name,
-              'name',
-              'consent_confirm_failed',
-            ),
+      expect(viewModel.confirm.error, isTrue);
+      final localResult = await consentRepository.getLocalRecord();
+      expect(localResult.valueOrNull, isNull);
+      expect(
+        analyticsEmitter.events,
+        contains(
+          isA<RecordedAnalyticsEvent>().having(
+            (e) => e.name,
+            'name',
+            'consent_confirm_failed',
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
 
     test(
       'confirm is a defensive no-op while the checkbox is unchecked',
@@ -236,85 +230,76 @@ void main() {
       );
     });
 
-    test(
-      'the dismissal-equivalent path creates no record and is never '
-      'recorded as consent (FR-010)',
-      () async {
-        consentRepository.scriptCurrentText(Result.ok(_sampleText()));
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
+    test('the dismissal-equivalent path creates no record and is never '
+        'recorded as consent (FR-010)', () async {
+      consentRepository.scriptCurrentText(Result.ok(_sampleText()));
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
 
-        await viewModel.decline.run(true);
+      await viewModel.decline.run(true);
 
-        final localResult = await consentRepository.getLocalRecord();
-        expect(localResult.valueOrNull, isNull);
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          contains('consent_dismissed'),
-        );
-        expect(
-          analyticsEmitter.events.map((e) => e.name),
-          isNot(contains('consent_declined')),
-        );
-      },
-    );
+      final localResult = await consentRepository.getLocalRecord();
+      expect(localResult.valueOrNull, isNull);
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        contains('consent_dismissed'),
+      );
+      expect(
+        analyticsEmitter.events.map((e) => e.name),
+        isNot(contains('consent_declined')),
+      );
+    });
   });
 
   group('User Story 3: superseded-version re-presentation (T030)', () {
-    test(
-      'a local record for a superseded version sets hasPriorRecord=true '
-      '(FR-014)',
-      () async {
-        consentRepository.seedLocalRecord(
-          ConsentRecord(
-            textVersionId: 'v1',
-            enrollmentAttemptId: EnrollmentAttemptId.generate(),
-            scope: ProcessingScope.identityVerification,
-            confirmedAt: DateTime.utc(2025, 1, 1),
-            status: ConsentRecordStatus.active,
-          ),
-        );
-        consentRepository.scriptCurrentText(Result.ok(_sampleText(id: 'v2')));
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
+    test('a local record for a superseded version sets hasPriorRecord=true '
+        '(FR-014)', () async {
+      consentRepository.seedLocalRecord(
+        ConsentRecord(
+          textVersionId: 'v1',
+          enrollmentAttemptId: EnrollmentAttemptId.generate(),
+          scope: ProcessingScope.identityVerification,
+          confirmedAt: DateTime.utc(2025, 1, 1),
+          status: ConsentRecordStatus.active,
+        ),
+      );
+      consentRepository.scriptCurrentText(Result.ok(_sampleText(id: 'v2')));
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
 
-        final state = viewModel.state as ConsentViewReady;
-        expect(state.hasPriorRecord, isTrue);
-        expect(
-          analyticsEmitter.events,
-          contains(
-            isA<RecordedAnalyticsEvent>()
-                .having((e) => e.name, 'name', 'consent_gate_shown')
-                .having(
-                  (e) => e.payload['hasPriorRecord'],
-                  'hasPriorRecord',
-                  true,
-                ),
-          ),
-        );
-      },
-    );
+      final state = viewModel.state as ConsentViewReady;
+      expect(state.hasPriorRecord, isTrue);
+      expect(
+        analyticsEmitter.events,
+        contains(
+          isA<RecordedAnalyticsEvent>()
+              .having((e) => e.name, 'name', 'consent_gate_shown')
+              .having(
+                (e) => e.payload['hasPriorRecord'],
+                'hasPriorRecord',
+                true,
+              ),
+        ),
+      );
+    });
 
-    test(
-      'a local record already matching the current version sets '
-      'hasPriorRecord=false',
-      () async {
-        consentRepository.seedLocalRecord(
-          ConsentRecord(
-            textVersionId: 'v1',
-            enrollmentAttemptId: EnrollmentAttemptId.generate(),
-            scope: ProcessingScope.identityVerification,
-            confirmedAt: DateTime.utc(2025, 1, 1),
-            status: ConsentRecordStatus.active,
-          ),
-        );
-        consentRepository.scriptCurrentText(Result.ok(_sampleText(id: 'v1')));
-        final viewModel = buildViewModel();
-        await pumpEventQueue();
+    test('a local record already matching the current version sets '
+        'hasPriorRecord=false', () async {
+      consentRepository.seedLocalRecord(
+        ConsentRecord(
+          textVersionId: 'v1',
+          enrollmentAttemptId: EnrollmentAttemptId.generate(),
+          scope: ProcessingScope.identityVerification,
+          confirmedAt: DateTime.utc(2025, 1, 1),
+          status: ConsentRecordStatus.active,
+        ),
+      );
+      consentRepository.scriptCurrentText(Result.ok(_sampleText(id: 'v1')));
+      final viewModel = buildViewModel();
+      await pumpEventQueue();
 
-        final state = viewModel.state as ConsentViewReady;
-        expect(state.hasPriorRecord, isFalse);
-      },
-    );
+      final state = viewModel.state as ConsentViewReady;
+      expect(state.hasPriorRecord, isFalse);
+    });
   });
 }

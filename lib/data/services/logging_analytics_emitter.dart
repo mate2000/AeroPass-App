@@ -2,6 +2,10 @@ import 'dart:developer' as developer;
 
 import '../../core/analytics_session.dart';
 import '../../core/clock.dart';
+import '../../domain/entities/pass.dart';
+import '../../domain/entities/service_failure.dart';
+import '../../domain/entities/service_status.dart';
+import '../../domain/entities/trip.dart';
 import '../../domain/repositories/analytics_emitter.dart';
 
 /// The composition root's real `AnalyticsEmitter`: logs each funnel event
@@ -244,5 +248,249 @@ class LoggingAnalyticsEmitter implements AnalyticsEmitter {
   @override
   void livenessStepAbandoned() {
     _log('liveness_step_abandoned');
+  }
+
+  @override
+  void credentialIssuanceRequested() {
+    _log('credential_issuance_requested');
+  }
+
+  @override
+  void credentialIssuanceOutcome({required IssuanceOutcomeKind kind}) {
+    _log('credential_issuance_outcome', {'kind': kind.name});
+  }
+
+  @override
+  void credentialActivatedShown() {
+    _log('credential_activated_shown');
+  }
+
+  @override
+  void credentialActivatedRouteTaken({required OnwardRoute route}) {
+    _log('credential_activated_route_taken', {'route': route.name});
+  }
+
+  @override
+  void verificationStepEntered() {
+    _log('verification_step_entered');
+  }
+
+  @override
+  void verificationStageReached({
+    required VerificationStage stage,
+    required StageStatus status,
+  }) {
+    _log('verification_stage_reached', {
+      'stage': stage.name,
+      'status': status.name,
+    });
+  }
+
+  @override
+  void verificationSlowNoticeShown() {
+    _log('verification_slow_notice_shown');
+  }
+
+  @override
+  void verificationHelpOpened() {
+    _log('verification_help_opened');
+  }
+
+  @override
+  void verificationTimedOut() {
+    _log('verification_timed_out');
+  }
+
+  @override
+  void verificationOutcome({
+    required VerificationOutcomeKind kind,
+    required int elapsedSeconds,
+  }) {
+    _log('verification_outcome', {
+      'kind': kind.name,
+      'elapsedSeconds': elapsedSeconds,
+    });
+  }
+
+  @override
+  void retryGuidanceShown({required RetryGuidanceState state}) {
+    _log('retry_guidance_shown', {'state': state.name});
+  }
+
+  @override
+  void retryGuidanceRetryTaken() {
+    _log('retry_guidance_retry_taken');
+  }
+
+  @override
+  void retryGuidanceAgentRouteTaken({required RetryGuidanceState state}) {
+    _log('retry_guidance_agent_route_taken', {'state': state.name});
+  }
+
+  @override
+  void escalationShown({required EscalationArrival arrival}) {
+    _log('escalation_shown', {'arrival': arrival.name});
+  }
+
+  @override
+  void escalationChannelsOffered({
+    required bool moduleAvailable,
+    required bool chatAvailable,
+  }) {
+    _log('escalation_channels_offered', {
+      'moduleAvailable': moduleAvailable,
+      'chatAvailable': chatAvailable,
+    });
+  }
+
+  @override
+  void escalationChannelSelected({required AgentChannelKind channel}) {
+    _log('escalation_channel_selected', {'channel': channel.name});
+  }
+
+  @override
+  void escalationHandoffStarted({required AgentChannelKind channel}) {
+    _log('escalation_handoff_started', {'channel': channel.name});
+  }
+
+  @override
+  void escalationOutcome({
+    required EscalationOutcomeKind kind,
+    required int elapsedSeconds,
+  }) {
+    _log('escalation_outcome', {
+      'kind': kind.name,
+      'elapsedSeconds': elapsedSeconds,
+    });
+  }
+
+  @override
+  void technicalErrorShown({
+    required ServiceFailureClass failureClass,
+    required VerificationStage? stage,
+    required bool jobTerminal,
+  }) {
+    _log('technical_error_shown', {
+      'failureClass': failureClass.name,
+      'stage': stage?.name,
+      'jobTerminal': jobTerminal,
+    });
+  }
+
+  @override
+  void technicalErrorStatusShown({
+    required StepHealth documentScan,
+    required StepHealth selfie,
+    required StepHealth issuance,
+  }) {
+    _log('technical_error_status_shown', {
+      'documentScan': documentScan.name,
+      'selfie': selfie.name,
+      'issuance': issuance.name,
+    });
+  }
+
+  @override
+  void technicalErrorRetry({
+    required TechnicalErrorRetryDestination destination,
+    required int arrival,
+  }) {
+    _log('technical_error_retry', {
+      'destination': destination.name,
+      'arrival': arrival,
+    });
+  }
+
+  @override
+  void technicalErrorExit() {
+    _log('technical_error_exit', {});
+  }
+
+  @override
+  void technicalErrorResolved({required int elapsedSeconds}) {
+    _log('technical_error_resolved', {'elapsedSeconds': elapsedSeconds});
+  }
+
+  @override
+  void tripsHomeShown({
+    required bool hasNextTrip,
+    required bool credentialConfirmed,
+  }) {
+    _log('trips_home_shown', {
+      'hasNextTrip': hasNextTrip,
+      'credentialConfirmed': credentialConfirmed,
+    });
+  }
+
+  @override
+  void tripDisplayed({
+    required TripStatus status,
+    required bool live,
+    required bool withinWindow,
+  }) {
+    _log('trip_displayed', {
+      'status': status.name,
+      'live': live,
+      'withinWindow': withinWindow,
+    });
+  }
+
+  @override
+  void tripStarted({required int completedTripsLast90Days}) {
+    _log('trip_started', {
+      'completedTripsLast90Days': completedTripsLast90Days,
+    });
+  }
+
+  @override
+  void tripsHistoryViewed({required int rowCount}) {
+    _log('trips_history_viewed', {'rowCount': rowCount});
+  }
+
+  @override
+  void tripsEmptyShown() {
+    _log('trips_empty_shown', {});
+  }
+
+  @override
+  void passDisplayed({
+    required Checkpoint checkpoint,
+    required bool offlineCapable,
+  }) {
+    _log('pass_displayed', {
+      'checkpoint': checkpoint.name,
+      'offlineCapable': offlineCapable,
+    });
+  }
+
+  @override
+  void passRotated({required Checkpoint checkpoint}) {
+    _log('pass_rotated', {'checkpoint': checkpoint.name});
+  }
+
+  @override
+  void passValidated({
+    required Checkpoint checkpoint,
+    required int secondsSinceOpened,
+  }) {
+    _log('pass_validated', {
+      'checkpoint': checkpoint.name,
+      'secondsSinceOpened': secondsSinceOpened,
+    });
+  }
+
+  @override
+  void passUnavailable({required PassUnavailableReason reason}) {
+    _log('pass_expired', {'reason': reason.name});
+  }
+
+  @override
+  void passReissueRequested({required bool succeeded}) {
+    _log('pass_reissue_requested', {'succeeded': succeeded});
+  }
+
+  @override
+  void passHelpOpened() {
+    _log('pass_help_opened', {});
   }
 }

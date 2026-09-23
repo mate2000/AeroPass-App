@@ -491,4 +491,650 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get livenessStalledRetryLabel => 'Reintentar';
+
+  @override
+  String get credentialActivatedTitle => 'Tu identidad digital está activa';
+
+  @override
+  String get credentialActivatedSubtitle =>
+      'A partir de ahora, pasa los filtros de seguridad donde AeroPass está disponible sin mostrar documentos físicos.';
+
+  @override
+  String get credentialCardLabel => 'IDENTIDAD DIGITAL';
+
+  @override
+  String credentialCardIssuedOn(String date) {
+    return 'Creada el $date';
+  }
+
+  @override
+  String credentialCardValidUntil(String date) {
+    return 'Válida hasta $date';
+  }
+
+  @override
+  String get credentialCardActiveBadge => 'ACTIVA';
+
+  @override
+  String credentialCardMaskedDocument(String last4, String countryCode) {
+    return '•••• $last4 · $countryCode';
+  }
+
+  @override
+  String credentialCardMaskedDocumentSemantics(String last4, String country) {
+    return 'Documento terminado en $last4, $country';
+  }
+
+  @override
+  String get credentialCardPortraitSemantics => 'Imagen genérica de perfil';
+
+  @override
+  String get countryNameCol => 'Colombia';
+
+  @override
+  String get credentialActivatedPrimaryAction => 'Ir a mis viajes';
+
+  @override
+  String get credentialActivatedSecondaryAction => 'Ver mi identidad';
+
+  @override
+  String get verificationProgressMessage =>
+      'Estamos activando tu identidad digital…';
+
+  @override
+  String get verificationProgressFailedMessage =>
+      'No pudimos completar la activación. Revisa tu conexión y vuelve a intentarlo.';
+
+  @override
+  String get verificationProgressRetryLabel => 'Reintentar';
+
+  @override
+  String get credentialNotActivePlaceholderMessage =>
+      'No pudimos activar tu identidad digital. (Pantalla pendiente de su propia especificación.)';
+
+  @override
+  String get credentialDetailPlaceholderMessage =>
+      'Tu identidad digital (pantalla pendiente de su propia especificación).';
+
+  @override
+  String get tripsGreetingMorning => 'Buenos días,';
+
+  @override
+  String get tripsGreetingAfternoon => 'Buenas tardes,';
+
+  @override
+  String get tripsGreetingEvening => 'Buenas noches,';
+
+  @override
+  String tripsMaskedDocument(String last4) {
+    return '•••• $last4';
+  }
+
+  @override
+  String get tripsBadgeActive => 'ACTIVA';
+
+  @override
+  String get tripsBadgeExpired => 'VENCIDA';
+
+  @override
+  String get tripsBadgeRevoked => 'REVOCADA';
+
+  @override
+  String get tripsBadgeSuspended => 'SUSPENDIDA';
+
+  @override
+  String get tripsBadgeUnconfirmed => 'sin confirmar';
+
+  @override
+  String get tripsNextHeading => 'PRÓXIMO VIAJE';
+
+  @override
+  String get tripsHistoryHeading => 'VIAJES RECIENTES';
+
+  @override
+  String tripsToday(String hora) {
+    return 'Hoy · $hora';
+  }
+
+  @override
+  String tripsTomorrow(String hora) {
+    return 'Mañana · $hora';
+  }
+
+  @override
+  String tripsOnDate(String fecha, String hora) {
+    return '$fecha · $hora';
+  }
+
+  @override
+  String tripsLocalTimeOf(String ciudad) {
+    return '(hora local de $ciudad)';
+  }
+
+  @override
+  String tripsGate(String gate) {
+    return 'Puerta $gate';
+  }
+
+  @override
+  String tripsSeat(String seat) {
+    return 'Asiento $seat';
+  }
+
+  @override
+  String get tripsDetailsUnavailable => 'Detalles no disponibles';
+
+  @override
+  String get tripsStatusDelayed => 'Retrasado';
+
+  @override
+  String get tripsStatusCancelled => 'Vuelo cancelado';
+
+  @override
+  String get tripsStatusUnknown => 'Estado no disponible';
+
+  @override
+  String tripsConnectsTo(String ciudad) {
+    return 'Conexión a $ciudad';
+  }
+
+  @override
+  String tripsUpdatedAgo(int min) {
+    return 'Actualizado hace $min min';
+  }
+
+  @override
+  String get tripsStart => 'Iniciar viaje';
+
+  @override
+  String get tripsReasonUnconfirmed =>
+      'Sin conexión: no pudimos confirmar tu identidad';
+
+  @override
+  String get tripsReasonExpired => 'Tu identidad está vencida';
+
+  @override
+  String get tripsReasonRevoked => 'Tu identidad está revocada';
+
+  @override
+  String get tripsReasonSuspended => 'Tu identidad está suspendida';
+
+  @override
+  String get tripsReasonDeparted => 'Este vuelo ya salió';
+
+  @override
+  String tripsReasonAvailableFrom(String dia, String hora) {
+    return 'Disponible desde el $dia a las $hora';
+  }
+
+  @override
+  String tripsRouteSemantics(
+    String origen,
+    String destino,
+    String vuelo,
+    String cuando,
+  ) {
+    return 'De $origen a $destino, vuelo $vuelo, $cuando';
+  }
+
+  @override
+  String get tripsEmptyTitle => 'Aún no tienes viajes';
+
+  @override
+  String get tripsEmptyBody =>
+      'Cuando reserves un vuelo nacional con el mismo documento con el que te registraste, tu aerolínea lo agregará aquí. No tienes que hacer nada.';
+
+  @override
+  String get tripsHistoryRetention =>
+      'Mostramos tus viajes de los últimos 90 días.';
+
+  @override
+  String tripsHistoryRow(String vuelo, String fecha) {
+    return '$vuelo · $fecha';
+  }
+
+  @override
+  String get tripsUnavailableTitle => 'No pudimos cargar tus viajes';
+
+  @override
+  String get tripsRetry => 'Reintentar';
+
+  @override
+  String get homeTabTrips => 'Viajes';
+
+  @override
+  String get homeTabIdentity => 'Identidad';
+
+  @override
+  String get homeTabProfile => 'Perfil';
+
+  @override
+  String get profileTitle => 'Perfil';
+
+  @override
+  String get profileWithdrawConsent => 'Retirar consentimiento';
+
+  @override
+  String get tripVerificationTitle => 'Validación automática';
+
+  @override
+  String get tripVerificationBody =>
+      'Aquí confirmaremos que eres tú antes de emitir tu pase. Esta pantalla llegará pronto.';
+
+  @override
+  String get tripVerificationBack => 'Volver';
+
+  @override
+  String get verificationHeader => 'Verificando';
+
+  @override
+  String get verificationTitle => 'Estamos validando tu identidad';
+
+  @override
+  String get verificationSubtitle =>
+      'Esto toma unos segundos. No cierres la aplicación.';
+
+  @override
+  String get verificationStageDocumentRunning => 'Verificando documento';
+
+  @override
+  String get verificationStageDocumentPassed => 'Documento verificado';
+
+  @override
+  String get verificationStageFaceRunning => 'Comparando rostro';
+
+  @override
+  String get verificationStageFacePassed => 'Rostro verificado';
+
+  @override
+  String get verificationStageIssuanceRunning => 'Creando identidad digital';
+
+  @override
+  String get verificationStageIssuancePassed => 'Identidad digital creada';
+
+  @override
+  String get verificationFailureLine => 'No pudimos completar la verificación';
+
+  @override
+  String get verificationSlowNotice => 'Está tardando más de lo habitual';
+
+  @override
+  String get verificationKeepWaiting => 'Seguir esperando';
+
+  @override
+  String get verificationHelp => 'Ayuda';
+
+  @override
+  String get technicalErrorHelp => 'Ayuda';
+
+  @override
+  String get technicalErrorServiceTitle => 'No pudimos completar la validación';
+
+  @override
+  String get technicalErrorServiceSubtitle =>
+      'Es un problema nuestro, no tuyo.';
+
+  @override
+  String get technicalErrorNotified => 'Nuestro equipo ya fue notificado.';
+
+  @override
+  String get technicalErrorConnectivityTitle => 'No pudimos conectarnos';
+
+  @override
+  String get technicalErrorConnectivitySubtitle =>
+      'Parece que se perdió la conexión a internet.';
+
+  @override
+  String get technicalErrorConnectivityGuidance =>
+      'Revisa tu conexión y vuelve a intentarlo.';
+
+  @override
+  String get technicalErrorUndeterminedTitle =>
+      'No pudimos completar la validación';
+
+  @override
+  String get technicalErrorUndeterminedSubtitle =>
+      'No fue por algo que hayas hecho.';
+
+  @override
+  String technicalErrorRetryAt(String hora) {
+    return 'Puedes reintentar a las $hora.';
+  }
+
+  @override
+  String get technicalErrorPreservedNewSelfie =>
+      'Tus datos del documento quedaron guardados. Al reintentar, solo tendrás que tomarte una nueva selfie.';
+
+  @override
+  String get technicalErrorPreservedRecheck =>
+      'Tus datos del documento quedaron guardados. Al reintentar, revisaremos tu validación sin repetir fotos.';
+
+  @override
+  String get technicalErrorResumeWindow =>
+      'Puedes retomar tu registro durante las próximas 24 horas.';
+
+  @override
+  String get technicalErrorStatusTitle => 'Estado del servicio';
+
+  @override
+  String get technicalErrorStepDocumentScan => 'Escaneo de documento';
+
+  @override
+  String get technicalErrorStepSelfie => 'Selfie';
+
+  @override
+  String get technicalErrorStepIssuance => 'Emisión de tu identidad';
+
+  @override
+  String get technicalErrorHealthOperational => 'Operativo';
+
+  @override
+  String get technicalErrorHealthDegraded => 'Con fallas';
+
+  @override
+  String get technicalErrorHealthUnavailable => 'No disponible';
+
+  @override
+  String get technicalErrorRetry => 'Reintentar';
+
+  @override
+  String technicalErrorRetryIn(int segundos) {
+    return 'Reintentar en $segundos s';
+  }
+
+  @override
+  String technicalErrorRetryHeldSemantics(int segundos) {
+    return 'Reintentar no disponible por $segundos segundos';
+  }
+
+  @override
+  String get technicalErrorExit => 'Salir';
+
+  @override
+  String get technicalErrorAgent => 'Hablar con un agente';
+
+  @override
+  String get technicalErrorCheckpointLine =>
+      'También puedes usar el control de documentos habitual en el aeropuerto.';
+
+  @override
+  String get stepIndicatorPendingSuffix => 'pendiente';
+
+  @override
+  String get retryGuidanceHelp => 'Ayuda';
+
+  @override
+  String get retryGuidanceIconSemantics => 'Aviso';
+
+  @override
+  String get retrySelfieTitle => 'No pudimos confirmar que eres tú';
+
+  @override
+  String get retrySelfieBody =>
+      'No logramos verificar tu identidad con esta selfie. ¡Sin problema, inténtalo otra vez!';
+
+  @override
+  String get retryAdviceHeading => 'Consejos para el siguiente intento:';
+
+  @override
+  String get retryTipLighting =>
+      'Busca un lugar con buena iluminación, de preferencia natural.';
+
+  @override
+  String get retryTipFaceVisible =>
+      'Asegúrate de que tu rostro esté descubierto y visible por completo.';
+
+  @override
+  String get retryTipHoldStill =>
+      'Sostén el teléfono a la altura de tus ojos y quédate quieto.';
+
+  @override
+  String get retrySelfieLimitTitle => 'Alcanzaste el número máximo de intentos';
+
+  @override
+  String get retrySelfieLimitBody =>
+      'Por ahora no puedes volver a tomar la selfie. Habla con un agente para volver a intentarlo, o usa el control de documentos habitual en el aeropuerto.';
+
+  @override
+  String get retryDocumentLimitTitle =>
+      'Alcanzaste el número máximo de intentos con tu documento';
+
+  @override
+  String get retryDocumentLimitBody =>
+      'Por ahora no puedes volver a escanear tu documento. Habla con un agente para volver a intentarlo, o usa el control de documentos habitual en el aeropuerto.';
+
+  @override
+  String get retryAction => 'Intentar de nuevo';
+
+  @override
+  String get retryAgentAction => 'Hablar con un agente';
+
+  @override
+  String get escalationHelp => 'Ayuda';
+
+  @override
+  String get escalationTitle => 'Necesitamos verificarte en persona';
+
+  @override
+  String get escalationBodyByChoice =>
+      'Un agente en el módulo AeroPass puede ayudarte a completar tu verificación.';
+
+  @override
+  String get escalationBodyAfterLimit =>
+      'No pudimos confirmar tu identidad automáticamente. Un agente en el módulo AeroPass puede ayudarte a completar el proceso.';
+
+  @override
+  String get escalationModuleTitle => 'Módulo AeroPass';
+
+  @override
+  String get escalationChatTitle => 'Chat con un agente';
+
+  @override
+  String get escalationChatPurpose =>
+      'Resuelve tus dudas; la verificación se completa en el módulo.';
+
+  @override
+  String get escalationAvailableNow => 'Disponible ahora';
+
+  @override
+  String get escalationUnavailable => 'No disponible';
+
+  @override
+  String escalationOpensAt(String when) {
+    return 'Abre $when';
+  }
+
+  @override
+  String escalationEstimatedWait(int min, int max) {
+    return 'Espera estimada: $min–$max minutos';
+  }
+
+  @override
+  String get escalationDirectionsAction => 'Cómo llegar al módulo';
+
+  @override
+  String get escalationStartChatAction => 'Iniciar chat';
+
+  @override
+  String get escalationHomeAction => 'Volver al inicio';
+
+  @override
+  String get escalationReopenAction => 'Abrir nueva solicitud';
+
+  @override
+  String get escalationRetryAction => 'Reintentar';
+
+  @override
+  String get escalationCheckpointLine =>
+      'También puedes usar el control de documentos habitual en el aeropuerto.';
+
+  @override
+  String get escalationNoChannelOpen =>
+      'En este momento no hay canales abiertos. Revisa cuándo abren o usa el control de documentos habitual.';
+
+  @override
+  String get escalationDeclinedTitle => 'No pudimos completar tu verificación';
+
+  @override
+  String get escalationDeclinedBody =>
+      'El agente no pudo verificar tu identidad. Puedes usar el control de documentos habitual en el aeropuerto.';
+
+  @override
+  String get escalationExpiredTitle => 'Tu solicitud expiró';
+
+  @override
+  String get escalationExpiredBody =>
+      'Pasaron más de 24 horas. Puedes abrir una nueva solicitud; tu inscripción sigue guardada.';
+
+  @override
+  String get escalationUnavailableTitle => 'No pudimos abrir tu solicitud';
+
+  @override
+  String get escalationUnavailableBody =>
+      'Revisa tu conexión y vuelve a intentarlo.';
+
+  @override
+  String get escalationLocationSheetTitle => 'Dónde encontrar el módulo';
+
+  @override
+  String escalationLocationHours(String hours) {
+    return 'Horario: $hours';
+  }
+
+  @override
+  String get agentChatTitle => 'Chat con un agente';
+
+  @override
+  String get agentChatNotice =>
+      'Este chat responde tus dudas. No puede completar tu verificación y nunca recibe documentos.';
+
+  @override
+  String get agentChatHint => 'Escribe tu mensaje';
+
+  @override
+  String get agentChatSend => 'Enviar';
+
+  @override
+  String get agentChatNotSent => 'No enviado';
+
+  @override
+  String get passBack => 'Atrás';
+
+  @override
+  String get passHelp => 'Ayuda';
+
+  @override
+  String passSeat(String seat) {
+    return 'Asiento $seat';
+  }
+
+  @override
+  String passTripLine(
+    String vuelo,
+    String origen,
+    String destino,
+    String cuando,
+  ) {
+    return '$vuelo · $origen → $destino · $cuando';
+  }
+
+  @override
+  String get passCheckpointSecurity => 'Seguridad';
+
+  @override
+  String get passCheckpointBoarding => 'Embarque';
+
+  @override
+  String passStepDone(String paso) {
+    return '$paso, completado';
+  }
+
+  @override
+  String passStepCurrent(String paso) {
+    return '$paso, siguiente';
+  }
+
+  @override
+  String passStepPending(String paso) {
+    return '$paso, pendiente';
+  }
+
+  @override
+  String passRefreshesIn(String tiempo) {
+    return 'Se actualiza en $tiempo';
+  }
+
+  @override
+  String get passCodeUpdated => 'Código actualizado';
+
+  @override
+  String get passCodeSemantics => 'Código de tu pase';
+
+  @override
+  String get passFooterSecurity =>
+      'Presenta este código en el lector de seguridad';
+
+  @override
+  String get passFooterBoarding =>
+      'Presenta este código en el lector de embarque';
+
+  @override
+  String get passCheckpointLine =>
+      'Si tienes problemas, puedes usar el control habitual con tu documento.';
+
+  @override
+  String get passBoardedTitle => 'Abordaje confirmado';
+
+  @override
+  String get passBoardedBody => 'Buen viaje';
+
+  @override
+  String get passExpiredTitle => 'Este código expiró';
+
+  @override
+  String get passRequestNew => 'Solicitar nuevo código';
+
+  @override
+  String get passRevokedTitle => 'Tu identidad ya no está activa';
+
+  @override
+  String get passFlightChangedTitle => 'Tu vuelo cambió';
+
+  @override
+  String get passFlightCancelledTitle => 'Tu vuelo fue cancelado';
+
+  @override
+  String get passBackToTrips => 'Volver a Mis viajes';
+
+  @override
+  String get passClockTitle => 'La hora de tu teléfono no coincide';
+
+  @override
+  String get passClockBody =>
+      'Activa la hora automática en los ajustes de tu teléfono.';
+
+  @override
+  String get passRetry => 'Reintentar';
+
+  @override
+  String get passCompromisedTitle =>
+      'No podemos mostrar tu pase en este dispositivo';
+
+  @override
+  String get passTalkToAgent => 'Hablar con un agente';
+
+  @override
+  String get passIssuanceFailedTitle => 'No pudimos emitir tu código';
+
+  @override
+  String get passOfflineTitle => 'Necesitas conexión para obtener tu código';
+
+  @override
+  String get passDevExpire => 'Simular expirado';
+
+  @override
+  String get passContinueToPass => 'Continuar a tu pase';
+
+  @override
+  String get tripsViewPass => 'Ver pase';
 }

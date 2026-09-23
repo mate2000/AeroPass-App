@@ -51,39 +51,33 @@ const _record = IdentityRecord(
 );
 
 void _runContractTests(_HarnessFactory factory) {
-  test(
-    '1. Backend accepts the record -> Ok(IdentityRecord), and the local '
-    'display-only cache holds exactly the confirmed key+value pairs — no '
-    'source/original/reverified data',
-    () async {
-      final harness = factory.create();
-      harness.givenBackendAccepts();
+  test('1. Backend accepts the record -> Ok(IdentityRecord), and the local '
+      'display-only cache holds exactly the confirmed key+value pairs — no '
+      'source/original/reverified data', () async {
+    final harness = factory.create();
+    harness.givenBackendAccepts();
 
-      final result = await harness.repository.confirm(_record);
+    final result = await harness.repository.confirm(_record);
 
-      expect(result.isOk, isTrue);
-      final cached = await harness.readLocalCache();
-      expect(cached, {
-        'fullName': 'Mateo González Restrepo',
-        'documentNumber': 'CC 1.234.567.890',
-      });
-    },
-  );
+    expect(result.isOk, isTrue);
+    final cached = await harness.readLocalCache();
+    expect(cached, {
+      'fullName': 'Mateo González Restrepo',
+      'documentNumber': 'CC 1.234.567.890',
+    });
+  });
 
-  test(
-    '2. Backend rejects or is unreachable -> Error; the local cache is '
-    'untouched (no partial write)',
-    () async {
-      final harness = factory.create();
-      harness.givenBackendFails();
+  test('2. Backend rejects or is unreachable -> Error; the local cache is '
+      'untouched (no partial write)', () async {
+    final harness = factory.create();
+    harness.givenBackendFails();
 
-      final result = await harness.repository.confirm(_record);
+    final result = await harness.repository.confirm(_record);
 
-      expect(result.isError, isTrue);
-      final cached = await harness.readLocalCache();
-      expect(cached, isEmpty);
-    },
-  );
+    expect(result.isError, isTrue);
+    final cached = await harness.readLocalCache();
+    expect(cached, isEmpty);
+  });
 }
 
 /// Stages a contract scenario's preconditions, independently of which

@@ -38,5 +38,6 @@ sealed class LivenessOutcome with _$LivenessOutcome {
   /// The same shared generic message, byte-for-byte, never a distinct
   /// string or styling (Clarifications) — only the audit trail
   /// distinguishes this from [unclassifiedFailure].
-  const factory LivenessOutcome.attackDetected() = LivenessOutcomeAttackDetected;
+  const factory LivenessOutcome.attackDetected() =
+      LivenessOutcomeAttackDetected;
 }

@@ -4,6 +4,7 @@ import 'package:aeropass_app/domain/entities/consent_text_version.dart';
 import 'package:aeropass_app/features/enrollment/consent/consent_view.dart';
 import 'package:aeropass_app/features/enrollment/consent/consent_viewmodel.dart';
 import 'package:aeropass_app/l10n/generated/app_localizations.dart';
+
 import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
@@ -53,8 +54,7 @@ Future<void> _pumpConsentView(
     routes: [
       GoRoute(
         path: AppRoutes.welcome,
-        builder: (context, state) =>
-            const Scaffold(body: Text('welcome-stub')),
+        builder: (context, state) => const Scaffold(body: Text('welcome-stub')),
       ),
       GoRoute(
         path: AppRoutes.consent,
@@ -132,15 +132,14 @@ void main() {
         expect(button.onPressed, isNull);
 
         final semanticsNode = tester.getSemantics(
-          find.ancestor(
-            of: filledButtonFinder,
-            matching: find.byType(Semantics),
-          ).first,
+          find
+              .ancestor(
+                of: filledButtonFinder,
+                matching: find.byType(Semantics),
+              )
+              .first,
         );
-        expect(
-          semanticsNode.flagsCollection.isEnabled,
-          isNot(Tristate.none),
-        );
+        expect(semanticsNode.flagsCollection.isEnabled, isNot(Tristate.none));
         expect(semanticsNode.flagsCollection.isEnabled, Tristate.isFalse);
 
         await tester.ensureVisible(find.byType(Checkbox));
@@ -249,27 +248,24 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets(
-      'the full consent text remains reachable by scrolling and both '
-      'actions remain reachable at the platform maximum text size '
-      '(FR-013)',
-      (tester) async {
-        consentRepository.scriptCurrentText(Result.ok(_sampleText()));
-        await _pumpConsentView(
-          tester,
-          viewModel: buildViewModel(),
-          textScaler: const TextScaler.linear(3.0),
-        );
+    testWidgets('the full consent text remains reachable by scrolling and both '
+        'actions remain reachable at the platform maximum text size '
+        '(FR-013)', (tester) async {
+      consentRepository.scriptCurrentText(Result.ok(_sampleText()));
+      await _pumpConsentView(
+        tester,
+        viewModel: buildViewModel(),
+        textScaler: const TextScaler.linear(3.0),
+      );
 
-        // The confirmation checkbox and both actions must still be
-        // reachable by scrolling, not clipped or pushed off-screen.
-        await tester.ensureVisible(find.byType(Checkbox));
-        expect(find.byType(Checkbox), findsOneWidget);
-        await tester.ensureVisible(find.text('Acepto y continúo'));
-        expect(find.text('Acepto y continúo'), findsOneWidget);
-        await tester.ensureVisible(find.text('Ahora no'));
-        expect(find.text('Ahora no'), findsOneWidget);
-      },
-    );
+      // The confirmation checkbox and both actions must still be
+      // reachable by scrolling, not clipped or pushed off-screen.
+      await tester.ensureVisible(find.byType(Checkbox));
+      expect(find.byType(Checkbox), findsOneWidget);
+      await tester.ensureVisible(find.text('Acepto y continúo'));
+      expect(find.text('Acepto y continúo'), findsOneWidget);
+      await tester.ensureVisible(find.text('Ahora no'));
+      expect(find.text('Ahora no'), findsOneWidget);
+    });
   });
 }

@@ -2,6 +2,7 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/foundation.dart';
 
+import '../../app/activated_credential_handoff.dart';
 import '../../core/command.dart';
 import '../../core/result.dart';
 import '../../domain/repositories/consent_repository.dart';
@@ -12,13 +13,20 @@ import '../../domain/repositories/consent_repository.dart';
 /// import, testable headless (Constitution Principle VIII); the
 /// `ConsentRepository` dependency is constructor-injected (Principle IX).
 class WithdrawalViewModel extends ChangeNotifier {
-  WithdrawalViewModel({required ConsentRepository consentRepository})
-    : _consentRepository = consentRepository {
+  WithdrawalViewModel({
+    required ConsentRepository consentRepository,
+    required ActivatedCredentialHandoff activatedCredentialHandoff,
+  }) : _consentRepository = consentRepository,
+       _activatedCredentialHandoff = activatedCredentialHandoff {
     withdraw = Command0(_withdraw);
     unawaited(_load());
   }
 
   final ConsentRepository _consentRepository;
+
+  /// 008-identidad-activa (FR-011): a withdrawal also ends any pending
+  /// presentation of a just-issued credential.
+  final ActivatedCredentialHandoff _activatedCredentialHandoff;
 
   /// FR-016: invalidates the local credential immediately (handled inside
   /// `ConsentRepositoryImpl.withdraw()`, SC-005 — no network dependency for
@@ -49,6 +57,7 @@ class WithdrawalViewModel extends ChangeNotifier {
     return result.when(
       ok: (_) {
         _hasRecord = false;
+        _activatedCredentialHandoff.clear();
         return const Result.ok(null);
       },
       error: (error, stackTrace) => Result.error(error, stackTrace),

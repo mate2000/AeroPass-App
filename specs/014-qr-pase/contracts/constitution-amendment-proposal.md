@@ -1,3 +1,6 @@
+> **Withdrawn 2026-09-23** (015 DEC-01): the pass is online-only, so offline derivation, and this
+> amendment, are not needed. See `specs/015-integracion-backend/contracts/constitution-amendment-proposal.md`.
+
 # Constitution Amendment Proposal: 1.4.0 → 1.5.0 (QR-pass secret)
 
 **Status**: PROPOSED. Not applied. It needs the user's ratification.

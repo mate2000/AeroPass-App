@@ -2,6 +2,9 @@ import 'dart:async' show Completer;
 import 'dart:typed_data';
 
 import 'package:aeropass_app/app/enrollment_session_controller.dart';
+import 'package:aeropass_app/app/verification_submission.dart';
+import 'package:aeropass_app/domain/entities/verification_result.dart';
+import 'package:aeropass_app/domain/repositories/biometric_verification_repository.dart';
 import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/core/result.dart';
 import 'package:aeropass_app/domain/entities/capture_attempt_counter.dart';
@@ -57,6 +60,7 @@ void main() {
   LivenessCaptureViewModel buildViewModel({
     Duration sampleInterval = _testSampleInterval,
     Duration stallDuration = _testStallDuration,
+    VerificationSubmission? verificationSubmission,
   }) {
     return LivenessCaptureViewModel(
       livenessVerificationRepository: livenessVerificationRepository,
@@ -64,6 +68,7 @@ void main() {
       attemptCounterRepository: attemptCounterRepository,
       enrollmentSessionController: sessionController,
       analyticsEmitter: analyticsEmitter,
+      verificationSubmission: verificationSubmission,
       sampleInterval: sampleInterval,
       stallDuration: stallDuration,
     );
@@ -467,4 +472,67 @@ void main() {
       },
     );
   });
+
+  // 015 T043 (research.md §7): on success, one JPEG still goes to the
+  // verification broker while the camera is still open.
+  group('015: the selfie still', () {
+    late _RecordingVerifier verifier;
+    late VerificationSubmission submission;
+
+    setUp(() {
+      sessionController.startOrResume();
+      sessionController.markIdentityConfirmed();
+      verifier = _RecordingVerifier();
+      submission = VerificationSubmission(repository: verifier);
+      livenessVerificationRepository.scriptStartSession(
+        const Result.ok('session-1'),
+      );
+      livenessVerificationRepository.scriptSubmitSampleSequence([
+        const Result.ok(
+          LivenessSampleOutcome.completed(outcome: LivenessOutcome.success()),
+        ),
+      ]);
+    });
+
+    test('success submits the still and navigates to 007', () async {
+      final still = Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xD9]);
+      livenessCameraService.still = still;
+      final viewModel = buildViewModel(verificationSubmission: submission);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(livenessCameraService.captureStillCallCount, 1);
+      expect(verifier.received.single, still);
+      expect(submission.state, isA<SubmissionInFlight>());
+      expect(
+        viewModel.pendingNavigation,
+        LivenessNavigationTarget.verificationProgress,
+      );
+    });
+
+    test('no still is a failed attempt, and nothing is submitted', () async {
+      livenessCameraService.still = null;
+      final viewModel = buildViewModel(verificationSubmission: submission);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(verifier.received, isEmpty);
+      final state = viewModel.state as LivenessCaptureViewOutcome;
+      expect(state.outcome, const LivenessOutcome.unclassifiedFailure());
+    });
+
+    test('without a broker (dev-offline), no still is taken', () async {
+      buildViewModel();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(livenessCameraService.captureStillCallCount, 0);
+    });
+  });
+}
+
+class _RecordingVerifier implements BiometricVerificationRepository {
+  final received = <Uint8List>[];
+
+  @override
+  Future<Result<VerificationResult>> verify(Uint8List selfieJpeg) {
+    received.add(selfieJpeg);
+    return Completer<Result<VerificationResult>>().future;
+  }
 }

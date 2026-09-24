@@ -295,7 +295,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get captureRejectionWrongDocumentBody =>
-      'Solo aceptamos cédula de ciudadanía o pasaporte colombiano. Verifica que sea el documento correcto.';
+      'Aceptamos cédula de ciudadanía, cédula de extranjería o pasaporte. Ubica el documento completo sobre una superficie lisa y de un solo color.';
 
   @override
   String get captureRejectionLowResolutionHeadline =>
@@ -1137,4 +1137,129 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tripsViewPass => 'Ver pase';
+
+  @override
+  String get devSyntheticMarkerLabel => 'DEV · Resultado simulado';
+
+  @override
+  String get devSyntheticMarkerOk => 'Aprobado';
+
+  @override
+  String get devSyntheticMarkerSpoof => 'Falla de vida';
+
+  @override
+  String get devSyntheticMarkerOther => 'No coincide';
+
+  @override
+  String get devSyntheticMarkerTimeout => 'Sin respuesta';
+
+  @override
+  String get confirmationTypedNotice =>
+      'Escribe los datos tal como aparecen en tu documento y revisa que coincidan. La fecha de vencimiento va como AAAA-MM-DD.';
+
+  @override
+  String get confirmationDocumentTypeLabel => 'Tipo de documento';
+
+  @override
+  String get confirmationDocumentTypeCc => 'Cédula de ciudadanía';
+
+  @override
+  String get confirmationDocumentTypeCe => 'Cédula de extranjería';
+
+  @override
+  String get confirmationDocumentTypePasaporte => 'Pasaporte';
+
+  @override
+  String get confirmationDocumentTypeInvalid => 'Elige el tipo de documento.';
+
+  @override
+  String get confirmationFailedConnection =>
+      'No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get confirmationFailedServiceBusy =>
+      'El servicio está ocupado en este momento. Inténtalo de nuevo en unos segundos.';
+
+  @override
+  String get confirmationFailedSession =>
+      'No pudimos conectar tu sesión. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get confirmationFailedAccountHasOtherDocument =>
+      'Esta cuenta ya tiene otro documento registrado. Un agente puede ayudarte.';
+
+  @override
+  String get passDocumentExpiredTitle => 'Tu documento está vencido';
+
+  @override
+  String get passIdentityNotActiveTitle => 'Tu identidad no está activa';
+
+  @override
+  String get passRenewing => 'Actualizando código…';
+
+  @override
+  String get tripsFlightCodeHeading => 'Tu vuelo';
+
+  @override
+  String get tripsFlightCodeLabel => 'Código de vuelo';
+
+  @override
+  String get tripsFlightCodeHint => 'Ej. AV9201';
+
+  @override
+  String get tripsFlightCodeInvalid => 'Revisa el código de vuelo (ej. AV9201)';
+
+  @override
+  String get tripsShowPass => 'Mostrar mi pase';
+
+  @override
+  String get escalationLaneOnlyTitle => 'Te atienden en el control habitual';
+
+  @override
+  String get escalationLaneOnlyBody =>
+      'Por ahora no hay agentes disponibles desde la app. Acércate al control de documentos del aeropuerto con tu documento de identidad.';
+
+  @override
+  String get demoRibbonLabel => 'DEMO · biometría simulada';
+
+  @override
+  String get demoRibbonSemantics =>
+      'Versión de demostración. La verificación biométrica es simulada; ninguna identidad queda verificada.';
+
+  @override
+  String get credentialActivatedTitleMock => 'Registro completado';
+
+  @override
+  String get credentialActivatedSubtitleMock =>
+      'Esta es una versión de demostración. La biometría es simulada, así que este registro no sirve para pasar un control.';
+
+  @override
+  String get credentialCardBadgeMock => 'REGISTRADO';
+
+  @override
+  String get tripsBadgeMock => 'REGISTRADO';
+
+  @override
+  String get verificationStageDocumentPassedMock => 'Documento recibido';
+
+  @override
+  String get verificationStageFacePassedMock => 'Rostro procesado';
+
+  @override
+  String get withdrawalServerDataNotice =>
+      'Tus datos en el servidor no se eliminan todavía desde la app.';
+
+  @override
+  String get signInTitle => 'Inicia sesión';
+
+  @override
+  String get signInPrivacy =>
+      'Usamos tu correo solo para iniciar sesión. Lo gestiona Clerk, nuestro proveedor de identidad.';
+
+  @override
+  String get signInErrorNotAvailable =>
+      'El inicio de sesión por correo no está disponible ahora.';
+
+  @override
+  String get signInCompleting => 'Iniciando sesión…';
 }

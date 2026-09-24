@@ -62,7 +62,7 @@ extension EscalationViewStatePatterns on EscalationViewState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EscalationViewLoading value)?  loading,TResult Function( EscalationViewOpen value)?  open,TResult Function( EscalationViewDeclined value)?  declined,TResult Function( EscalationViewExpired value)?  expired,TResult Function( EscalationViewUnavailable value)?  unavailable,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EscalationViewLoading value)?  loading,TResult Function( EscalationViewOpen value)?  open,TResult Function( EscalationViewDeclined value)?  declined,TResult Function( EscalationViewExpired value)?  expired,TResult Function( EscalationViewUnavailable value)?  unavailable,TResult Function( EscalationViewLaneOnly value)?  laneOnly,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case EscalationViewLoading() when loading != null:
@@ -70,7 +70,8 @@ return loading(_that);case EscalationViewOpen() when open != null:
 return open(_that);case EscalationViewDeclined() when declined != null:
 return declined(_that);case EscalationViewExpired() when expired != null:
 return expired(_that);case EscalationViewUnavailable() when unavailable != null:
-return unavailable(_that);case _:
+return unavailable(_that);case EscalationViewLaneOnly() when laneOnly != null:
+return laneOnly(_that);case _:
   return orElse();
 
 }
@@ -88,7 +89,7 @@ return unavailable(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EscalationViewLoading value)  loading,required TResult Function( EscalationViewOpen value)  open,required TResult Function( EscalationViewDeclined value)  declined,required TResult Function( EscalationViewExpired value)  expired,required TResult Function( EscalationViewUnavailable value)  unavailable,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EscalationViewLoading value)  loading,required TResult Function( EscalationViewOpen value)  open,required TResult Function( EscalationViewDeclined value)  declined,required TResult Function( EscalationViewExpired value)  expired,required TResult Function( EscalationViewUnavailable value)  unavailable,required TResult Function( EscalationViewLaneOnly value)  laneOnly,}){
 final _that = this;
 switch (_that) {
 case EscalationViewLoading():
@@ -96,7 +97,8 @@ return loading(_that);case EscalationViewOpen():
 return open(_that);case EscalationViewDeclined():
 return declined(_that);case EscalationViewExpired():
 return expired(_that);case EscalationViewUnavailable():
-return unavailable(_that);}
+return unavailable(_that);case EscalationViewLaneOnly():
+return laneOnly(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -110,7 +112,7 @@ return unavailable(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EscalationViewLoading value)?  loading,TResult? Function( EscalationViewOpen value)?  open,TResult? Function( EscalationViewDeclined value)?  declined,TResult? Function( EscalationViewExpired value)?  expired,TResult? Function( EscalationViewUnavailable value)?  unavailable,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EscalationViewLoading value)?  loading,TResult? Function( EscalationViewOpen value)?  open,TResult? Function( EscalationViewDeclined value)?  declined,TResult? Function( EscalationViewExpired value)?  expired,TResult? Function( EscalationViewUnavailable value)?  unavailable,TResult? Function( EscalationViewLaneOnly value)?  laneOnly,}){
 final _that = this;
 switch (_that) {
 case EscalationViewLoading() when loading != null:
@@ -118,7 +120,8 @@ return loading(_that);case EscalationViewOpen() when open != null:
 return open(_that);case EscalationViewDeclined() when declined != null:
 return declined(_that);case EscalationViewExpired() when expired != null:
 return expired(_that);case EscalationViewUnavailable() when unavailable != null:
-return unavailable(_that);case _:
+return unavailable(_that);case EscalationViewLaneOnly() when laneOnly != null:
+return laneOnly(_that);case _:
   return null;
 
 }
@@ -135,14 +138,15 @@ return unavailable(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( List<AgentChannel> channels)?  open,TResult Function()?  declined,TResult Function()?  expired,TResult Function()?  unavailable,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( List<AgentChannel> channels)?  open,TResult Function()?  declined,TResult Function()?  expired,TResult Function()?  unavailable,TResult Function()?  laneOnly,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EscalationViewLoading() when loading != null:
 return loading();case EscalationViewOpen() when open != null:
 return open(_that.channels);case EscalationViewDeclined() when declined != null:
 return declined();case EscalationViewExpired() when expired != null:
 return expired();case EscalationViewUnavailable() when unavailable != null:
-return unavailable();case _:
+return unavailable();case EscalationViewLaneOnly() when laneOnly != null:
+return laneOnly();case _:
   return orElse();
 
 }
@@ -160,14 +164,15 @@ return unavailable();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( List<AgentChannel> channels)  open,required TResult Function()  declined,required TResult Function()  expired,required TResult Function()  unavailable,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( List<AgentChannel> channels)  open,required TResult Function()  declined,required TResult Function()  expired,required TResult Function()  unavailable,required TResult Function()  laneOnly,}) {final _that = this;
 switch (_that) {
 case EscalationViewLoading():
 return loading();case EscalationViewOpen():
 return open(_that.channels);case EscalationViewDeclined():
 return declined();case EscalationViewExpired():
 return expired();case EscalationViewUnavailable():
-return unavailable();}
+return unavailable();case EscalationViewLaneOnly():
+return laneOnly();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -181,14 +186,15 @@ return unavailable();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( List<AgentChannel> channels)?  open,TResult? Function()?  declined,TResult? Function()?  expired,TResult? Function()?  unavailable,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( List<AgentChannel> channels)?  open,TResult? Function()?  declined,TResult? Function()?  expired,TResult? Function()?  unavailable,TResult? Function()?  laneOnly,}) {final _that = this;
 switch (_that) {
 case EscalationViewLoading() when loading != null:
 return loading();case EscalationViewOpen() when open != null:
 return open(_that.channels);case EscalationViewDeclined() when declined != null:
 return declined();case EscalationViewExpired() when expired != null:
 return expired();case EscalationViewUnavailable() when unavailable != null:
-return unavailable();case _:
+return unavailable();case EscalationViewLaneOnly() when laneOnly != null:
+return laneOnly();case _:
   return null;
 
 }
@@ -420,6 +426,44 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
     return 'EscalationViewState.unavailable()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class EscalationViewLaneOnly with DiagnosticableTreeMixin implements EscalationViewState {
+  const EscalationViewLaneOnly();
+  
+
+
+
+
+
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    properties
+    ..add(DiagnosticsProperty('type', 'EscalationViewState.laneOnly'))
+    ;
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is EscalationViewLaneOnly);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+    return 'EscalationViewState.laneOnly()';
 }
 
 

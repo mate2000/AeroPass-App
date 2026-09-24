@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../core/result.dart';
 import '../../domain/entities/identity_record.dart';
 import '../../domain/repositories/identity_record_repository.dart';
@@ -12,7 +14,10 @@ import '../../domain/repositories/identity_record_repository.dart';
 /// implementation — nothing in this demo path needs it read back.
 class DevIdentityRecordRepository implements IdentityRecordRepository {
   @override
-  Future<Result<IdentityRecord>> confirm(IdentityRecord record) async {
+  Future<Result<IdentityRecord>> confirm(
+    IdentityRecord record, {
+    Uint8List? documentPhoto,
+  }) async {
     return Result.ok(record);
   }
 }

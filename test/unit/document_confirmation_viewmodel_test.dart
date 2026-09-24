@@ -294,15 +294,15 @@ void main() {
 
       await viewModel.editField.run((
         key: FieldKey.documentNumber,
-        value: 'CC 1',
+        value: 'CC 1111',
       ));
       await viewModel.editField.run((
         key: FieldKey.documentNumber,
-        value: 'CC 2',
+        value: 'CC 2222',
       ));
       await viewModel.editField.run((
         key: FieldKey.documentNumber,
-        value: 'CC 3',
+        value: 'CC 3333',
       ));
 
       expect(

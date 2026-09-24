@@ -103,3 +103,21 @@ Uint8List belowMinimumResolutionFixture() {
   final luma = Uint8List(width * height)..fillRange(0, width * height, 128);
   return RawLumaFrame(width: width, height: height, luma: luma).encode();
 }
+
+/// 7. A frame with no detail at all (a covered lens) -> `rejected(blur)`.
+Uint8List blankFrameFixture() {
+  final luma = Uint8List(_canvasWidth * _canvasHeight)
+    ..fillRange(0, _canvasWidth * _canvasHeight, 90);
+  return RawLumaFrame(
+    width: _canvasWidth,
+    height: _canvasHeight,
+    luma: luma,
+  ).encode();
+}
+
+/// 8. A frame mostly blown out by light -> `rejected(glare)`.
+Uint8List mostlyBlownOutFixture() => _buildFrame(
+  document: _wellFramedDocument,
+  textured: true,
+  glarePatch: const _Rect(0, 0, 200, 110),
+);

@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 
 import '../../../app/enrollment_session_controller.dart';
 import '../../../app/technical_error_controller.dart';
+import '../../../app/verification_submission.dart';
 import '../../../core/clock.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/service_failure.dart';
 import '../../../domain/entities/service_status.dart';
+import '../../../domain/entities/verification_result.dart';
 import '../../../domain/repositories/analytics_emitter.dart';
 import '../../../domain/repositories/operational_alert_reporter.dart';
 import '../../../domain/repositories/service_status_repository.dart';
@@ -36,10 +38,11 @@ class TechnicalErrorViewModel extends ChangeNotifier {
   TechnicalErrorViewModel({
     required TechnicalErrorController technicalErrorController,
     required EnrollmentSessionController enrollmentSessionController,
-    required ServiceStatusRepository statusRepository,
+    required ServiceStatusRepository? statusRepository,
     required OperationalAlertReporter alertReporter,
     required AnalyticsEmitter analyticsEmitter,
     required Clock clock,
+    VerificationSubmission? verificationSubmission,
     @visibleForTesting
     Duration statusPollInterval = technicalErrorStatusPollInterval,
     @visibleForTesting Duration countdownTick = technicalErrorCountdownTick,
@@ -54,6 +57,14 @@ class TechnicalErrorViewModel extends ChangeNotifier {
     final now = clock.now();
     _arrival = technicalErrorController.arrivals + 1;
     _scheduledRetryAt = now.add(technicalErrorController.registerArrival());
+    // 015 FR-014: `NO_CONCLUYENTE` says when to try again
+    // (`reintentar_en_segundos`), counted from when the failure was
+    // recorded.
+    if (verificationSubmission?.lastResult case Inconclusive(
+      :final retryAfter?,
+    )) {
+      _backendRetryAt = (_failure?.occurredAt ?? now).add(retryAfter);
+    }
 
     final failure = _failure;
     if (failure != null && technicalErrorController.takeReportable()) {
@@ -73,7 +84,10 @@ class TechnicalErrorViewModel extends ChangeNotifier {
     _startCountdownIfHeld();
   }
 
-  final ServiceStatusRepository _statusRepository;
+  /// 015 FR-025: `null` in release, where no status endpoint exists. The
+  /// card is then omitted, as it is for a failed read (FR-007).
+  final ServiceStatusRepository? _statusRepository;
+  DateTime? _backendRetryAt;
   final AnalyticsEmitter _analyticsEmitter;
   final Clock _clock;
   final Duration _countdownTick;
@@ -111,8 +125,16 @@ class TechnicalErrorViewModel extends ChangeNotifier {
 
   /// The source's own time to try again, when it gave one in the future.
   DateTime? get retryAfter {
-    final after = _status?.retryAfter;
-    return after != null && after.isAfter(_clock.now()) ? after : null;
+    final now = _clock.now();
+    DateTime? latest;
+    for (final after in [_status?.retryAfter, _backendRetryAt]) {
+      if (after != null &&
+          after.isAfter(now) &&
+          (latest == null || after.isAfter(latest))) {
+        latest = after;
+      }
+    }
+    return latest;
   }
 
   // --- Retry pacing (FR-008) ------------------------------------------------
@@ -170,7 +192,13 @@ class TechnicalErrorViewModel extends ChangeNotifier {
   // --- Internals --------------------------------------------------------------
 
   Future<void> _readStatus() async {
-    final result = await _statusRepository.getStatus();
+    final statusRepository = _statusRepository;
+    if (statusRepository == null) {
+      _startCountdownIfHeld();
+      _notify();
+      return;
+    }
+    final result = await statusRepository.getStatus();
     if (_disposed) return;
     switch (result) {
       case Ok(:final value):

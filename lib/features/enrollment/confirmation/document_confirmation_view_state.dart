@@ -2,10 +2,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../domain/entities/document_validity.dart';
 import '../../../domain/entities/extraction_result.dart';
+import '../../../domain/entities/passenger_record.dart';
 
 export '../../../domain/entities/document_validity.dart'
     show DocumentBlockReason;
 export '../../../domain/entities/extraction_result.dart' show FieldKey;
+export '../../../domain/entities/passenger_record.dart' show DocumentType;
 
 part 'document_confirmation_view_state.freezed.dart';
 
@@ -77,13 +79,16 @@ sealed class FieldRowState with _$FieldRowState {
 
   bool get isReverified => status is FieldCorrectionAcceptedReverified;
 
-  /// Whether this field, on its own, permits confirmation (FR-007).
-  bool get blocksConfirmation => switch (status) {
-    FieldCorrectionInvalidFormat() ||
-    FieldCorrectionReverifying() ||
-    FieldCorrectionUnresolved() => true,
-    _ => false,
-  };
+  /// Whether this field, on its own, permits confirmation (FR-007). 015: an
+  /// empty field blocks too, because typed entry starts empty (FR-002a).
+  bool get blocksConfirmation =>
+      currentValue.trim().isEmpty ||
+      switch (status) {
+        FieldCorrectionInvalidFormat() ||
+        FieldCorrectionReverifying() ||
+        FieldCorrectionUnresolved() => true,
+        _ => false,
+      };
 }
 
 /// `DocumentConfirmationViewModel`'s rendered state, per Constitution
@@ -107,7 +112,45 @@ sealed class DocumentConfirmationViewState
     required List<FieldRowState> fields,
     @Default(false) bool confirming,
     @Default(false) bool confirmFailed,
+
+    /// 015 FR-002a: the passenger types every field, because the backend
+    /// reads nothing from the photo. True when the capture handed over
+    /// only empty fields, as the release capture does.
+    @Default(false) bool typedEntry,
+
+    /// 015 FR-002: CC, CE or Pasaporte, chosen by the passenger. It is
+    /// required when [typedEntry] is true.
+    DocumentType? documentType,
+
+    /// The backend refused the document type (`DATOS_INVALIDOS`).
+    @Default(false) bool documentTypeInvalid,
+
+    /// Why the last confirm failed. It is read only when [confirmFailed].
+    @Default(ConfirmFailureKind.generic) ConfirmFailureKind failureKind,
+
+    /// For [ConfirmFailureKind.serviceBusy]: the backend's Retry-After.
+    Duration? retryAfter,
   }) = DocumentConfirmationViewReady;
+}
+
+/// 015 contracts/outcome-mapping.md "Registration": what the passenger is
+/// told when confirmation could not be recorded. None of these echo a
+/// backend code or message (FR-007).
+enum ConfirmFailureKind {
+  /// Anything unclassified: 004's original message.
+  generic,
+
+  /// The request never reached the service.
+  connection,
+
+  /// 503: the service is busy. It is not the passenger's fault (FR-014).
+  serviceBusy,
+
+  /// The session could not be established (FR-001).
+  session,
+
+  /// 409 `CUENTA_YA_REGISTRADA`: this account has another document.
+  accountHasOtherDocument,
 }
 
 /// A one-shot navigation instruction `DocumentConfirmationViewModel` raises
@@ -121,4 +164,9 @@ enum DocumentConfirmationNavigationTarget {
 
   /// Confirmation succeeded — advance to the selfie step (005 stub).
   selfieInstructions,
+
+  /// 015 FR-001a: another account holds this document, which usually means
+  /// the passenger lost their session. That is the agent path, 010, and it
+  /// is not shown as their error.
+  agentEscalation,
 }

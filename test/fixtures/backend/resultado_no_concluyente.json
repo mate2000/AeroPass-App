@@ -1,0 +1,11 @@
+{
+  "intento_id": "0e9d8c7b-6a5f-4e3d-2c1b-0a9f8e7d6c5b",
+  "resultado": "NO_CONCLUYENTE",
+  "motivo_fallo": null,
+  "score_liveness": null,
+  "score_comparacion": null,
+  "estado_pasajero": "PENDIENTE_VERIFICACION",
+  "intentos_restantes": 3,
+  "identidad_id": null,
+  "reintentar_en_segundos": 30
+}

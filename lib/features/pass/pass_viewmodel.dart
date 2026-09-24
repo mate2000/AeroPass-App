@@ -157,6 +157,13 @@ class PassViewModel extends ChangeNotifier {
   /// it only when the release-refused flag is on (FR-019).
   bool get canDevExpire => _onDevExpire != null && _state is PassShowing;
 
+  /// 015 FR-012: the shown code is still valid, but its renewal failed and
+  /// is being retried.
+  bool get renewalPending {
+    final state = _state;
+    return state is PassShowing && state.code.renewalPending;
+  }
+
   /// Whole seconds until the next code, from the backend-corrected clock.
   int get secondsLeft {
     final state = _state;
@@ -206,11 +213,7 @@ class PassViewModel extends ChangeNotifier {
           case Ok(:final value):
             _pass = value;
           case Error(:final error):
-            _becomeUnavailable(
-              error is ConnectivityFailure
-                  ? PassUnavailableReason.offlineWithoutPass
-                  : PassUnavailableReason.issuanceFailed,
-            );
+            _becomeUnavailable(_reasonFor(error));
             return;
         }
       }
@@ -304,11 +307,7 @@ class PassViewModel extends ChangeNotifier {
         );
         await _refreshCode();
       case Error(:final error):
-        _becomeUnavailable(
-          error is ConnectivityFailure
-              ? PassUnavailableReason.offlineWithoutPass
-              : PassUnavailableReason.issuanceFailed,
-        );
+        _becomeUnavailable(_reasonFor(error));
     }
   }
 
@@ -345,8 +344,21 @@ class PassViewModel extends ChangeNotifier {
     _notify();
   }
 
+  /// A tick still running (a renewal on a slow network) makes later ticks
+  /// skip, so one renewal is never sent twice (015: issuance is rate-limited).
+  bool _tickInFlight = false;
+
   Future<void> _onTick() async {
-    if (_disposed || _paused) return;
+    if (_disposed || _paused || _tickInFlight) return;
+    _tickInFlight = true;
+    try {
+      await _tickOnce();
+    } finally {
+      _tickInFlight = false;
+    }
+  }
+
+  Future<void> _tickOnce() async {
     final state = _state;
     if (state is! PassShowing) return;
     if (!_clockTrust.isTrusted) {
@@ -383,8 +395,15 @@ class PassViewModel extends ChangeNotifier {
     if (_disposed) return;
     switch (result) {
       case Ok(:final value):
-        final current = _pass ?? pass;
-        if (rotation) {
+        // 015 research.md §10: a renewal replaces the pass (new id, new
+        // expiry), so the repository's current pass is the one to hold.
+        final current =
+            _passRepository.activePassFor(pass.tripId) ?? _pass ?? pass;
+        _pass = current;
+        final previous = _state;
+        final changed =
+            previous is! PassShowing || previous.code.payload != value.payload;
+        if (rotation && changed) {
           _rotations++;
           _analyticsEmitter.passRotated(checkpoint: current.nextCheckpoint);
         }
@@ -397,13 +416,20 @@ class PassViewModel extends ChangeNotifier {
           );
         }
       case Error(:final error):
-        _becomeUnavailable(
-          error is ConnectivityFailure
-              ? PassUnavailableReason.offlineWithoutPass
-              : PassUnavailableReason.issuanceFailed,
-        );
+        _becomeUnavailable(_reasonFor(error));
     }
   }
+
+  /// 015 FR-015: an expired document and an inactive identity are told
+  /// apart, and neither is a generic failure.
+  static PassUnavailableReason _reasonFor(Object error) => switch (error) {
+    ConnectivityFailure() => PassUnavailableReason.offlineWithoutPass,
+    PassIssueRefused(refusal: PassIssueRefusal.documentExpired) =>
+      PassUnavailableReason.documentExpired,
+    PassIssueRefused(refusal: PassIssueRefusal.identityNotActive) =>
+      PassUnavailableReason.identityNotActive,
+    _ => PassUnavailableReason.issuanceFailed,
+  };
 
   void _becomeUnavailable(PassUnavailableReason reason) {
     final current = _state;

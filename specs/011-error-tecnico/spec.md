@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): the backend has no service-status endpoint. Release omits the card, and `NO_CONCLUYENTE`'s `reintentar_en_segundos` paces the retry.
+
 **Input**: User description: "Screen 11 Error técnico — shown when verification fails for reasons
 attributable to the service rather than the passenger. States that it is not the passenger's fault,
 shows component status, confirms their progress is preserved, and offers a retry."

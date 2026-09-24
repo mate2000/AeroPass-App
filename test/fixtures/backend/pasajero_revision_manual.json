@@ -1,0 +1,10 @@
+{
+  "id": "3f1c9a52-7d0e-4b8a-9c11-2a6f0e5d4b71",
+  "nombre_completo": "Ana Prueba",
+  "tipo_documento": "CC",
+  "numero_documento_enmascarado": "******4050",
+  "fecha_vencimiento": "2030-01-31",
+  "estado": "REQUIERE_REVISION_MANUAL",
+  "intentos_fallidos": 3,
+  "identidad_id": null
+}

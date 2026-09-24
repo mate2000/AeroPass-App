@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): there is no trips endpoint (DEC-03). Release shows the credential strip and a flight-code entry.
+
 **Input**: User description: "Screen 12 Mis viajes — the home surface for an enrolled passenger. Shows
 the credential in compact form, the next trip with its flight details and a way to start it, and
 recent trips. Includes an empty variant."

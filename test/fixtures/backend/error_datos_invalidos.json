@@ -1,0 +1,14 @@
+{
+  "status": 422,
+  "retry_after": null,
+  "body": {
+    "codigo": "DATOS_INVALIDOS",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR",
+    "detalles": {
+      "campos": [
+        "fecha_vencimiento",
+        "numero_documento"
+      ]
+    }
+  }
+}

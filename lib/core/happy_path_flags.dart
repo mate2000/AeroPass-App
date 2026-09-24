@@ -47,6 +47,41 @@ abstract final class HappyPathFlags {
   /// backend only, and a release build refuses to start with it on.
   static const bool devPassControls = bool.fromEnvironment('DEV_PASS_CONTROLS');
 
+  /// 015 research.md §3: lets the dev flavor reach a local backend over plain
+  /// HTTP. Every other flavor is pinned TLS only.
+  static const bool allowInsecureLocalBackend = bool.fromEnvironment(
+    'ALLOW_INSECURE_LOCAL_BACKEND',
+  );
+
+  /// 015 research.md §6: document and selfie bytes come from generated
+  /// `MOCK:` marker images instead of the camera, so dev and staging never
+  /// upload a real face (FR-018).
+  static const bool syntheticCapture = bool.fromEnvironment(
+    'SYNTHETIC_CAPTURE',
+  );
+
+  static const String _authModeName = String.fromEnvironment(
+    'AUTH_MODE',
+    defaultValue: 'clerk',
+  );
+
+  /// 015 research.md §2, §5: `test` sends `Bearer test:<id>` to a local
+  /// backend in fake mode, and is refused in a release build.
+  static const AuthMode authMode = _authModeName == 'test'
+      ? AuthMode.test
+      : AuthMode.clerk;
+
+  /// 015 FR-020: the deployed biometric provider approves any image (R-01).
+  /// While this declaration is on, which it is unless an env file turns it
+  /// off, every screen carries the demo ribbon and nothing says "verified".
+  /// It is not a relaxation: a release may ship with it on, and
+  /// `tool/check_release_env.dart` refuses to turn it off without naming a
+  /// real provider.
+  static const bool biometricProviderMock = bool.fromEnvironment(
+    'BIOMETRIC_PROVIDER_MOCK',
+    defaultValue: true,
+  );
+
   static void assertReleaseSafe({
     bool releaseMode = kReleaseMode,
     List<String>? enabledFlagNamesOverride,
@@ -58,6 +93,9 @@ abstract final class HappyPathFlags {
           if (useFakeConsentBackend) 'USE_FAKE_CONSENT_BACKEND',
           if (useFakeVerificationBackend) 'USE_FAKE_VERIFICATION_BACKEND',
           if (devPassControls) 'DEV_PASS_CONTROLS',
+          if (allowInsecureLocalBackend) 'ALLOW_INSECURE_LOCAL_BACKEND',
+          if (syntheticCapture) 'SYNTHETIC_CAPTURE',
+          if (authMode == AuthMode.test) 'AUTH_MODE=test',
         ];
     if (enabled.isEmpty) return;
     throw StateError(
@@ -65,4 +103,13 @@ abstract final class HappyPathFlags {
       'be enabled in a release build (constitution v1.4.0, Principle III).',
     );
   }
+}
+
+/// How `/v1/*` calls are authenticated (015 research.md §2, §5).
+enum AuthMode {
+  /// A silent Clerk session: staging and prod.
+  clerk,
+
+  /// `Bearer test:<id>` against a local backend in fake mode: dev only.
+  test,
 }

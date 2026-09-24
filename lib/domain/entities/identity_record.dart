@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'extraction_result.dart';
+import 'passenger_record.dart';
 
 part 'identity_record.freezed.dart';
 
@@ -35,6 +36,12 @@ sealed class ConfirmedField with _$ConfirmedField {
 /// the audit-trail distinction, exists only in memory and on the backend.
 @freezed
 sealed class IdentityRecord with _$IdentityRecord {
-  const factory IdentityRecord({required List<ConfirmedField> fields}) =
-      _IdentityRecord;
+  const factory IdentityRecord({
+    required List<ConfirmedField> fields,
+
+    /// The passenger's choice of CC, CE or Pasaporte (015 FR-002). The
+    /// backend requires it, and no extraction supplies it. Null only on the
+    /// dev-offline path, whose fake backend does not ask.
+    DocumentType? documentType,
+  }) = _IdentityRecord;
 }

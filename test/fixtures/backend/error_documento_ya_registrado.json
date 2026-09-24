@@ -1,0 +1,8 @@
+{
+  "status": 409,
+  "retry_after": null,
+  "body": {
+    "codigo": "DOCUMENTO_YA_REGISTRADO",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

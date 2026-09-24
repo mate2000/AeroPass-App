@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): the backend has no escalation or chat endpoint. Release shows the conventional-lane variant.
+
 **Input**: User description: "Screen 10 Escalar agente — offered when automatic verification is
 exhausted or declined. Presents the available human channels with their availability and hands the
 passenger off to one."

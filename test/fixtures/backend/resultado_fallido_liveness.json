@@ -1,0 +1,11 @@
+{
+  "intento_id": "0e9d8c7b-6a5f-4e3d-2c1b-0a9f8e7d6c5b",
+  "resultado": "FALLIDO",
+  "motivo_fallo": "LIVENESS",
+  "score_liveness": 0.2,
+  "score_comparacion": 0.9,
+  "estado_pasajero": "PENDIENTE_VERIFICACION",
+  "intentos_restantes": 2,
+  "identidad_id": null,
+  "reintentar_en_segundos": null
+}

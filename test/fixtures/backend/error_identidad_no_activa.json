@@ -1,0 +1,8 @@
+{
+  "status": 403,
+  "retry_after": null,
+  "body": {
+    "codigo": "IDENTIDAD_NO_ACTIVA",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

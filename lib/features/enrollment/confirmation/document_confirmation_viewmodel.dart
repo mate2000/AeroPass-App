@@ -8,6 +8,10 @@ import '../../../core/result.dart';
 import '../../../domain/entities/extraction_result.dart';
 import '../../../domain/entities/field_reverification_outcome.dart';
 import '../../../domain/entities/identity_record.dart';
+import '../../../domain/entities/registration_rejection.dart';
+import '../../../domain/entities/registration_rules.dart';
+import '../../../domain/entities/session_state.dart';
+import '../../../domain/entities/transport_failure.dart';
 import '../../../domain/repositories/analytics_emitter.dart';
 import '../../../domain/repositories/field_reverification_repository.dart';
 import '../../../domain/repositories/identity_record_repository.dart';
@@ -38,7 +42,7 @@ const correctionAttemptLimit = 3;
 class DocumentConfirmationViewModel extends ChangeNotifier {
   DocumentConfirmationViewModel({
     required PendingDocumentController pendingDocumentController,
-    required FieldReverificationRepository fieldReverificationRepository,
+    required FieldReverificationRepository? fieldReverificationRepository,
     required IdentityRecordRepository identityRecordRepository,
     required AnalyticsEmitter analyticsEmitter,
     required EnrollmentSessionController enrollmentSessionController,
@@ -56,7 +60,11 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
   }
 
   final PendingDocumentController _pendingDocumentController;
-  final FieldReverificationRepository _fieldReverificationRepository;
+
+  /// 015 FR-025: `null` in release, where no field re-verification
+  /// endpoint exists. Typed entry never reaches it, because every typed
+  /// field has zero confidence.
+  final FieldReverificationRepository? _fieldReverificationRepository;
   final IdentityRecordRepository _identityRecordRepository;
   final AnalyticsEmitter _analyticsEmitter;
   final EnrollmentSessionController _enrollmentSessionController;
@@ -141,6 +149,11 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
     }
 
     _analyticsEmitter.confirmationStepEntered();
+    // 015 FR-002a: an extraction of only empty values means nothing was read
+    // from the document, so the passenger types every field.
+    final typedEntry = extraction.fields.every(
+      (field) => field is ExtractedFieldPresent && field.value.isEmpty,
+    );
     final fields = [
       for (final field in extraction.fields)
         if (field is ExtractedFieldPresent)
@@ -151,7 +164,21 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
             originalConfidence: field.confidence,
           ),
     ];
-    _setState(DocumentConfirmationViewState.ready(fields: fields));
+    _setState(
+      DocumentConfirmationViewState.ready(
+        fields: fields,
+        typedEntry: typedEntry,
+      ),
+    );
+  }
+
+  /// 015 FR-002: the passenger's choice of CC, CE or Pasaporte.
+  void selectDocumentType(DocumentType type) {
+    final current = _state;
+    if (current is! DocumentConfirmationViewReady || current.confirming) {
+      return;
+    }
+    _setState(current.copyWith(documentType: type, documentTypeInvalid: false));
   }
 
   Future<Result<void>> _editField(FieldEditRequest request) async {
@@ -205,8 +232,15 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
         status: const FieldCorrectionStatus.reverifying(),
       ),
     );
+    final reverifier = _fieldReverificationRepository;
+    if (reverifier == null) {
+      // No automated re-check exists, so a high-confidence edit cannot be
+      // confirmed. It stays unresolved, exactly as a failed re-check would.
+      _registerUnresolved(row, trimmed);
+      return const Result.ok(null);
+    }
     final bytes = _documentImageBytes!;
-    final result = await _fieldReverificationRepository.reverify(
+    final result = await reverifier.reverify(
       documentImageBytes: bytes,
       field: request.key,
       candidateValue: trimmed,
@@ -271,13 +305,20 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
     }
   }
 
+  /// 015 FR-022: the backend's own rules, applied before sending.
   bool _isValidFormat(FieldKey key, String value) {
     if (value.isEmpty) return false;
     return switch (key) {
-      FieldKey.fullName => true,
-      FieldKey.documentNumber => value.contains(RegExp('[0-9]')),
+      FieldKey.fullName => RegistrationRules.validName(value),
+      FieldKey.documentNumber => RegistrationRules.validNumber(value),
       FieldKey.nationality => true,
-      FieldKey.expiryDate => DateTime.tryParse(value) != null,
+      FieldKey.expiryDate => switch (RegistrationRules.parseExpiry(value)) {
+        final expiry? => RegistrationRules.validExpiry(
+          expiry,
+          today: _clock.now(),
+        ),
+        null => false,
+      },
     };
   }
 
@@ -303,6 +344,7 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
 
     _setState(current.copyWith(confirming: true, confirmFailed: false));
     final record = IdentityRecord(
+      documentType: current.documentType,
       fields: [
         for (final f in current.fields)
           ConfirmedField(
@@ -316,7 +358,10 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
           ),
       ],
     );
-    final result = await _identityRecordRepository.confirm(record);
+    final result = await _identityRecordRepository.confirm(
+      record,
+      documentPhoto: _documentImageBytes,
+    );
     return result.when(
       ok: (_) {
         _outcomeRecorded = true;
@@ -331,14 +376,71 @@ class DocumentConfirmationViewModel extends ChangeNotifier {
       error: (e, st) {
         // FR-017: confirmation not recorded, the flow does not advance.
         _analyticsEmitter.confirmationConfirmFailed();
-        _setState(current.copyWith(confirming: false, confirmFailed: true));
+        _onRejected(current, e);
         return Result.error(e, st);
       },
     );
   }
 
+  /// 015 contracts/outcome-mapping.md "Registration": each refusal has its
+  /// own consequence. None of them shows a backend code or message.
+  void _onRejected(DocumentConfirmationViewReady current, Object error) {
+    final idle = current.copyWith(confirming: false);
+    DocumentConfirmationViewReady failed(
+      ConfirmFailureKind kind, {
+      Duration? retryAfter,
+    }) => idle.copyWith(
+      confirmFailed: true,
+      failureKind: kind,
+      retryAfter: retryAfter,
+    );
+    switch (error) {
+      case InvalidFields(:final fields, :final documentType):
+        _setState(
+          idle.copyWith(
+            documentTypeInvalid: documentType,
+            fields: [
+              for (final f in current.fields)
+                fields.contains(f.key)
+                    ? f.copyWith(
+                        status: const FieldCorrectionStatus.invalidFormat(),
+                      )
+                    : f,
+            ],
+          ),
+        );
+      case DocumentExpired():
+        _setState(
+          const DocumentConfirmationViewState.blocked(
+            reason: DocumentBlockReason.expired,
+          ),
+        );
+      case DocumentOwnedElsewhere():
+        _outcomeRecorded = true;
+        _pendingDocumentController.clear();
+        _pendingNavigation =
+            DocumentConfirmationNavigationTarget.agentEscalation;
+        _setState(idle);
+      case RecaptureDocument():
+        _discardAndReturnToCapture();
+      case RegistrationServiceBusy(:final retryAfter):
+        _setState(
+          failed(ConfirmFailureKind.serviceBusy, retryAfter: retryAfter),
+        );
+      case AccountHasOtherDocument():
+        _setState(failed(ConfirmFailureKind.accountHasOtherDocument));
+      case SessionUnavailable():
+        _setState(failed(ConfirmFailureKind.session));
+      case ConnectivityFailure():
+        _setState(failed(ConfirmFailureKind.connection));
+      default:
+        _setState(failed(ConfirmFailureKind.generic));
+    }
+  }
+
   bool _canConfirm(DocumentConfirmationViewReady state) =>
-      state.fields.every((f) => !f.blocksConfirmation);
+      state.fields.every((f) => !f.blocksConfirmation) &&
+      (!state.typedEntry || state.documentType != null);
 
   /// FR-013: called by `DocumentConfirmationView` on explicit back
   /// navigation. Always discards the held image (never on forward

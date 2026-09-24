@@ -102,17 +102,15 @@ void main() {
   ) async {
     await _pump(tester);
 
-    expect(find.text('Tu identidad digital está activa'), findsOneWidget);
-    expect(
-      find.textContaining('donde AeroPass está disponible'),
-      findsOneWidget,
-    );
+    // 015 FR-020: the mock is declared, so nothing says "activa".
+    expect(find.text('Registro completado'), findsOneWidget);
+    expect(find.textContaining('versión de demostración'), findsOneWidget);
     expect(find.text('IDENTIDAD DIGITAL'), findsOneWidget);
     expect(find.text('Mateo González Restrepo'), findsOneWidget);
     expect(find.text('•••• 7890 · COL'), findsOneWidget);
     expect(find.text('Creada el 16 sept 2026'), findsOneWidget);
     expect(find.text('Válida hasta 16 sept 2031'), findsOneWidget);
-    expect(find.text('ACTIVA'), findsOneWidget);
+    expect(find.text('REGISTRADO'), findsOneWidget);
     expect(find.text('Ir a mis viajes'), findsOneWidget);
     expect(find.text('Ver mi identidad'), findsOneWidget);
   });
@@ -237,7 +235,8 @@ void main() {
   ) async {
     await _pump(tester, guard: FakeScreenCaptureGuard(enableThrows: true));
 
-    expect(find.text('Tu identidad digital está activa'), findsOneWidget);
+    // 015 FR-020: the mock is declared, so nothing says "activa".
+    expect(find.text('Registro completado'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

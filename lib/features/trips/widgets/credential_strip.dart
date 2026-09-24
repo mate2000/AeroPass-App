@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/design/app_colors.dart';
 import '../../../domain/entities/credential_summary.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../core/happy_path_flags.dart';
 
 /// The compact credential on Mis viajes (012-mis-viajes FR-002, FR-003,
 /// FR-018): initials instead of any face, the holder's name, the masked
@@ -87,7 +88,11 @@ class _Badge extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final active = summary.showsActive;
     final state = switch (summary.state) {
-      CredentialDisplayState.active => l10n.tripsBadgeActive,
+      // 015 FR-020: never "ACTIVA" while the biometrics are simulated.
+      CredentialDisplayState.active =>
+        HappyPathFlags.biometricProviderMock
+            ? l10n.tripsBadgeMock
+            : l10n.tripsBadgeActive,
       CredentialDisplayState.expired => l10n.tripsBadgeExpired,
       CredentialDisplayState.revoked => l10n.tripsBadgeRevoked,
       CredentialDisplayState.suspended => l10n.tripsBadgeSuspended,
@@ -95,7 +100,9 @@ class _Badge extends StatelessWidget {
     // The word "ACTIVA" is reserved for an affirmed credential (FR-003): an
     // unconfirmed active credential says only that it is unconfirmed.
     final label = active
-        ? l10n.tripsBadgeActive
+        ? (HappyPathFlags.biometricProviderMock
+              ? l10n.tripsBadgeMock
+              : l10n.tripsBadgeActive)
         : summary.confirmed
         ? state
         : summary.state == CredentialDisplayState.active

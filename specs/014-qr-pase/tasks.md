@@ -218,7 +218,14 @@ several windows, from derivation alone. It survives a cold restart offline, and 
       `PassRepository.activePassFor`. Inject the port in the trips route. Continue until T023 passes
       (depends on: T023, T014)
 
-### Phase B — ⛔ BLOCKED until the constitution amendment is ratified
+### Phase B — CANCELLED (015 DEC-01, 2026-09-23)
+
+> **Cancelled, not blocked.** The deployed backend issues a short-lived signed token (TTL 30–60 s,
+> enforced by a database CHECK), renewed online, and derives nothing on the device. Offline
+> derivation would need a backend change, which is out of scope. The amendment proposal these tasks
+> waited on is withdrawn; `specs/015-integracion-backend/contracts/constitution-amendment-proposal.md`
+> (1.5.0, A1–A4) supersedes it. T026–T031 stay below for the record, and none will be done.
+
 
 - [ ] T026 [US2] ⛔ **User decision**: ratify or reject contracts/constitution-amendment-proposal.md.
       If ratified, apply it to `.specify/memory/constitution.md` as version 1.5.0, with its Sync

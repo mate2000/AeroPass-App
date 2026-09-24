@@ -19,7 +19,10 @@ mixin _$Pass {
  String get passId; String get tripId;/// The reader the current code is for (FR-008).
  Checkpoint get nextCheckpoint;/// Only ever from the backend's status (FR-009).
  Set<Checkpoint> get validated;/// Server-defined: at most scheduled departure and 24 h from issuance.
- DateTime get validUntil; Duration get rotation;
+ DateTime get validUntil; Duration get rotation;/// 015 FR-024: the checkpoints this pass opens, from the backend's
+/// `permisos`. Today that is boarding only, so the screen must not
+/// promise security.
+ Set<Checkpoint> get checkpoints;
 /// Create a copy of Pass
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,20 +34,20 @@ $PassCopyWith<Pass> get copyWith => _$PassCopyWithImpl<Pass>(this as Pass, _$ide
 @override
 bool operator ==(Object other) {
   final _this = this as Pass;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Pass&&(identical(other.passId, _this.passId) || other.passId == _this.passId)&&(identical(other.tripId, _this.tripId) || other.tripId == _this.tripId)&&(identical(other.nextCheckpoint, _this.nextCheckpoint) || other.nextCheckpoint == _this.nextCheckpoint)&&const DeepCollectionEquality().equals(other.validated, _this.validated)&&(identical(other.validUntil, _this.validUntil) || other.validUntil == _this.validUntil)&&(identical(other.rotation, _this.rotation) || other.rotation == _this.rotation));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Pass&&(identical(other.passId, _this.passId) || other.passId == _this.passId)&&(identical(other.tripId, _this.tripId) || other.tripId == _this.tripId)&&(identical(other.nextCheckpoint, _this.nextCheckpoint) || other.nextCheckpoint == _this.nextCheckpoint)&&const DeepCollectionEquality().equals(other.validated, _this.validated)&&(identical(other.validUntil, _this.validUntil) || other.validUntil == _this.validUntil)&&(identical(other.rotation, _this.rotation) || other.rotation == _this.rotation)&&const DeepCollectionEquality().equals(other.checkpoints, _this.checkpoints));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Pass;
-  return Object.hash(runtimeType,_this.passId,_this.tripId,_this.nextCheckpoint,const DeepCollectionEquality().hash(_this.validated),_this.validUntil,_this.rotation);
+  return Object.hash(runtimeType,_this.passId,_this.tripId,_this.nextCheckpoint,const DeepCollectionEquality().hash(_this.validated),_this.validUntil,_this.rotation,const DeepCollectionEquality().hash(_this.checkpoints));
 }
 
 @override
 String toString() {
   final _this = this as Pass;
-  return 'Pass(passId: ${_this.passId}, tripId: ${_this.tripId}, nextCheckpoint: ${_this.nextCheckpoint}, validated: ${_this.validated}, validUntil: ${_this.validUntil}, rotation: ${_this.rotation})';
+  return 'Pass(passId: ${_this.passId}, tripId: ${_this.tripId}, nextCheckpoint: ${_this.nextCheckpoint}, validated: ${_this.validated}, validUntil: ${_this.validUntil}, rotation: ${_this.rotation}, checkpoints: ${_this.checkpoints})';
 }
 
 
@@ -55,7 +58,7 @@ abstract mixin class $PassCopyWith<$Res>  {
   factory $PassCopyWith(Pass value, $Res Function(Pass) _then) = _$PassCopyWithImpl;
 @useResult
 $Res call({
- String passId, String tripId, Checkpoint nextCheckpoint, Set<Checkpoint> validated, DateTime validUntil, Duration rotation
+ String passId, String tripId, Checkpoint nextCheckpoint, Set<Checkpoint> validated, DateTime validUntil, Duration rotation, Set<Checkpoint> checkpoints
 });
 
 
@@ -72,7 +75,7 @@ class _$PassCopyWithImpl<$Res>
 
 /// Create a copy of Pass
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? passId = null,Object? tripId = null,Object? nextCheckpoint = null,Object? validated = null,Object? validUntil = null,Object? rotation = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? passId = null,Object? tripId = null,Object? nextCheckpoint = null,Object? validated = null,Object? validUntil = null,Object? rotation = null,Object? checkpoints = null,}) {
   return _then(Pass(
 passId: null == passId ? _self.passId : passId // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -80,7 +83,8 @@ as String,nextCheckpoint: null == nextCheckpoint ? _self.nextCheckpoint : nextCh
 as Checkpoint,validated: null == validated ? _self.validated : validated // ignore: cast_nullable_to_non_nullable
 as Set<Checkpoint>,validUntil: null == validUntil ? _self.validUntil : validUntil // ignore: cast_nullable_to_non_nullable
 as DateTime,rotation: null == rotation ? _self.rotation : rotation // ignore: cast_nullable_to_non_nullable
-as Duration,
+as Duration,checkpoints: null == checkpoints ? _self.checkpoints : checkpoints // ignore: cast_nullable_to_non_nullable
+as Set<Checkpoint>,
   ));
 }
 
@@ -162,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String passId,  String tripId,  Checkpoint nextCheckpoint,  Set<Checkpoint> validated,  DateTime validUntil,  Duration rotation)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String passId,  String tripId,  Checkpoint nextCheckpoint,  Set<Checkpoint> validated,  DateTime validUntil,  Duration rotation,  Set<Checkpoint> checkpoints)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Pass() when $default != null:
-return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_that.validUntil,_that.rotation);case _:
+return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_that.validUntil,_that.rotation,_that.checkpoints);case _:
   return orElse();
 
 }
@@ -183,10 +187,10 @@ return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String passId,  String tripId,  Checkpoint nextCheckpoint,  Set<Checkpoint> validated,  DateTime validUntil,  Duration rotation)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String passId,  String tripId,  Checkpoint nextCheckpoint,  Set<Checkpoint> validated,  DateTime validUntil,  Duration rotation,  Set<Checkpoint> checkpoints)  $default,) {final _that = this;
 switch (_that) {
 case _Pass():
-return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_that.validUntil,_that.rotation);}
+return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_that.validUntil,_that.rotation,_that.checkpoints);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -200,10 +204,10 @@ return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String passId,  String tripId,  Checkpoint nextCheckpoint,  Set<Checkpoint> validated,  DateTime validUntil,  Duration rotation)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String passId,  String tripId,  Checkpoint nextCheckpoint,  Set<Checkpoint> validated,  DateTime validUntil,  Duration rotation,  Set<Checkpoint> checkpoints)?  $default,) {final _that = this;
 switch (_that) {
 case _Pass() when $default != null:
-return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_that.validUntil,_that.rotation);case _:
+return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_that.validUntil,_that.rotation,_that.checkpoints);case _:
   return null;
 
 }
@@ -215,7 +219,7 @@ return $default(_that.passId,_that.tripId,_that.nextCheckpoint,_that.validated,_
 
 
 class _Pass implements Pass {
-  const _Pass({required this.passId, required this.tripId, required this.nextCheckpoint,  Set<Checkpoint> validated = const <Checkpoint>{}, required this.validUntil, this.rotation = passRotation}): _validated = validated;
+  const _Pass({required this.passId, required this.tripId, required this.nextCheckpoint,  Set<Checkpoint> validated = const <Checkpoint>{}, required this.validUntil, this.rotation = passRotation,  Set<Checkpoint> checkpoints = const {Checkpoint.security, Checkpoint.boarding}}): _validated = validated,_checkpoints = checkpoints;
   
 
 /// Opaque. Never logged or sent in an event (FR-015).
@@ -235,6 +239,19 @@ class _Pass implements Pass {
 /// Server-defined: at most scheduled departure and 24 h from issuance.
 @override final  DateTime validUntil;
 @override@JsonKey() final  Duration rotation;
+/// 015 FR-024: the checkpoints this pass opens, from the backend's
+/// `permisos`. Today that is boarding only, so the screen must not
+/// promise security.
+ final  Set<Checkpoint> _checkpoints;
+/// 015 FR-024: the checkpoints this pass opens, from the backend's
+/// `permisos`. Today that is boarding only, so the screen must not
+/// promise security.
+@override@JsonKey() Set<Checkpoint> get checkpoints {
+  if (_checkpoints is EqualUnmodifiableSetView) return _checkpoints;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableSetView(_checkpoints);
+}
+
 
 /// Create a copy of Pass
 /// with the given fields replaced by the non-null parameter values.
@@ -246,18 +263,18 @@ _$PassCopyWith<_Pass> get copyWith => __$PassCopyWithImpl<_Pass>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Pass&&(identical(other.passId, passId) || other.passId == passId)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.nextCheckpoint, nextCheckpoint) || other.nextCheckpoint == nextCheckpoint)&&const DeepCollectionEquality().equals(other.validated, _validated)&&(identical(other.validUntil, validUntil) || other.validUntil == validUntil)&&(identical(other.rotation, rotation) || other.rotation == rotation));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Pass&&(identical(other.passId, passId) || other.passId == passId)&&(identical(other.tripId, tripId) || other.tripId == tripId)&&(identical(other.nextCheckpoint, nextCheckpoint) || other.nextCheckpoint == nextCheckpoint)&&const DeepCollectionEquality().equals(other.validated, _validated)&&(identical(other.validUntil, validUntil) || other.validUntil == validUntil)&&(identical(other.rotation, rotation) || other.rotation == rotation)&&const DeepCollectionEquality().equals(other.checkpoints, _checkpoints));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,passId,tripId,nextCheckpoint,const DeepCollectionEquality().hash(_validated),validUntil,rotation);
+    return Object.hash(runtimeType,passId,tripId,nextCheckpoint,const DeepCollectionEquality().hash(_validated),validUntil,rotation,const DeepCollectionEquality().hash(_checkpoints));
 }
 
 @override
 String toString() {
-    return 'Pass(passId: $passId, tripId: $tripId, nextCheckpoint: $nextCheckpoint, validated: $validated, validUntil: $validUntil, rotation: $rotation)';
+    return 'Pass(passId: $passId, tripId: $tripId, nextCheckpoint: $nextCheckpoint, validated: $validated, validUntil: $validUntil, rotation: $rotation, checkpoints: $checkpoints)';
 }
 
 
@@ -268,7 +285,7 @@ abstract mixin class _$PassCopyWith<$Res> implements $PassCopyWith<$Res> {
   factory _$PassCopyWith(_Pass value, $Res Function(_Pass) _then) = __$PassCopyWithImpl;
 @override @useResult
 $Res call({
- String passId, String tripId, Checkpoint nextCheckpoint, Set<Checkpoint> validated, DateTime validUntil, Duration rotation
+ String passId, String tripId, Checkpoint nextCheckpoint, Set<Checkpoint> validated, DateTime validUntil, Duration rotation, Set<Checkpoint> checkpoints
 });
 
 
@@ -285,7 +302,7 @@ class __$PassCopyWithImpl<$Res>
 
 /// Create a copy of Pass
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? passId = null,Object? tripId = null,Object? nextCheckpoint = null,Object? validated = null,Object? validUntil = null,Object? rotation = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? passId = null,Object? tripId = null,Object? nextCheckpoint = null,Object? validated = null,Object? validUntil = null,Object? rotation = null,Object? checkpoints = null,}) {
   return _then(_Pass(
 passId: null == passId ? _self.passId : passId // ignore: cast_nullable_to_non_nullable
 as String,tripId: null == tripId ? _self.tripId : tripId // ignore: cast_nullable_to_non_nullable
@@ -293,7 +310,8 @@ as String,nextCheckpoint: null == nextCheckpoint ? _self.nextCheckpoint : nextCh
 as Checkpoint,validated: null == validated ? _self._validated : validated // ignore: cast_nullable_to_non_nullable
 as Set<Checkpoint>,validUntil: null == validUntil ? _self.validUntil : validUntil // ignore: cast_nullable_to_non_nullable
 as DateTime,rotation: null == rotation ? _self.rotation : rotation // ignore: cast_nullable_to_non_nullable
-as Duration,
+as Duration,checkpoints: null == checkpoints ? _self._checkpoints : checkpoints // ignore: cast_nullable_to_non_nullable
+as Set<Checkpoint>,
   ));
 }
 
@@ -303,7 +321,9 @@ as Duration,
 /// @nodoc
 mixin _$PassCode {
 
- String get payload; DateTime get windowStartsAt; DateTime get windowEndsAt;
+ String get payload; DateTime get windowStartsAt; DateTime get windowEndsAt;/// 015 FR-012: renewal failed, and this still-valid code stays on screen
+/// while it is retried. The view says "Actualizando código…".
+ bool get renewalPending;
 /// Create a copy of PassCode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -315,20 +335,20 @@ $PassCodeCopyWith<PassCode> get copyWith => _$PassCodeCopyWithImpl<PassCode>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as PassCode;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PassCode&&(identical(other.payload, _this.payload) || other.payload == _this.payload)&&(identical(other.windowStartsAt, _this.windowStartsAt) || other.windowStartsAt == _this.windowStartsAt)&&(identical(other.windowEndsAt, _this.windowEndsAt) || other.windowEndsAt == _this.windowEndsAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PassCode&&(identical(other.payload, _this.payload) || other.payload == _this.payload)&&(identical(other.windowStartsAt, _this.windowStartsAt) || other.windowStartsAt == _this.windowStartsAt)&&(identical(other.windowEndsAt, _this.windowEndsAt) || other.windowEndsAt == _this.windowEndsAt)&&(identical(other.renewalPending, _this.renewalPending) || other.renewalPending == _this.renewalPending));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PassCode;
-  return Object.hash(runtimeType,_this.payload,_this.windowStartsAt,_this.windowEndsAt);
+  return Object.hash(runtimeType,_this.payload,_this.windowStartsAt,_this.windowEndsAt,_this.renewalPending);
 }
 
 @override
 String toString() {
   final _this = this as PassCode;
-  return 'PassCode(payload: ${_this.payload}, windowStartsAt: ${_this.windowStartsAt}, windowEndsAt: ${_this.windowEndsAt})';
+  return 'PassCode(payload: ${_this.payload}, windowStartsAt: ${_this.windowStartsAt}, windowEndsAt: ${_this.windowEndsAt}, renewalPending: ${_this.renewalPending})';
 }
 
 
@@ -339,7 +359,7 @@ abstract mixin class $PassCodeCopyWith<$Res>  {
   factory $PassCodeCopyWith(PassCode value, $Res Function(PassCode) _then) = _$PassCodeCopyWithImpl;
 @useResult
 $Res call({
- String payload, DateTime windowStartsAt, DateTime windowEndsAt
+ String payload, DateTime windowStartsAt, DateTime windowEndsAt, bool renewalPending
 });
 
 
@@ -356,12 +376,13 @@ class _$PassCodeCopyWithImpl<$Res>
 
 /// Create a copy of PassCode
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? payload = null,Object? windowStartsAt = null,Object? windowEndsAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? payload = null,Object? windowStartsAt = null,Object? windowEndsAt = null,Object? renewalPending = null,}) {
   return _then(PassCode(
 payload: null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
 as String,windowStartsAt: null == windowStartsAt ? _self.windowStartsAt : windowStartsAt // ignore: cast_nullable_to_non_nullable
 as DateTime,windowEndsAt: null == windowEndsAt ? _self.windowEndsAt : windowEndsAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,renewalPending: null == renewalPending ? _self.renewalPending : renewalPending // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -443,10 +464,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String payload,  DateTime windowStartsAt,  DateTime windowEndsAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String payload,  DateTime windowStartsAt,  DateTime windowEndsAt,  bool renewalPending)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PassCode() when $default != null:
-return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt);case _:
+return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt,_that.renewalPending);case _:
   return orElse();
 
 }
@@ -464,10 +485,10 @@ return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String payload,  DateTime windowStartsAt,  DateTime windowEndsAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String payload,  DateTime windowStartsAt,  DateTime windowEndsAt,  bool renewalPending)  $default,) {final _that = this;
 switch (_that) {
 case _PassCode():
-return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt);}
+return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt,_that.renewalPending);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -481,10 +502,10 @@ return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String payload,  DateTime windowStartsAt,  DateTime windowEndsAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String payload,  DateTime windowStartsAt,  DateTime windowEndsAt,  bool renewalPending)?  $default,) {final _that = this;
 switch (_that) {
 case _PassCode() when $default != null:
-return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt);case _:
+return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt,_that.renewalPending);case _:
   return null;
 
 }
@@ -496,12 +517,15 @@ return $default(_that.payload,_that.windowStartsAt,_that.windowEndsAt);case _:
 
 
 class _PassCode implements PassCode {
-  const _PassCode({required this.payload, required this.windowStartsAt, required this.windowEndsAt});
+  const _PassCode({required this.payload, required this.windowStartsAt, required this.windowEndsAt, this.renewalPending = false});
   
 
 @override final  String payload;
 @override final  DateTime windowStartsAt;
 @override final  DateTime windowEndsAt;
+/// 015 FR-012: renewal failed, and this still-valid code stays on screen
+/// while it is retried. The view says "Actualizando código…".
+@override@JsonKey() final  bool renewalPending;
 
 /// Create a copy of PassCode
 /// with the given fields replaced by the non-null parameter values.
@@ -513,18 +537,18 @@ _$PassCodeCopyWith<_PassCode> get copyWith => __$PassCodeCopyWithImpl<_PassCode>
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PassCode&&(identical(other.payload, payload) || other.payload == payload)&&(identical(other.windowStartsAt, windowStartsAt) || other.windowStartsAt == windowStartsAt)&&(identical(other.windowEndsAt, windowEndsAt) || other.windowEndsAt == windowEndsAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PassCode&&(identical(other.payload, payload) || other.payload == payload)&&(identical(other.windowStartsAt, windowStartsAt) || other.windowStartsAt == windowStartsAt)&&(identical(other.windowEndsAt, windowEndsAt) || other.windowEndsAt == windowEndsAt)&&(identical(other.renewalPending, renewalPending) || other.renewalPending == renewalPending));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,payload,windowStartsAt,windowEndsAt);
+    return Object.hash(runtimeType,payload,windowStartsAt,windowEndsAt,renewalPending);
 }
 
 @override
 String toString() {
-    return 'PassCode(payload: $payload, windowStartsAt: $windowStartsAt, windowEndsAt: $windowEndsAt)';
+    return 'PassCode(payload: $payload, windowStartsAt: $windowStartsAt, windowEndsAt: $windowEndsAt, renewalPending: $renewalPending)';
 }
 
 
@@ -535,7 +559,7 @@ abstract mixin class _$PassCodeCopyWith<$Res> implements $PassCodeCopyWith<$Res>
   factory _$PassCodeCopyWith(_PassCode value, $Res Function(_PassCode) _then) = __$PassCodeCopyWithImpl;
 @override @useResult
 $Res call({
- String payload, DateTime windowStartsAt, DateTime windowEndsAt
+ String payload, DateTime windowStartsAt, DateTime windowEndsAt, bool renewalPending
 });
 
 
@@ -552,12 +576,13 @@ class __$PassCodeCopyWithImpl<$Res>
 
 /// Create a copy of PassCode
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? payload = null,Object? windowStartsAt = null,Object? windowEndsAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? payload = null,Object? windowStartsAt = null,Object? windowEndsAt = null,Object? renewalPending = null,}) {
   return _then(_PassCode(
 payload: null == payload ? _self.payload : payload // ignore: cast_nullable_to_non_nullable
 as String,windowStartsAt: null == windowStartsAt ? _self.windowStartsAt : windowStartsAt // ignore: cast_nullable_to_non_nullable
 as DateTime,windowEndsAt: null == windowEndsAt ? _self.windowEndsAt : windowEndsAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,renewalPending: null == renewalPending ? _self.renewalPending : renewalPending // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

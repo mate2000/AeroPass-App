@@ -1,0 +1,11 @@
+{
+  "intento_id": "0e9d8c7b-6a5f-4e3d-2c1b-0a9f8e7d6c5b",
+  "resultado": "EXITOSO",
+  "motivo_fallo": null,
+  "score_liveness": 0.95,
+  "score_comparacion": 0.93,
+  "estado_pasajero": "VERIFICADO",
+  "intentos_restantes": 3,
+  "identidad_id": "8b2e4f60-1a3d-4c5e-9f7a-0d1c2b3a4e5f",
+  "reintentar_en_segundos": null
+}

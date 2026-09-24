@@ -1,0 +1,8 @@
+{
+  "status": 429,
+  "retry_after": 12,
+  "body": {
+    "codigo": "LIMITE_EMISION_EXCEDIDO",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

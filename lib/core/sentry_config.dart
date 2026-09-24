@@ -66,12 +66,34 @@ abstract final class SentryConfig {
       ..enableLogs = true
       ..diagnosticLevel = SentryLevel.error
       ..attachScreenshot = false
-      ..beforeSend = stripAlertEventPii;
+      ..beforeSend = scrubEvent
+      ..beforeBreadcrumb = dropHttpBreadcrumb;
     // Experimental API, but the only way to hide the camera feed in replays.
     // ignore: experimental_member_use
     options.privacy.mask<CameraPreview>();
   }
 }
+
+/// 015 FR-017, research.md §13: no event carries a request (URL, headers,
+/// body) or an HTTP breadcrumb, whatever its kind. The `Authorization`
+/// header, a token or a registration form can then never reach Sentry, even
+/// if an HTTP integration is added later. 011's alert stripping applies on
+/// top.
+SentryEvent? scrubEvent(SentryEvent event, Hint hint) {
+  event
+    ..request = null
+    ..breadcrumbs = event.breadcrumbs
+        ?.where((crumb) => !_isHttp(crumb))
+        .toList();
+  return stripAlertEventPii(event, hint);
+}
+
+/// 015 FR-017: an HTTP breadcrumb is dropped before it is recorded.
+Breadcrumb? dropHttpBreadcrumb(Breadcrumb? crumb, Hint hint) =>
+    crumb == null || _isHttp(crumb) ? null : crumb;
+
+bool _isHttp(Breadcrumb crumb) =>
+    crumb.type == 'http' || (crumb.category?.startsWith('http') ?? false);
 
 /// 011-error-tecnico FR-018: an operational alert event carries no personal
 /// data, even though `sendDefaultPii` is on for the rest of the app. Events

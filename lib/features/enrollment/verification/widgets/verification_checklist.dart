@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/design/app_colors.dart';
 import '../../../../domain/entities/verification_stage.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../../core/happy_path_flags.dart';
 
 /// The three-stage checklist (007-validando, UI reference): pending rows are
 /// dimmed, the running row shows a spinner, passed rows a filled check, and a
@@ -53,11 +54,15 @@ String stageLabel(
   return switch (stage) {
     VerificationStage.documentCheck =>
       passed
-          ? l10n.verificationStageDocumentPassed
+          ? (HappyPathFlags.biometricProviderMock
+                ? l10n.verificationStageDocumentPassedMock
+                : l10n.verificationStageDocumentPassed)
           : l10n.verificationStageDocumentRunning,
     VerificationStage.faceComparison =>
       passed
-          ? l10n.verificationStageFacePassed
+          ? (HappyPathFlags.biometricProviderMock
+                ? l10n.verificationStageFacePassedMock
+                : l10n.verificationStageFacePassed)
           : l10n.verificationStageFaceRunning,
     VerificationStage.issuance =>
       passed

@@ -1,38 +1,34 @@
 import 'package:dio/dio.dart';
 
-import '../models/pass_responses.dart';
+import '../models/backend/detalle_pase_dto.dart';
+import '../models/backend/pase_dto.dart';
 
-/// The pass endpoints over the pinned `dio` client (014-qr-pase,
-/// contracts/pass-port.md). Requests carry only the anonymous enrollment
-/// attempt id and opaque trip and pass ids. Stateless; transport failures
-/// throw and are converted by the repository and code source.
+/// `POST /v1/passes` and `GET /v1/passes/{credencial_id}` (015
+/// contracts/backend-api.md). Stateless. Failures throw and are mapped by
+/// the repository.
 class PassService {
   PassService({required Dio dio}) : _dio = dio;
 
   final Dio _dio;
 
-  Future<PassIssueResponse> issue({
-    required String enrollmentAttemptId,
-    required String tripId,
-  }) async {
+  static const issuePath = '/v1/passes';
+
+  /// Issues a pass, or renews it: the same call for the same flight revokes
+  /// or refreshes the previous credential and returns a new one.
+  Future<PaseDto> issue(String codigoVuelo) async {
     final response = await _dio.post<Map<String, dynamic>>(
-      '/v1/passes',
-      data: {'enrollmentAttemptId': enrollmentAttemptId, 'tripId': tripId},
+      issuePath,
+      data: {'codigo_vuelo': codigoVuelo},
     );
-    return PassIssueResponse.fromJson(response.data!);
+    return PaseDto.fromJson(response.data!);
   }
 
-  Future<PassCodeResponse> currentCode(String passId) async {
+  /// The pass's state. There is no token here: the token exists only in the
+  /// issuance response.
+  Future<DetallePaseDto> detail(String credencialId) async {
     final response = await _dio.get<Map<String, dynamic>>(
-      '/v1/passes/${Uri.encodeComponent(passId)}/code',
+      '$issuePath/${Uri.encodeComponent(credencialId)}',
     );
-    return PassCodeResponse.fromJson(response.data!);
-  }
-
-  Future<PassStatusResponse> status(String passId) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/v1/passes/${Uri.encodeComponent(passId)}/status',
-    );
-    return PassStatusResponse.fromJson(response.data!);
+    return DetallePaseDto.fromJson(response.data!);
   }
 }

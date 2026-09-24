@@ -295,7 +295,10 @@ as bool,
 /// @nodoc
 mixin _$IdentityRecord {
 
- List<ConfirmedField> get fields;
+ List<ConfirmedField> get fields;/// The passenger's choice of CC, CE or Pasaporte (015 FR-002). The
+/// backend requires it, and no extraction supplies it. Null only on the
+/// dev-offline path, whose fake backend does not ask.
+ DocumentType? get documentType;
 /// Create a copy of IdentityRecord
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -307,20 +310,20 @@ $IdentityRecordCopyWith<IdentityRecord> get copyWith => _$IdentityRecordCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as IdentityRecord;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IdentityRecord&&const DeepCollectionEquality().equals(other.fields, _this.fields));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IdentityRecord&&const DeepCollectionEquality().equals(other.fields, _this.fields)&&(identical(other.documentType, _this.documentType) || other.documentType == _this.documentType));
 }
 
 
 @override
 int get hashCode {
   final _this = this as IdentityRecord;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.fields));
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.fields),_this.documentType);
 }
 
 @override
 String toString() {
   final _this = this as IdentityRecord;
-  return 'IdentityRecord(fields: ${_this.fields})';
+  return 'IdentityRecord(fields: ${_this.fields}, documentType: ${_this.documentType})';
 }
 
 
@@ -331,7 +334,7 @@ abstract mixin class $IdentityRecordCopyWith<$Res>  {
   factory $IdentityRecordCopyWith(IdentityRecord value, $Res Function(IdentityRecord) _then) = _$IdentityRecordCopyWithImpl;
 @useResult
 $Res call({
- List<ConfirmedField> fields
+ List<ConfirmedField> fields, DocumentType? documentType
 });
 
 
@@ -348,10 +351,11 @@ class _$IdentityRecordCopyWithImpl<$Res>
 
 /// Create a copy of IdentityRecord
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fields = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fields = null,Object? documentType = freezed,}) {
   return _then(IdentityRecord(
 fields: null == fields ? _self.fields : fields // ignore: cast_nullable_to_non_nullable
-as List<ConfirmedField>,
+as List<ConfirmedField>,documentType: freezed == documentType ? _self.documentType : documentType // ignore: cast_nullable_to_non_nullable
+as DocumentType?,
   ));
 }
 
@@ -433,10 +437,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ConfirmedField> fields)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ConfirmedField> fields,  DocumentType? documentType)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _IdentityRecord() when $default != null:
-return $default(_that.fields);case _:
+return $default(_that.fields,_that.documentType);case _:
   return orElse();
 
 }
@@ -454,10 +458,10 @@ return $default(_that.fields);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ConfirmedField> fields)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ConfirmedField> fields,  DocumentType? documentType)  $default,) {final _that = this;
 switch (_that) {
 case _IdentityRecord():
-return $default(_that.fields);}
+return $default(_that.fields,_that.documentType);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -471,10 +475,10 @@ return $default(_that.fields);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ConfirmedField> fields)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ConfirmedField> fields,  DocumentType? documentType)?  $default,) {final _that = this;
 switch (_that) {
 case _IdentityRecord() when $default != null:
-return $default(_that.fields);case _:
+return $default(_that.fields,_that.documentType);case _:
   return null;
 
 }
@@ -486,7 +490,7 @@ return $default(_that.fields);case _:
 
 
 class _IdentityRecord implements IdentityRecord {
-  const _IdentityRecord({required  List<ConfirmedField> fields}): _fields = fields;
+  const _IdentityRecord({required  List<ConfirmedField> fields, this.documentType}): _fields = fields;
   
 
  final  List<ConfirmedField> _fields;
@@ -496,6 +500,10 @@ class _IdentityRecord implements IdentityRecord {
   return EqualUnmodifiableListView(_fields);
 }
 
+/// The passenger's choice of CC, CE or Pasaporte (015 FR-002). The
+/// backend requires it, and no extraction supplies it. Null only on the
+/// dev-offline path, whose fake backend does not ask.
+@override final  DocumentType? documentType;
 
 /// Create a copy of IdentityRecord
 /// with the given fields replaced by the non-null parameter values.
@@ -507,18 +515,18 @@ _$IdentityRecordCopyWith<_IdentityRecord> get copyWith => __$IdentityRecordCopyW
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _IdentityRecord&&const DeepCollectionEquality().equals(other.fields, _fields));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _IdentityRecord&&const DeepCollectionEquality().equals(other.fields, _fields)&&(identical(other.documentType, documentType) || other.documentType == documentType));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_fields));
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_fields),documentType);
 }
 
 @override
 String toString() {
-    return 'IdentityRecord(fields: $fields)';
+    return 'IdentityRecord(fields: $fields, documentType: $documentType)';
 }
 
 
@@ -529,7 +537,7 @@ abstract mixin class _$IdentityRecordCopyWith<$Res> implements $IdentityRecordCo
   factory _$IdentityRecordCopyWith(_IdentityRecord value, $Res Function(_IdentityRecord) _then) = __$IdentityRecordCopyWithImpl;
 @override @useResult
 $Res call({
- List<ConfirmedField> fields
+ List<ConfirmedField> fields, DocumentType? documentType
 });
 
 
@@ -546,10 +554,11 @@ class __$IdentityRecordCopyWithImpl<$Res>
 
 /// Create a copy of IdentityRecord
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fields = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fields = null,Object? documentType = freezed,}) {
   return _then(_IdentityRecord(
 fields: null == fields ? _self._fields : fields // ignore: cast_nullable_to_non_nullable
-as List<ConfirmedField>,
+as List<ConfirmedField>,documentType: freezed == documentType ? _self.documentType : documentType // ignore: cast_nullable_to_non_nullable
+as DocumentType?,
   ));
 }
 

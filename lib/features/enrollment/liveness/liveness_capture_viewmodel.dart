@@ -4,7 +4,9 @@ import 'package:camera/camera.dart' show CameraController;
 import 'package:flutter/foundation.dart';
 
 import '../../../app/enrollment_session_controller.dart';
+import '../../../app/verification_submission.dart';
 import '../../../core/command.dart';
+import '../../../core/diagnostics.dart';
 import '../../../core/result.dart';
 import '../../../data/services/liveness_camera_service.dart';
 import '../../../domain/entities/capture_attempt_counter.dart';
@@ -33,6 +35,7 @@ class LivenessCaptureViewModel extends ChangeNotifier {
     required CaptureAttemptCounterRepository attemptCounterRepository,
     required EnrollmentSessionController enrollmentSessionController,
     required AnalyticsEmitter analyticsEmitter,
+    VerificationSubmission? verificationSubmission,
     @visibleForTesting
     Duration sampleInterval = const Duration(milliseconds: 200),
     @visibleForTesting Duration stallDuration = const Duration(seconds: 45),
@@ -41,6 +44,7 @@ class LivenessCaptureViewModel extends ChangeNotifier {
        _attemptCounterRepository = attemptCounterRepository,
        _enrollmentSessionController = enrollmentSessionController,
        _analyticsEmitter = analyticsEmitter,
+       _verificationSubmission = verificationSubmission,
        _sampleInterval = sampleInterval,
        _stallDuration = stallDuration {
     retry = Command0(_retry);
@@ -79,6 +83,11 @@ class LivenessCaptureViewModel extends ChangeNotifier {
   final CaptureAttemptCounterRepository _attemptCounterRepository;
   final EnrollmentSessionController _enrollmentSessionController;
   final AnalyticsEmitter _analyticsEmitter;
+
+  /// 015 research.md §7: where the one still goes when the challenge
+  /// succeeds. The real backend verifies that still synchronously. `null` on
+  /// the dev-offline path, whose fake job needs no selfie.
+  final VerificationSubmission? _verificationSubmission;
 
   /// FR-009/US2: restarts a fresh attempt from the first phase after a
   /// non-limit-reached failure — spec.md Assumptions: "a new attempt
@@ -259,6 +268,26 @@ class LivenessCaptureViewModel extends ChangeNotifier {
   }
 
   Future<void> _completeWith(LivenessOutcome outcome) async {
+    // 015: the still must be taken while the camera is still open. It goes
+    // straight to the broker, and nothing here keeps it.
+    final submission = _verificationSubmission;
+    if (outcome is LivenessOutcomeSuccess && submission != null) {
+      _cancelStallTimer();
+      _aborted = true;
+      final watch = Stopwatch()..start();
+      final still = await _livenessCameraService.captureStill();
+      const Diagnostics().info('selfie_still', {
+        'ok': still != null,
+        'bytes': still?.length,
+        'ms': watch.elapsedMilliseconds,
+      });
+      if (still == null) {
+        outcome = const LivenessOutcome.unclassifiedFailure();
+      } else {
+        submission.reset();
+        submission.submit(still);
+      }
+    }
     _cancelStallTimer();
     _aborted = true;
     _hideCamera();

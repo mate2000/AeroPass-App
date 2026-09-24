@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // T038: verifies FR-007/FR-018's invariant directly at the router level —
 // the document-capture route (003-escanear-documento's real `CaptureView`
 // since T026) is unreachable without a prior `Ok` from
@@ -9,6 +11,17 @@ import 'package:aeropass_app/app/activated_credential_handoff.dart';
 import 'package:aeropass_app/app/enrollment_session_controller.dart';
 import 'package:aeropass_app/app/pending_document_controller.dart';
 import 'package:aeropass_app/app/router.dart';
+import 'package:aeropass_app/features/auth/sign_in_view.dart';
+import 'package:aeropass_app/app/session_gate.dart';
+import 'package:clerk_flutter/clerk_flutter.dart' show ClerkAuthState;
+import 'package:aeropass_app/features/enrollment/welcome/welcome_view.dart';
+import 'package:aeropass_app/features/enrollment/selfie/selfie_instructions_view.dart';
+import 'package:aeropass_app/features/enrollment/escalation/escalation_view.dart';
+import 'package:aeropass_app/domain/repositories/passenger_repository.dart';
+import 'package:aeropass_app/domain/repositories/agent_chat_repository.dart';
+import 'package:aeropass_app/domain/entities/passenger_record.dart';
+import 'package:aeropass_app/app/verification_submission.dart';
+import 'package:aeropass_app/app/flight_code_handoff.dart';
 import 'package:aeropass_app/app/technical_error_controller.dart';
 import 'package:aeropass_app/domain/entities/trip.dart';
 import 'package:aeropass_app/domain/entities/pass.dart';
@@ -58,6 +71,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../fakes/fake_analytics_emitter.dart';
@@ -117,6 +131,8 @@ Future<void> _pumpApp(
   FakeCredentialSummaryRepository? summaryRepository,
   FakeTripRepository? tripRepository,
   FakePassRepository? passRepository,
+  PassengerRepository? passengerRepository,
+  SessionGate? sessionGate,
 }) async {
   // 010: with nothing scripted every escalation read fails, so harnesses that
   // do not care about escalations keep 001's launch behaviour unchanged.
@@ -150,7 +166,10 @@ Future<void> _pumpApp(
   final identityRecordRepository = FakeIdentityRecordRepository();
   final pendingDocumentController = PendingDocumentController();
 
-  final router = buildAppRouter(initialLocation: initialLocation);
+  final router = buildAppRouter(
+    initialLocation: initialLocation,
+    refreshListenable: sessionGate,
+  );
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
@@ -177,7 +196,7 @@ Future<void> _pumpApp(
         ChangeNotifierProvider<TechnicalErrorController>(
           create: (_) => TechnicalErrorController(),
         ),
-        Provider<ServiceStatusRepository>.value(
+        Provider<ServiceStatusRepository?>.value(
           value: FakeServiceStatusRepository(),
         ),
         Provider<OperationalAlertReporter>.value(
@@ -188,7 +207,7 @@ Future<void> _pumpApp(
         Provider<CredentialSummaryRepository>.value(
           value: summaryRepository ?? FakeCredentialSummaryRepository(),
         ),
-        Provider<TripRepository>.value(
+        Provider<TripRepository?>.value(
           value:
               tripRepository ??
               (FakeTripRepository()..scriptResults([
@@ -214,7 +233,18 @@ Future<void> _pumpApp(
         Provider<CredentialIssuanceRepository>.value(
           value: FakeCredentialIssuanceRepository(),
         ),
-        Provider<EscalationRepository>.value(value: escalations),
+        Provider<EscalationRepository?>.value(value: escalations),
+        // 015: the real backend's resume source, absent unless a test
+        // scripts one; no broker, no chat; the flight-code hand-off.
+        Provider<PassengerRepository?>.value(value: passengerRepository),
+        // 015 sign-in: absent unless a test turns it on.
+        ChangeNotifierProvider<SessionGate?>.value(value: sessionGate),
+        Provider<ClerkAuthState?>.value(value: null),
+        Provider<VerificationSubmission?>.value(value: null),
+        Provider<AgentChatRepository?>.value(value: null),
+        ChangeNotifierProvider<FlightCodeHandoff>(
+          create: (_) => FlightCodeHandoff(),
+        ),
         ChangeNotifierProvider<ActivatedCredentialHandoff>.value(
           value: handoff,
         ),
@@ -230,7 +260,7 @@ Future<void> _pumpApp(
           value: attemptCounterRepository,
         ),
         Provider<SystemSettingsLauncher>.value(value: systemSettingsLauncher),
-        Provider<FieldReverificationRepository>.value(
+        Provider<FieldReverificationRepository?>.value(
           value: fieldReverificationRepository,
         ),
         Provider<IdentityRecordRepository>.value(
@@ -394,7 +424,8 @@ void main() {
       issuedAt: DateTime.utc(2026, 9, 16, 12),
       validUntil: DateTime.utc(2031, 9, 16, 12),
     );
-    const screen08Title = 'Tu identidad digital está activa';
+    // 015 FR-020: the mock wording.
+    const screen08Title = 'Registro completado';
     const detailText =
         'Tu identidad digital (pantalla pendiente de su propia especificación).';
 
@@ -856,7 +887,7 @@ void main() {
       expect(find.text('Viajes'), findsOneWidget);
       expect(find.text('Identidad'), findsOneWidget);
       expect(find.text('Perfil'), findsOneWidget);
-      expect(find.text('ACTIVA'), findsOneWidget);
+      expect(find.text('REGISTRADO'), findsOneWidget);
       expect(find.text('Aún no tienes viajes'), findsOneWidget);
     });
 
@@ -949,4 +980,223 @@ void main() {
       },
     );
   });
+
+  // 015 sign-in: the guarded routes need a session; consent does not.
+  group('015: sign-in guard', () {
+    testWidgets('a guarded route without a session goes to sign-in', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.documentCapture,
+        consentRepository: FakeConsentRepository(),
+        sessionGate: SessionGate(),
+      );
+      expect(find.byType(SignInView), findsOneWidget);
+    });
+
+    testWidgets('consent is reachable before signing in', (tester) async {
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.consent,
+        consentRepository: FakeConsentRepository(),
+        sessionGate: SessionGate(),
+      );
+      expect(find.byType(SignInView), findsNothing);
+    });
+
+    testWidgets('"Ya tengo cuenta" opens sign-in', (tester) async {
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.recovery,
+        consentRepository: FakeConsentRepository(),
+        sessionGate: SessionGate(),
+      );
+      expect(find.byType(SignInView), findsOneWidget);
+    });
+
+    testWidgets('losing the session mid-flow sends a guarded route to '
+        'sign-in', (tester) async {
+      final gate = SessionGate()..markSignedIn();
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.withdrawal,
+        consentRepository: FakeConsentRepository(),
+        sessionGate: gate,
+      );
+      expect(find.byType(SignInView), findsNothing);
+      gate.markSignedOut();
+      await tester.pumpAndSettle();
+      expect(find.byType(SignInView), findsOneWidget);
+    });
+
+    testWidgets('signing in on the sign-in screen leaves it (recovery)', (
+      tester,
+    ) async {
+      final gate = SessionGate();
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.recovery,
+        consentRepository: FakeConsentRepository(),
+        sessionGate: gate,
+      );
+      expect(find.byType(SignInView), findsOneWidget);
+      gate.markSignedIn();
+      await tester.pumpAndSettle();
+      expect(find.byType(SignInView), findsNothing);
+    });
+
+    testWidgets('signing in after "Ya tengo cuenta" (a push) leaves sign-in', (
+      tester,
+    ) async {
+      final gate = SessionGate();
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.welcome,
+        consentRepository: FakeConsentRepository(),
+        credentialRepository: FakeCredentialRepository(
+          initialResponse: const Result.ok(CredentialStatus.noCredential()),
+        ),
+        sessionGate: gate,
+      );
+      unawaited(
+        GoRouter.of(tester.element(find.byType(Navigator).first))
+            .push(AppRoutes.recovery),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(SignInView), findsOneWidget);
+      gate.markSignedIn();
+      await tester.pumpAndSettle();
+      expect(find.byType(SignInView), findsNothing);
+    });
+
+    testWidgets('signing in on the sign-in screen leaves it (after consent)', (
+      tester,
+    ) async {
+      final gate = SessionGate();
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.documentCapture,
+        consentRepository: FakeConsentRepository(),
+        sessionGate: gate,
+      );
+      expect(find.byType(SignInView), findsOneWidget);
+      gate.markSignedIn();
+      await tester.pumpAndSettle();
+      expect(find.byType(SignInView), findsNothing);
+    });
+
+    testWidgets('without a gate (dev, offline demo) nothing is guarded', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.signIn,
+        consentRepository: FakeConsentRepository(),
+      );
+      expect(find.byType(SignInView), findsNothing);
+    });
+  });
+
+  // 015 T045 (FR-023): with the real backend, one `/me` decides resume.
+  group('015: resume from /me', () {
+    Future<void> launchWith(WidgetTester tester, PassengerRecord? passenger) =>
+        _pumpApp(
+          tester,
+          initialLocation: AppRoutes.splash,
+          consentRepository: FakeConsentRepository(),
+          credentialRepository: FakeCredentialRepository(
+            initialResponse: const Result.ok(CredentialStatus.noCredential()),
+          ),
+          passengerRepository: _MePassengers(passenger),
+        );
+
+    PassengerRecord passenger(PassengerState state) => PassengerRecord(
+      passengerId: 'p-1',
+      documentType: DocumentType.cc,
+      holderName: 'Ana Prueba',
+      maskedNumber: '******4050',
+      documentExpiry: DateTime(2030, 1, 31),
+      state: state,
+      failedAttempts: 0,
+    );
+
+    testWidgets('pending verification resumes at the selfie step', (
+      tester,
+    ) async {
+      await launchWith(tester, passenger(PassengerState.pendingVerification));
+      expect(find.byType(SelfieInstructionsView), findsOneWidget);
+    });
+
+    testWidgets('manual review goes to the agent path', (tester) async {
+      await launchWith(tester, passenger(PassengerState.manualReview));
+      expect(find.byType(EscalationView), findsOneWidget);
+    });
+
+    testWidgets('not registered goes to welcome', (tester) async {
+      await launchWith(tester, null);
+      expect(find.byType(WelcomeView), findsOneWidget);
+    });
+
+    testWidgets('signing in on the sign-in screen with a slow backend '
+        'resumes a pending passenger at the selfie', (tester) async {
+      final gate = SessionGate();
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.recovery,
+        consentRepository: FakeConsentRepository(),
+        credentialRepository: FakeCredentialRepository(
+          initialResponse: const Result.ok(CredentialStatus.noCredential()),
+        ),
+        passengerRepository: _MePassengers(
+          passenger(PassengerState.pendingVerification),
+          delay: const Duration(seconds: 7),
+        ),
+        sessionGate: gate,
+      );
+      expect(find.byType(SignInView), findsOneWidget);
+      gate.markSignedIn();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 8));
+      await tester.pumpAndSettle();
+      expect(find.byType(SelfieInstructionsView), findsOneWidget);
+    });
+
+    testWidgets('signed in but not registered continues to registration', (
+      tester,
+    ) async {
+      // An account created in the Clerk dashboard, or "Ya tengo cuenta"
+      // before registering: /me answers 404 after sign-in.
+      await _pumpApp(
+        tester,
+        initialLocation: AppRoutes.splash,
+        consentRepository: FakeConsentRepository(),
+        credentialRepository: FakeCredentialRepository(
+          initialResponse: const Result.ok(CredentialStatus.noCredential()),
+        ),
+        passengerRepository: _MePassengers(null),
+        sessionGate: SessionGate()..markSignedIn(),
+      );
+      final router = GoRouter.of(tester.element(find.byType(Navigator).first));
+      expect(
+        router.routerDelegate.currentConfiguration.uri.path,
+        AppRoutes.consent,
+      );
+    });
+  });
+}
+
+class _MePassengers implements PassengerRepository {
+  _MePassengers(this._passenger, {this.delay = Duration.zero});
+
+  final PassengerRecord? _passenger;
+
+  /// A cold backend: `/me` took about 7 s in production.
+  final Duration delay;
+
+  @override
+  Future<Result<PassengerRecord?>> me() async {
+    await Future<void>.delayed(delay);
+    return Result.ok(_passenger);
+  }
 }

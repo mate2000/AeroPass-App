@@ -400,4 +400,56 @@ void main() {
       await leave(tester);
     });
   });
+
+  // 015 T066 (FR-012, FR-015, FR-024): the pass on the real backend's model.
+  group('015', () {
+    Pass boardingOnly() => Pass(
+      passId: 'c-1',
+      tripId: 'trip-1',
+      nextCheckpoint: Checkpoint.boarding,
+      validUntil: DateTime.utc(2026, 9, 23, 15),
+      checkpoints: const {Checkpoint.boarding},
+    );
+
+    testWidgets('a boarding-only pass shows Embarque and no security step', (
+      tester,
+    ) async {
+      await _pump(tester, issues: [Result.ok(boardingOnly())]);
+      expect(find.text('Embarque'), findsOneWidget);
+      expect(find.text('Seguridad'), findsNothing);
+      expect(
+        find.text('Presenta este código en el lector de embarque'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('lector de seguridad'), findsNothing);
+      await leave(tester);
+    });
+
+    testWidgets('a failed renewal keeps the code and says so', (tester) async {
+      final h = await _pump(tester, issues: [Result.ok(boardingOnly())]);
+      h.codes.renewalPending = true;
+      h.viewModel.onAppResumed();
+      await tester.pumpAndSettle();
+      expect(find.byType(QrCodeView), findsOneWidget);
+      expect(find.text('Actualizando código…'), findsOneWidget);
+      await leave(tester);
+    });
+
+    testWidgets('an expired document shows no code, and the agent path', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        issues: [
+          const Result.error(
+            PassIssueRefused(PassIssueRefusal.documentExpired),
+          ),
+        ],
+      );
+      expect(find.byType(QrCodeView), findsNothing);
+      expect(find.text('Tu documento está vencido'), findsOneWidget);
+      expect(find.text('Hablar con un agente'), findsOneWidget);
+      await leave(tester);
+    });
+  });
 }

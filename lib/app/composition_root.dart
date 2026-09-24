@@ -1,3 +1,5 @@
+import 'package:clerk_flutter/clerk_flutter.dart' show ClerkAuthState;
+import 'package:dio/dio.dart' show Dio;
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/widgets.dart';
@@ -8,68 +10,56 @@ import '../core/analytics_session.dart';
 import '../core/clock.dart';
 import '../core/happy_path_flags.dart';
 import '../core/sentry_config.dart';
+import '../core/synthetic_marker.dart';
+import '../data/auth/auth_interceptor.dart';
+import '../data/auth/clerk_session_token_provider.dart';
+import '../data/auth/test_session_token_provider.dart';
+import '../data/auth/unavailable_session_token_provider.dart';
 import '../data/dev/dev_agent_chat_repository.dart';
 import '../data/dev/dev_consent_repository.dart';
+import '../data/dev/dev_credential_issuance_repository.dart';
 import '../data/dev/dev_credential_repository.dart';
 import '../data/dev/dev_credential_summary_repository.dart';
-import '../data/dev/dev_trip_repository.dart';
 import '../data/dev/dev_device_posture_checker.dart';
-import '../data/dev/dev_pass_repository.dart';
-import '../data/services/backend_pass_code_source.dart';
-import '../data/services/pass_repository_impl.dart';
-import '../data/services/pass_service.dart';
-import '../data/services/platform_pass_display.dart';
-import '../domain/repositories/device_posture_checker.dart';
-import '../domain/repositories/pass_code_source.dart';
-import '../domain/repositories/pass_display_guard.dart';
-import '../domain/repositories/pass_repository.dart';
-import 'clock_trust_monitor.dart';
-import '../data/dev/dev_escalation_repository.dart';
-import '../data/dev/dev_credential_issuance_repository.dart';
 import '../data/dev/dev_document_quality_assessor.dart';
 import '../data/dev/dev_document_verification_repository.dart';
+import '../data/dev/dev_escalation_repository.dart';
 import '../data/dev/dev_field_reverification_repository.dart';
 import '../data/dev/dev_identity_record_repository.dart';
 import '../data/dev/dev_liveness_camera_service.dart';
 import '../data/dev/dev_liveness_verification_repository.dart';
+import '../data/dev/dev_pass_repository.dart';
 import '../data/dev/dev_service_status_repository.dart';
+import '../data/dev/dev_trip_repository.dart';
 import '../data/dev/dev_verification_job_repository.dart';
-import '../data/services/agent_chat_repository_impl.dart';
-import '../data/services/agent_chat_service.dart';
+import '../data/dev/synthetic_capture.dart';
+import '../data/services/backend_biometric_verification_repository.dart';
+import '../data/services/backend_identity_record_repository.dart';
+import '../data/services/backend_pass_repository.dart';
+import '../data/services/biometric_service.dart';
 import '../data/services/camera_capture_service.dart';
 import '../data/services/capture_attempt_counter_repository_impl.dart';
 import '../data/services/capture_attempt_counter_service.dart';
-import '../data/services/consent_repository_impl.dart';
 import '../data/services/consent_service.dart';
-import '../data/services/credential_issuance_repository_impl.dart';
-import '../data/services/credential_issuance_service.dart';
-import '../data/services/credential_repository_impl.dart';
 import '../data/services/credential_service.dart';
-import '../data/services/credential_summary_repository_impl.dart';
-import '../data/services/trip_repository_impl.dart';
-import '../data/services/trip_service.dart';
 import '../data/services/device_capability_service.dart';
-import '../data/services/document_verification_repository_impl.dart';
-import '../data/services/document_verification_service.dart';
-import '../data/services/escalation_repository_impl.dart';
-import '../data/services/escalation_service.dart';
-import '../data/services/field_reverification_repository_impl.dart';
-import '../data/services/field_reverification_service.dart';
 import '../data/services/heuristic_quality_assessor.dart';
-import '../data/services/identity_record_repository_impl.dart';
-import '../data/services/identity_record_service.dart';
+import '../data/services/issued_token_pass_code_source.dart';
 import '../data/services/liveness_camera_service.dart';
-import '../data/services/liveness_verification_repository_impl.dart';
-import '../data/services/liveness_verification_service.dart';
+import '../data/services/local_consent_repository.dart';
+import '../data/services/local_document_capture_repository.dart';
+import '../data/services/local_liveness_repository.dart';
 import '../data/services/logging_analytics_emitter.dart';
+import '../data/services/pass_service.dart';
+import '../data/services/passenger_backed_credential_repository.dart';
+import '../data/services/passenger_issuance_repository.dart';
+import '../data/services/passenger_service.dart';
+import '../data/services/diagnostics_interceptor.dart';
 import '../data/services/pinned_dio_factory.dart';
+import '../data/services/platform_pass_display.dart';
 import '../data/services/screen_capture_guard.dart';
 import '../data/services/sentry_operational_alert_reporter.dart';
-import '../data/services/service_status_repository_impl.dart';
-import '../data/services/service_status_service.dart';
 import '../data/services/system_settings_launcher.dart';
-import '../data/services/verification_job_repository_impl.dart';
-import '../data/services/verification_job_service.dart';
 import '../domain/repositories/agent_chat_repository.dart';
 import '../domain/repositories/analytics_emitter.dart';
 import '../domain/repositories/capture_attempt_counter_repository.dart';
@@ -77,8 +67,8 @@ import '../domain/repositories/consent_repository.dart';
 import '../domain/repositories/credential_issuance_repository.dart';
 import '../domain/repositories/credential_repository.dart';
 import '../domain/repositories/credential_summary_repository.dart';
-import '../domain/repositories/trip_repository.dart';
 import '../domain/repositories/device_capability_checker.dart';
+import '../domain/repositories/device_posture_checker.dart';
 import '../domain/repositories/document_quality_assessor.dart';
 import '../domain/repositories/document_verification_repository.dart';
 import '../domain/repositories/escalation_repository.dart';
@@ -86,87 +76,105 @@ import '../domain/repositories/field_reverification_repository.dart';
 import '../domain/repositories/identity_record_repository.dart';
 import '../domain/repositories/liveness_verification_repository.dart';
 import '../domain/repositories/operational_alert_reporter.dart';
+import '../domain/repositories/pass_code_source.dart';
+import '../domain/repositories/pass_display_guard.dart';
+import '../domain/repositories/pass_repository.dart';
+import '../domain/repositories/passenger_repository.dart';
 import '../domain/repositories/service_status_repository.dart';
+import '../domain/repositories/session_token_provider.dart';
+import '../domain/repositories/trip_repository.dart';
 import '../domain/repositories/verification_job_repository.dart';
 import 'activated_credential_handoff.dart';
+import 'clock_trust_monitor.dart';
 import 'enrollment_session_controller.dart';
+import 'flight_code_handoff.dart';
 import 'pending_document_controller.dart';
+import 'server_backed_attempt_counter_repository.dart';
+import 'session_gate.dart';
+import 'submission_backed_job_repository.dart';
 import 'technical_error_controller.dart';
+import 'verification_submission.dart';
 
 /// Wires every dependency the app needs, once, at the app's entry point
 /// (Constitution Principle IX: "composition happens at the app's entry
 /// point and at route boundaries" — never inside a widget or ViewModel via
 /// a service locator or singleton lookup).
 ///
-/// Wraps `child` (built by `app.dart`) in the `Provider`s every ViewModel
-/// receives its dependencies from via constructor injection at the point
-/// each ViewModel is constructed (e.g. in a route's builder), not by
-/// reaching into `context` themselves.
+/// Two wirings (015 contracts/flavor-wiring.md):
+///
+/// - **dev-offline** (`USE_FAKE_VERIFICATION_BACKEND`): every port is a dev
+///   fake, and nothing talks to a backend. It is the offline demo, and a
+///   release build refuses the flag.
+/// - **every other build** (dev with a local backend, staging, prod): the
+///   ports the real backend serves are wired to it. The ports it does not
+///   serve are local, or **not wired**. A port that is not wired is
+///   provided as `null`, and its screen shows its release variant (Q3). No
+///   class that calls a path the backend lacks is constructed here (FR-025).
 class CompositionRoot extends StatelessWidget {
-  const CompositionRoot({required this.child, super.key});
+  const CompositionRoot({
+    required this.child,
+    required this.trustAnchors,
+    this.clerkAuthState,
+    super.key,
+  });
 
   final Widget child;
 
-  // Interim placeholder host/pins: no backend is deployed for this feature
-  // yet (spec.md Dependencies notes the credential-status check as an
-  // external dependency this screen consumes). Selected per environment via
-  // API_BASE_URL in the env files under env/ (passed with
-  // --dart-define-from-file); the real per-flavor (dev/staging/prod) pinned certificate
-  // hashes are supplied at build time once the backend exists — see the
-  // Constitution's Development Workflow "Flavors" requirement.
+  /// Clerk's embedded auth state, created in `main()` when sign-in is
+  /// required (the Clerk flavors with a publishable key). Null in dev and in
+  /// the offline demo.
+  final ClerkAuthState? clerkAuthState;
+
+  /// The only TLS roots every backend client trusts (015 research.md §4),
+  /// loaded from `assets/tls/` in `main()` before the first frame.
+  final TrustAnchors trustAnchors;
+
+  // Selected per flavor via API_BASE_URL in env/ (passed with
+  // --dart-define-from-file). The default is the deployed service, so a
+  // build with no env file still talks to a real host through the pinned
+  // client.
   static const _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://api.dev.aeropass.example',
+    defaultValue: 'https://aeropass-lac.vercel.app',
   );
-  static const _pinnedCertificateHashes = <String>{};
 
-  // Happy-path development-mode flags (constitution v1.4.0) — relocated to
-  // `HappyPathFlags` (005-instrucciones-selfie, research.md §4) so every
-  // flag has exactly one definition and one release-safety enforcement
-  // point, instead of one private constant per feature.
-  static const _useFakeConsentBackend = HappyPathFlags.useFakeConsentBackend;
-  static const _useFakeVerificationBackend =
-      HappyPathFlags.useFakeVerificationBackend;
+  static const _offline = HappyPathFlags.useFakeVerificationBackend;
+  static const _fakeConsent = HappyPathFlags.useFakeConsentBackend;
 
   @override
   Widget build(BuildContext context) {
     const clock = SystemClock();
+    const secureStorage = FlutterSecureStorage();
     final sessionId = AnalyticsSessionId.generate();
 
     final dio = buildPinnedDio(
       baseUrl: _baseUrl,
-      pinnedSha256CertificateHashes: _pinnedCertificateHashes,
+      anchors: trustAnchors,
+      allowInsecureHttp: HappyPathFlags.allowInsecureLocalBackend,
     );
-    final credentialService = CredentialService(
-      dio: dio,
-      secureStorage: const FlutterSecureStorage(),
-    );
-    // 012-mis-viajes research.md §3: in development there is no credential
-    // backend, so the dev repository plays it from the stored token.
-    final CredentialRepository credentialRepository =
-        _useFakeVerificationBackend
-        ? DevCredentialRepository(credentialService: credentialService)
-        : CredentialRepositoryImpl(credentialService);
-    final CredentialSummaryRepository credentialSummaryRepository =
-        _useFakeVerificationBackend
-        ? DevCredentialSummaryRepository(credentialService: credentialService)
-        : CredentialSummaryRepositoryImpl(credentialService, clock: clock);
-    final ConsentRepository consentRepository;
-    if (_useFakeConsentBackend) {
-      consentRepository = DevConsentRepository(
-        credentialService: credentialService,
-      );
-    } else {
-      final consentService = ConsentService(
-        dio: dio,
-        secureStorage: const FlutterSecureStorage(),
-      );
-      consentRepository = ConsentRepositoryImpl(
-        consentService,
-        clock: clock,
-        credentialService: credentialService,
-      );
-    }
+    // 015 FR-001, the backend's authentication document: one token per
+    // `/v1/*` call. Dev answers `test:<id>` for a local fake-mode backend.
+    // Staging and prod sign in by email code through Clerk. The session is
+    // held in memory until amendment A3 allows storing it (T024). With no
+    // publishable key, calls fail honestly with SessionUnavailable.
+    final clerk = clerkAuthState;
+    final SessionGate? sessionGate = clerk == null ? null : SessionGate();
+    final SessionTokenProvider sessionTokenProvider =
+        HappyPathFlags.authMode == AuthMode.test
+        ? TestSessionTokenProvider(secureStorage: secureStorage)
+        : clerk != null
+        ? ClerkSessionTokenProvider(
+            ClerkAuthStateSession(clerk),
+            gate: sessionGate!,
+          )
+        : const UnavailableSessionTokenProvider();
+    dio.interceptors
+      ..add(AuthInterceptor(tokens: sessionTokenProvider, dio: dio))
+      // After the auth interceptor, so each attempt, retry included, is
+      // logged.
+      ..add(DiagnosticsInterceptor());
+
+    final credentialService = CredentialService(secureStorage: secureStorage);
     final AnalyticsEmitter analyticsEmitter = LoggingAnalyticsEmitter(
       sessionId: sessionId,
       clock: clock,
@@ -174,233 +182,281 @@ class CompositionRoot extends StatelessWidget {
     final enrollmentSessionController = EnrollmentSessionController(
       clock: clock,
     );
+    final pendingDocumentController = PendingDocumentController();
+    final activatedCredentialHandoff = ActivatedCredentialHandoff();
+    final technicalErrorController = TechnicalErrorController();
+    final clockTrustMonitor = ClockTrustMonitor(clock: clock);
+    final syntheticMarkerSelection = SyntheticMarkerSelection();
+    final flightCodeHandoff = FlightCodeHandoff();
     const DeviceCapabilityChecker deviceCapabilityChecker =
         DeviceCapabilityService();
-
-    // 003-escanear-documento: the document-capture step's three new ports
-    // (plan.md's Project Structure) — DocumentVerificationRepository,
-    // DocumentQualityAssessor, and CaptureAttemptCounterRepository — plus
-    // the camera-hardware boundary CaptureViewModel is constructor-injected
-    // with directly (research.md §1).
-    final DocumentVerificationRepository documentVerificationRepository;
-    if (_useFakeVerificationBackend) {
-      documentVerificationRepository = DevDocumentVerificationRepository();
-    } else {
-      final documentVerificationService = DocumentVerificationService(dio: dio);
-      documentVerificationRepository = DocumentVerificationRepositoryImpl(
-        documentVerificationService,
-      );
-    }
-    const DocumentQualityAssessor documentQualityAssessor =
-        _useFakeVerificationBackend
-        ? DevDocumentQualityAssessor()
-        : HeuristicQualityAssessor();
-    final captureAttemptCounterService = CaptureAttemptCounterService(
-      secureStorage: const FlutterSecureStorage(),
-    );
-    final CaptureAttemptCounterRepository captureAttemptCounterRepository =
-        CaptureAttemptCounterRepositoryImpl(
-          captureAttemptCounterService,
-          clock: clock,
-        );
-    final CameraCaptureService cameraCaptureService =
-        CameraPluginCaptureService();
     const SystemSettingsLauncher systemSettingsLauncher =
         PlatformSystemSettingsLauncher();
-
-    // 004-confirmar-datos: the confirmation step's two new ports —
-    // FieldReverificationRepository and IdentityRecordRepository — plus the
-    // in-memory PendingDocumentController that hands a capture's bytes and
-    // extraction across the navigation boundary (research.md §1, §4, §5).
-    final FieldReverificationRepository fieldReverificationRepository;
-    final IdentityRecordRepository identityRecordRepository;
-    if (_useFakeVerificationBackend) {
-      fieldReverificationRepository = DevFieldReverificationRepository();
-      identityRecordRepository = DevIdentityRecordRepository();
-    } else {
-      final fieldReverificationService = FieldReverificationService(dio: dio);
-      fieldReverificationRepository = FieldReverificationRepositoryImpl(
-        fieldReverificationService,
-      );
-      final identityRecordService = IdentityRecordService(
-        dio: dio,
-        secureStorage: const FlutterSecureStorage(),
-      );
-      identityRecordRepository = IdentityRecordRepositoryImpl(
-        identityRecordService,
-      );
-    }
-    final pendingDocumentController = PendingDocumentController();
-
-    // 006-selfie-liveness: the liveness-capture step's two new ports —
-    // LivenessVerificationRepository and LivenessCameraService — following
-    // the same dev-vs-real pattern as 003/004 (research.md §10).
-    final LivenessVerificationRepository livenessVerificationRepository;
-    final LivenessCameraService livenessCameraService;
-    if (_useFakeVerificationBackend) {
-      livenessVerificationRepository = DevLivenessVerificationRepository();
-      livenessCameraService = DevLivenessCameraService();
-    } else {
-      final livenessVerificationService = LivenessVerificationService(dio: dio);
-      livenessVerificationRepository = LivenessVerificationRepositoryImpl(
-        livenessVerificationService,
-      );
-      livenessCameraService = FrontCameraLivenessService();
-    }
-
-    // 008-identidad-activa: the in-memory, one-time hand-off of a just-issued
-    // credential (research.md §4), and screenshot blocking for credential
-    // surfaces (research.md §13) — Android now, iOS deferred.
-    final activatedCredentialHandoff = ActivatedCredentialHandoff();
-    // The issue-only port (research.md §1), dev fake behind the same flag
-    // as every other verification-backend fake (research.md §14).
-    final CredentialIssuanceRepository credentialIssuanceRepository =
-        _useFakeVerificationBackend
-        ? DevCredentialIssuanceRepository(credentialService: credentialService)
-        : CredentialIssuanceRepositoryImpl(
-            CredentialIssuanceService(dio: dio),
-            credentialService: credentialService,
-            consentRepository: consentRepository,
-          );
     final ScreenCaptureGuard screenCaptureGuard =
         defaultTargetPlatform == TargetPlatform.android
         ? const PlatformScreenCaptureGuard()
         : const NoopScreenCaptureGuard();
-
-    // 007-validando: the read-only verification-job port (research.md §1),
-    // dev fake behind the same flag as every other verification fake.
-    final VerificationJobRepository verificationJobRepository =
-        _useFakeVerificationBackend
-        ? DevVerificationJobRepository()
-        : VerificationJobRepositoryImpl(
-            VerificationJobService(dio: dio),
-            consentRepository: consentRepository,
-          );
-
-    // 010-escalar-agente: the escalation case and the informational chat,
-    // dev fakes behind the same flag as every other verification fake.
-    final EscalationRepository escalationRepository =
-        _useFakeVerificationBackend
-        ? DevEscalationRepository()
-        : EscalationRepositoryImpl(
-            EscalationService(dio: dio),
-            consentRepository: consentRepository,
-          );
-    final AgentChatRepository agentChatRepository = _useFakeVerificationBackend
-        ? DevAgentChatRepository()
-        : AgentChatRepositoryImpl(AgentChatService(dio: dio));
-
-    // 011-error-tecnico: the failure hand-off and retry pacing (in memory),
-    // the live status source (a dev stand-in that never has a status), and
-    // the operational alert (Sentry only when it is configured).
-    final technicalErrorController = TechnicalErrorController();
-    final ServiceStatusRepository serviceStatusRepository =
-        _useFakeVerificationBackend
-        ? const DevServiceStatusRepository()
-        : ServiceStatusRepositoryImpl(
-            ServiceStatusService(dio: dio),
-            consentRepository: consentRepository,
-          );
     final OperationalAlertReporter operationalAlertReporter =
         SentryConfig.isEnabled
         ? const SentryOperationalAlertReporter()
         : const NoopOperationalAlertReporter();
+    final localAttemptCounters = CaptureAttemptCounterRepositoryImpl(
+      CaptureAttemptCounterService(secureStorage: secureStorage),
+      clock: clock,
+    );
 
-    // 012-mis-viajes: the trip source; the dev stand-in is a fixed domestic
-    // itinerary. The last good snapshot lives in the instance, in memory.
-    final TripRepository tripRepository = _useFakeVerificationBackend
-        ? DevTripRepository(clock: clock)
-        : TripRepositoryImpl(
-            TripService(dio: dio),
-            consentRepository: consentRepository,
+    final ConsentRepository consentRepository = _fakeConsent
+        ? DevConsentRepository(credentialService: credentialService)
+        : LocalConsentRepository(
+            ConsentService(secureStorage: secureStorage),
+            credentialService: credentialService,
+            sessionTokenProvider: sessionTokenProvider,
             clock: clock,
           );
 
-    // 014-qr-pase: the pass. Phase A fetches each code from the backend;
-    // on-device derivation (phase B) waits on the constitution amendment.
-    final clockTrustMonitor = ClockTrustMonitor(clock: clock);
-    final passService = PassService(dio: dio);
-    final PassRepository passRepository = _useFakeVerificationBackend
-        ? DevPassRepository(clock: clock, clockTrustMonitor: clockTrustMonitor)
-        : PassRepositoryImpl(
-            passService,
-            consentRepository: consentRepository,
+    final ports = _offline
+        ? _Ports.devOffline(
+            credentialService: credentialService,
+            clock: clock,
             clockTrustMonitor: clockTrustMonitor,
+            localAttemptCounters: localAttemptCounters,
+          )
+        : _Ports.backend(
+            dio: dio,
+            credentialService: credentialService,
             clock: clock,
+            clockTrustMonitor: clockTrustMonitor,
+            localAttemptCounters: localAttemptCounters,
+            syntheticMarkerSelection: syntheticMarkerSelection,
           );
-    final PassCodeSource passCodeSource = _useFakeVerificationBackend
-        ? const DevPassCodeSource()
-        : BackendPassCodeSource(passService, clockTrust: clockTrustMonitor);
-    final DevicePostureChecker devicePostureChecker =
-        _useFakeVerificationBackend
-        ? const DevDevicePostureChecker()
-        : const PlatformDevicePostureChecker();
 
     return MultiProvider(
       providers: [
         Provider<Clock>.value(value: clock),
         Provider<AnalyticsSessionId>.value(value: sessionId),
-        Provider<CredentialRepository>.value(value: credentialRepository),
+        Provider<SessionTokenProvider>.value(value: sessionTokenProvider),
+        Provider<ClerkAuthState?>.value(value: clerk),
+        ChangeNotifierProvider<SessionGate?>.value(value: sessionGate),
         Provider<ConsentRepository>.value(value: consentRepository),
         Provider<AnalyticsEmitter>.value(value: analyticsEmitter),
         Provider<DeviceCapabilityChecker>.value(value: deviceCapabilityChecker),
-        Provider<DocumentVerificationRepository>.value(
-          value: documentVerificationRepository,
-        ),
-        Provider<DocumentQualityAssessor>.value(value: documentQualityAssessor),
-        Provider<CaptureAttemptCounterRepository>.value(
-          value: captureAttemptCounterRepository,
-        ),
-        Provider<CameraCaptureService>.value(value: cameraCaptureService),
         Provider<SystemSettingsLauncher>.value(value: systemSettingsLauncher),
-        Provider<FieldReverificationRepository>.value(
-          value: fieldReverificationRepository,
+        Provider<ScreenCaptureGuard>.value(value: screenCaptureGuard),
+        Provider<OperationalAlertReporter>.value(
+          value: operationalAlertReporter,
         ),
-        Provider<IdentityRecordRepository>.value(
-          value: identityRecordRepository,
+        Provider<ClockTrustMonitor>.value(value: clockTrustMonitor),
+        Provider<PassDisplayGuard>.value(
+          value: const PlatformPassDisplayGuard(),
         ),
-        Provider<LivenessVerificationRepository>.value(
-          value: livenessVerificationRepository,
-        ),
-        Provider<LivenessCameraService>.value(value: livenessCameraService),
         ChangeNotifierProvider<EnrollmentSessionController>.value(
           value: enrollmentSessionController,
         ),
         ChangeNotifierProvider<PendingDocumentController>.value(
           value: pendingDocumentController,
         ),
-        Provider<ScreenCaptureGuard>.value(value: screenCaptureGuard),
-        Provider<CredentialIssuanceRepository>.value(
-          value: credentialIssuanceRepository,
-        ),
-        Provider<VerificationJobRepository>.value(
-          value: verificationJobRepository,
-        ),
-        Provider<EscalationRepository>.value(value: escalationRepository),
-        Provider<AgentChatRepository>.value(value: agentChatRepository),
-        ChangeNotifierProvider<TechnicalErrorController>.value(
-          value: technicalErrorController,
-        ),
-        Provider<ServiceStatusRepository>.value(value: serviceStatusRepository),
-        Provider<CredentialSummaryRepository>.value(
-          value: credentialSummaryRepository,
-        ),
-        Provider<TripRepository>.value(value: tripRepository),
-        Provider<ClockTrustMonitor>.value(value: clockTrustMonitor),
-        Provider<PassRepository>.value(value: passRepository),
-        Provider<PassCodeSource>.value(value: passCodeSource),
-        Provider<PassDisplayGuard>.value(
-          value: const PlatformPassDisplayGuard(),
-        ),
-        Provider<DevicePostureChecker>.value(value: devicePostureChecker),
-        Provider<OperationalAlertReporter>.value(
-          value: operationalAlertReporter,
-        ),
         ChangeNotifierProvider<ActivatedCredentialHandoff>.value(
           value: activatedCredentialHandoff,
         ),
+        ChangeNotifierProvider<TechnicalErrorController>.value(
+          value: technicalErrorController,
+        ),
+        ChangeNotifierProvider<SyntheticMarkerSelection>.value(
+          value: syntheticMarkerSelection,
+        ),
+        ChangeNotifierProvider<FlightCodeHandoff>.value(
+          value: flightCodeHandoff,
+        ),
+        // The ports that differ between the two wirings.
+        Provider<CredentialRepository>.value(value: ports.credential),
+        Provider<CredentialSummaryRepository>.value(
+          value: ports.credentialSummary,
+        ),
+        Provider<PassengerRepository?>.value(value: ports.passenger),
+        Provider<DocumentVerificationRepository>.value(
+          value: ports.documentVerification,
+        ),
+        Provider<DocumentQualityAssessor>.value(value: ports.qualityAssessor),
+        Provider<CaptureAttemptCounterRepository>.value(
+          value: ports.attemptCounters,
+        ),
+        Provider<CameraCaptureService>.value(value: ports.documentCamera),
+        Provider<FieldReverificationRepository?>.value(
+          value: ports.fieldReverification,
+        ),
+        Provider<IdentityRecordRepository>.value(value: ports.identityRecord),
+        Provider<LivenessVerificationRepository>.value(value: ports.liveness),
+        Provider<LivenessCameraService>.value(value: ports.livenessCamera),
+        Provider<VerificationSubmission?>.value(
+          value: ports.verificationSubmission,
+        ),
+        Provider<CredentialIssuanceRepository>.value(value: ports.issuance),
+        Provider<VerificationJobRepository>.value(value: ports.verificationJob),
+        Provider<EscalationRepository?>.value(value: ports.escalation),
+        Provider<AgentChatRepository?>.value(value: ports.agentChat),
+        Provider<ServiceStatusRepository?>.value(value: ports.serviceStatus),
+        Provider<TripRepository?>.value(value: ports.trips),
+        Provider<PassRepository>.value(value: ports.pass),
+        Provider<PassCodeSource>.value(value: ports.passCode),
+        Provider<DevicePostureChecker>.value(value: ports.devicePosture),
       ],
       child: child,
     );
   }
+}
+
+/// The ports whose implementation depends on the wiring (015
+/// contracts/flavor-wiring.md, "Port wiring"). A `null` field is a port
+/// that is not wired.
+class _Ports {
+  _Ports._({
+    required this.credential,
+    required this.credentialSummary,
+    required this.passenger,
+    required this.documentVerification,
+    required this.qualityAssessor,
+    required this.attemptCounters,
+    required this.documentCamera,
+    required this.fieldReverification,
+    required this.identityRecord,
+    required this.liveness,
+    required this.livenessCamera,
+    required this.verificationSubmission,
+    required this.issuance,
+    required this.verificationJob,
+    required this.escalation,
+    required this.agentChat,
+    required this.serviceStatus,
+    required this.trips,
+    required this.pass,
+    required this.passCode,
+    required this.devicePosture,
+  });
+
+  /// The offline demo: every port is a dev fake.
+  factory _Ports.devOffline({
+    required CredentialService credentialService,
+    required Clock clock,
+    required ClockTrustMonitor clockTrustMonitor,
+    required CaptureAttemptCounterRepository localAttemptCounters,
+  }) => _Ports._(
+    credential: DevCredentialRepository(credentialService: credentialService),
+    credentialSummary: DevCredentialSummaryRepository(
+      credentialService: credentialService,
+    ),
+    passenger: null,
+    documentVerification: DevDocumentVerificationRepository(),
+    qualityAssessor: const DevDocumentQualityAssessor(),
+    attemptCounters: localAttemptCounters,
+    documentCamera: CameraPluginCaptureService(),
+    fieldReverification: DevFieldReverificationRepository(),
+    identityRecord: DevIdentityRecordRepository(),
+    liveness: DevLivenessVerificationRepository(),
+    livenessCamera: DevLivenessCameraService(),
+    verificationSubmission: null,
+    issuance: DevCredentialIssuanceRepository(
+      credentialService: credentialService,
+    ),
+    verificationJob: DevVerificationJobRepository(),
+    escalation: DevEscalationRepository(),
+    agentChat: DevAgentChatRepository(),
+    serviceStatus: const DevServiceStatusRepository(),
+    trips: DevTripRepository(clock: clock),
+    pass: DevPassRepository(clock: clock, clockTrustMonitor: clockTrustMonitor),
+    passCode: const DevPassCodeSource(),
+    devicePosture: const DevDevicePostureChecker(),
+  );
+
+  /// The real backend (research.md §7 to §11): registration, `/me`,
+  /// verification and the pass, over the five real endpoints. Consent,
+  /// document capture and the liveness challenge stay on the device.
+  /// Escalation, chat, service status, trips and field re-verification are
+  /// not wired.
+  factory _Ports.backend({
+    required Dio dio,
+    required CredentialService credentialService,
+    required Clock clock,
+    required ClockTrustMonitor clockTrustMonitor,
+    required CaptureAttemptCounterRepository localAttemptCounters,
+    required SyntheticMarkerSelection syntheticMarkerSelection,
+  }) {
+    final passengerService = PassengerService(dio: dio);
+    final passengers = PassengerBackedCredentialRepository(
+      passengerService,
+      credentialService: credentialService,
+      clock: clock,
+    );
+    final verificationSubmission = VerificationSubmission(
+      repository: BackendBiometricVerificationRepository(
+        BiometricService(dio: dio),
+      ),
+    );
+    final passRepository = BackendPassRepository(
+      PassService(dio: dio),
+      clockTrustMonitor: clockTrustMonitor,
+    );
+    // 015 FR-018: in dev and staging the backend receives only generated
+    // marker images, never a camera frame.
+    final CameraCaptureService documentCamera = HappyPathFlags.syntheticCapture
+        ? SyntheticCameraCaptureService(CameraPluginCaptureService())
+        : CameraPluginCaptureService();
+    final LivenessCameraService livenessCamera = HappyPathFlags.syntheticCapture
+        ? SyntheticLivenessCameraService(
+            FrontCameraLivenessService(),
+            selection: syntheticMarkerSelection,
+          )
+        : FrontCameraLivenessService();
+    return _Ports._(
+      credential: passengers,
+      credentialSummary: passengers,
+      passenger: passengers,
+      documentVerification: const LocalDocumentCaptureRepository(),
+      qualityAssessor: const HeuristicQualityAssessor(),
+      attemptCounters: ServerBackedAttemptCounterRepository(
+        local: localAttemptCounters,
+        submission: verificationSubmission,
+        clock: clock,
+      ),
+      documentCamera: documentCamera,
+      fieldReverification: null,
+      identityRecord: BackendIdentityRecordRepository(
+        passengerService,
+        credentialService: credentialService,
+      ),
+      liveness: LocalLivenessRepository(),
+      livenessCamera: livenessCamera,
+      verificationSubmission: verificationSubmission,
+      issuance: PassengerIssuanceRepository(passengers, clock: clock),
+      verificationJob: SubmissionBackedJobRepository(verificationSubmission),
+      escalation: null,
+      agentChat: null,
+      serviceStatus: null,
+      trips: null,
+      pass: passRepository,
+      passCode: IssuedTokenPassCodeSource(passRepository),
+      devicePosture: const PlatformDevicePostureChecker(),
+    );
+  }
+
+  final CredentialRepository credential;
+  final CredentialSummaryRepository credentialSummary;
+  final PassengerRepository? passenger;
+  final DocumentVerificationRepository documentVerification;
+  final DocumentQualityAssessor qualityAssessor;
+  final CaptureAttemptCounterRepository attemptCounters;
+  final CameraCaptureService documentCamera;
+  final FieldReverificationRepository? fieldReverification;
+  final IdentityRecordRepository identityRecord;
+  final LivenessVerificationRepository liveness;
+  final LivenessCameraService livenessCamera;
+  final VerificationSubmission? verificationSubmission;
+  final CredentialIssuanceRepository issuance;
+  final VerificationJobRepository verificationJob;
+  final EscalationRepository? escalation;
+  final AgentChatRepository? agentChat;
+  final ServiceStatusRepository? serviceStatus;
+  final TripRepository? trips;
+  final PassRepository pass;
+  final PassCodeSource passCode;
+  final DevicePostureChecker devicePosture;
 }

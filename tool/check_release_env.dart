@@ -10,6 +10,9 @@ const releaseForbiddenBooleans = [
   'USE_FAKE_CONSENT_BACKEND',
   'USE_FAKE_VERIFICATION_BACKEND',
   'DEV_PASS_CONTROLS',
+  // 015 contracts/flavor-wiring.md.
+  'ALLOW_INSECURE_LOCAL_BACKEND',
+  'SYNTHETIC_CAPTURE',
 ];
 
 /// Keys that must not be set to any value in a release env file.
@@ -18,21 +21,56 @@ const releaseForbiddenKeys = ['DEV_VERIFICATION_FAILURE'];
 /// Returns the violations found in [envContents]; empty means release-safe.
 List<String> releaseEnvViolations(String envContents) {
   final violations = <String>[];
+  final values = <String, String>{};
   for (final raw in envContents.split('\n')) {
     final line = raw.trim();
     if (line.isEmpty || line.startsWith('#')) continue;
     final separator = line.indexOf('=');
     if (separator <= 0) continue;
     final key = line.substring(0, separator).trim();
-    final value = line.substring(separator + 1).trim().toLowerCase();
+    final value = line.substring(separator + 1).trim();
+    values[key] = value;
+    final lower = value.toLowerCase();
     if (releaseForbiddenBooleans.contains(key) &&
-        value != 'false' &&
-        value.isNotEmpty) {
-      violations.add('$key=$value');
+        lower != 'false' &&
+        lower.isNotEmpty) {
+      violations.add('$key=$lower');
     }
-    if (releaseForbiddenKeys.contains(key) && value.isNotEmpty) {
-      violations.add('$key=$value');
+    if (releaseForbiddenKeys.contains(key) && lower.isNotEmpty) {
+      violations.add('$key=$lower');
     }
+  }
+  violations.addAll(_backendViolations(values));
+  return violations;
+}
+
+/// 015 contracts/flavor-wiring.md: a release talks to a real https backend
+/// through Clerk, and the mock declaration comes off only when a real
+/// provider is named (FR-020).
+List<String> _backendViolations(Map<String, String> values) {
+  final violations = <String>[];
+
+  final baseUrl = values['API_BASE_URL'] ?? '';
+  if (baseUrl.isEmpty) {
+    violations.add('API_BASE_URL missing');
+  } else if (!baseUrl.startsWith('https://') || baseUrl.contains('.example')) {
+    violations.add('API_BASE_URL=$baseUrl');
+  }
+
+  final authMode = values['AUTH_MODE'] ?? '';
+  if (authMode.isEmpty) {
+    violations.add('AUTH_MODE missing');
+  } else if (authMode != 'clerk') {
+    violations.add('AUTH_MODE=$authMode');
+  } else if ((values['CLERK_PUBLISHABLE_KEY'] ?? '').isEmpty) {
+    violations.add('CLERK_PUBLISHABLE_KEY missing');
+  }
+
+  final mockOff = (values['BIOMETRIC_PROVIDER_MOCK'] ?? '').toLowerCase() ==
+      'false';
+  final provider = (values['BIOMETRIC_PROVIDER_NAME'] ?? '').toLowerCase();
+  if (mockOff && (provider.isEmpty || provider == 'mock')) {
+    violations.add('BIOMETRIC_PROVIDER_MOCK=false without a provider');
   }
   return violations;
 }

@@ -1,0 +1,8 @@
+{
+  "status": 401,
+  "retry_after": null,
+  "body": {
+    "codigo": "NO_AUTENTICADO",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

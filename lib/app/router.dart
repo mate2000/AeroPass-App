@@ -1,5 +1,6 @@
 import 'dart:async' show unawaited;
 
+import 'package:clerk_flutter/clerk_flutter.dart' show ClerkAuthState;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -9,12 +10,15 @@ import '../app/enrollment_session_controller.dart';
 import '../app/pending_document_controller.dart';
 import 'activated_credential_handoff.dart';
 import 'technical_error_controller.dart';
+import '../core/diagnostics.dart';
+import '../data/services/pinned_dio_factory.dart' show backendReceiveTimeout;
 import '../core/clock.dart';
 import '../data/services/camera_capture_service.dart';
 import '../data/services/liveness_camera_service.dart';
 import '../data/services/system_settings_launcher.dart';
 import '../domain/entities/consent_record.dart';
 import '../domain/entities/credential_status.dart';
+import '../domain/entities/passenger_record.dart';
 import '../domain/repositories/analytics_emitter.dart';
 import '../domain/repositories/capture_attempt_counter_repository.dart';
 import '../domain/repositories/consent_repository.dart';
@@ -77,12 +81,17 @@ import 'clock_trust_monitor.dart';
 import '../core/happy_path_flags.dart';
 import '../data/dev/dev_pass_repository.dart';
 import '../domain/repositories/device_posture_checker.dart';
+import '../domain/repositories/passenger_repository.dart';
 import '../domain/repositories/pass_code_source.dart';
 import '../domain/repositories/pass_display_guard.dart';
 import '../domain/repositories/pass_repository.dart';
 import '../features/pass/pass_view.dart';
 import '../features/pass/pass_viewmodel.dart';
 import 'splash_view.dart';
+import '../features/auth/sign_in_view.dart';
+import 'session_gate.dart';
+import 'verification_submission.dart';
+import 'flight_code_handoff.dart';
 
 /// Route paths, named once here rather than scattered as string literals
 /// across the app (Constitution Principle X: "no magic values").
@@ -110,6 +119,9 @@ abstract final class AppRoutes {
   static const profile = '/profile';
   static const tripVerification = '/trip/verification';
   static const pass = '/trip/pass';
+
+  /// 015: email and one-time code. `?next=` is where to go afterwards.
+  static const signIn = '/sign-in';
 }
 
 /// The app's `go_router` skeleton, including the credential-status-aware
@@ -131,10 +143,16 @@ abstract final class AppRoutes {
 /// naming `/trips` lands there directly, subject to the same redirect);
 /// an unmatched path falls back to the splash route via [errorBuilder]
 /// rather than crashing.
-GoRouter buildAppRouter({String? initialLocation}) {
+GoRouter buildAppRouter({
+  String? initialLocation,
+  Listenable? refreshListenable,
+}) {
   return GoRouter(
     initialLocation: initialLocation ?? AppRoutes.splash,
     redirect: _redirect,
+    // 015: losing the session re-runs the redirect, which sends a guarded
+    // route to sign-in.
+    refreshListenable: refreshListenable,
     observers: [SentryNavigatorObserver()],
     errorBuilder: (context, state) => const SplashView(),
     routes: [
@@ -222,7 +240,7 @@ GoRouter buildAppRouter({String? initialLocation}) {
             pendingDocumentController: context
                 .read<PendingDocumentController>(),
             fieldReverificationRepository: context
-                .read<FieldReverificationRepository>(),
+                .read<FieldReverificationRepository?>(),
             identityRecordRepository: context.read<IdentityRecordRepository>(),
             analyticsEmitter: context.read<AnalyticsEmitter>(),
             enrollmentSessionController: context
@@ -261,6 +279,7 @@ GoRouter buildAppRouter({String? initialLocation}) {
             enrollmentSessionController: context
                 .read<EnrollmentSessionController>(),
             analyticsEmitter: context.read<AnalyticsEmitter>(),
+            verificationSubmission: context.read<VerificationSubmission?>(),
           ),
           child: Consumer<LivenessCaptureViewModel>(
             builder: (context, viewModel, _) =>
@@ -316,10 +335,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
             technicalErrorController: context.read<TechnicalErrorController>(),
             enrollmentSessionController: context
                 .read<EnrollmentSessionController>(),
-            statusRepository: context.read<ServiceStatusRepository>(),
+            statusRepository: context.read<ServiceStatusRepository?>(),
             alertReporter: context.read<OperationalAlertReporter>(),
             analyticsEmitter: context.read<AnalyticsEmitter>(),
             clock: context.read<Clock>(),
+            verificationSubmission: context.read<VerificationSubmission?>(),
           ),
           child: Consumer<TechnicalErrorViewModel>(
             builder: (context, viewModel, _) =>
@@ -345,7 +365,7 @@ GoRouter buildAppRouter({String? initialLocation}) {
         path: AppRoutes.agentEscalation,
         builder: (context, state) => ChangeNotifierProvider(
           create: (context) => EscalationViewModel(
-            escalationRepository: context.read<EscalationRepository>(),
+            escalationRepository: context.read<EscalationRepository?>(),
             issuanceRepository: context.read<CredentialIssuanceRepository>(),
             handoff: context.read<ActivatedCredentialHandoff>(),
             enrollmentSessionController: context
@@ -365,7 +385,8 @@ GoRouter buildAppRouter({String? initialLocation}) {
         path: AppRoutes.agentChat,
         builder: (context, state) => ChangeNotifierProvider(
           create: (context) => AgentChatViewModel(
-            chatRepository: context.read<AgentChatRepository>(),
+            // The redirect sends this route to 010 when no chat is wired.
+            chatRepository: context.read<AgentChatRepository?>()!,
           ),
           child: Consumer<AgentChatViewModel>(
             builder: (context, viewModel, _) =>
@@ -387,10 +408,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
             builder: (context, state) => ChangeNotifierProvider(
               create: (context) => TripsHomeViewModel(
                 summaryRepository: context.read<CredentialSummaryRepository>(),
-                tripRepository: context.read<TripRepository>(),
+                tripRepository: context.read<TripRepository?>(),
                 analyticsEmitter: context.read<AnalyticsEmitter>(),
                 clock: context.read<Clock>(),
                 passRepository: context.read<PassRepository>(),
+                flightCodeHandoff: context.read<FlightCodeHandoff>(),
               ),
               child: Consumer<TripsHomeViewModel>(
                 builder: (context, viewModel, _) =>
@@ -419,12 +441,15 @@ GoRouter buildAppRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoutes.pass,
         builder: (context, state) {
-          final trip = context.read<TripRepository>().lastKnown?.next;
+          final trip = context.read<TripRepository?>()?.lastKnown?.next;
+          // 015 DEC-03: with no trips source, the pass is for the flight the
+          // passenger typed on Mis viajes.
+          final flightCode = context.read<FlightCodeHandoff>().code;
           final passRepository = context.read<PassRepository>();
           final summaryRepository = context.read<CredentialSummaryRepository>();
           return ChangeNotifierProvider(
             create: (context) => PassViewModel(
-              tripId: trip?.id,
+              tripId: trip?.id ?? flightCode?.value,
               trip: trip,
               passRepository: passRepository,
               codeSource: context.read<PassCodeSource>(),
@@ -462,6 +487,21 @@ GoRouter buildAppRouter({String? initialLocation}) {
         builder: (context, state) => const RecoveryPlaceholderView(),
       ),
       GoRoute(
+        path: AppRoutes.signIn,
+        // The router leaves this route by itself once the session gate
+        // opens (the `signIn` branch of the redirect).
+        builder: (context, state) {
+          final clerkAvailable = context.read<ClerkAuthState?>() != null;
+          final gate = context.read<SessionGate?>();
+          if (gate == null) return SignInView(clerkAvailable: clerkAvailable);
+          return _SignInRoute(
+            gate: gate,
+            next: _safeNext(state.uri.queryParameters['next']),
+            clerkAvailable: clerkAvailable,
+          );
+        },
+      ),
+      GoRoute(
         path: AppRoutes.terms,
         builder: (context, state) => const TermsPlaceholderView(),
       ),
@@ -483,7 +523,144 @@ GoRouter buildAppRouter({String? initialLocation}) {
   );
 }
 
+/// 015: the routes that need a signed-in session. Welcome, consent (local),
+/// help, terms and splash do not, so no data reaches the identity provider
+/// before consent.
+const _publicRoutes = {
+  AppRoutes.splash,
+  AppRoutes.welcome,
+  AppRoutes.consent,
+  AppRoutes.help,
+  AppRoutes.terms,
+  AppRoutes.signIn,
+  AppRoutes.recovery,
+};
+
+/// The sign-in screen, which leaves by itself once the session gate opens.
+///
+/// The gate's refresh re-runs the redirect only for the base location. When
+/// sign-in was opened with `push` (Welcome's "Ya tengo cuenta", or a guarded
+/// route pushed from consent), the redirect never sees `/sign-in`, and the
+/// screen would stay up forever. So this route navigates to [next] itself,
+/// with `go`, which also replaces the stack under it.
+class _SignInRoute extends StatefulWidget {
+  const _SignInRoute({
+    required this.gate,
+    required this.next,
+    required this.clerkAvailable,
+  });
+
+  final SessionGate gate;
+  final String next;
+  final bool clerkAvailable;
+
+  @override
+  State<_SignInRoute> createState() => _SignInRouteState();
+}
+
+class _SignInRouteState extends State<_SignInRoute> {
+  bool _leaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.gate.addListener(_onGateChanged);
+    _onGateChanged();
+  }
+
+  void _onGateChanged() {
+    if (!widget.gate.signedIn || _leaving) return;
+    _leaving = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // The redirect may already have left (sign-in opened with `go`).
+      if (!mounted) return;
+      const Diagnostics().info('sign_in_leave', {'next': widget.next});
+      GoRouter.of(context).go(widget.next);
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.gate.removeListener(_onGateChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.gate,
+    builder: (context, _) => SignInView(
+      clerkAvailable: widget.clerkAvailable,
+      completing: widget.gate.signedIn,
+    ),
+  );
+}
+
+/// Only an in-app path is accepted as `next`, never a URL.
+String _safeNext(String? next) =>
+    next != null && next.startsWith('/') && !next.startsWith('//')
+    ? next
+    : AppRoutes.splash;
+
+/// Two backend reads at [backendReceiveTimeout] each, plus local reads. A
+/// redirect still running after this is treated as failed.
+const _redirectTimeout = Duration(seconds: 45);
+
+/// Runs [_decideRedirect], logging each decision, and never lets it throw:
+/// Flutter's `Router` only navigates when the redirect completes, so an
+/// exception would leave the current screen (the sign-in spinner) up forever.
 Future<String?> _redirect(BuildContext context, GoRouterState state) async {
+  final watch = Stopwatch()..start();
+  final from = state.matchedLocation;
+  try {
+    final to = await _decideRedirect(context, state).timeout(_redirectTimeout);
+    const Diagnostics().info('redirect', {
+      'from': from,
+      'to': to ?? from,
+      'ms': watch.elapsedMilliseconds,
+    });
+    return to;
+  } on Object catch (error, stackTrace) {
+    const Diagnostics().error('redirect_failed', {
+      'code': error.runtimeType,
+      'from': from,
+      'detail': error,
+      'ms': watch.elapsedMilliseconds,
+    });
+    unawaited(Sentry.captureException(error, stackTrace: stackTrace));
+    return from == AppRoutes.welcome ? null : AppRoutes.welcome;
+  }
+}
+
+Future<String?> _decideRedirect(
+  BuildContext context,
+  GoRouterState state,
+) async {
+  // 015 sign-in (the backend's authentication document). Only when sign-in
+  // is required (the Clerk flavors). Dev and the offline demo have no gate.
+  final gate = context.read<SessionGate?>();
+  if (gate != null) {
+    final location = state.matchedLocation;
+    if (location == AppRoutes.recovery) {
+      // "Ya tengo cuenta": signing in is how an account is recovered.
+      return gate.signedIn
+          ? AppRoutes.splash
+          : '${AppRoutes.signIn}?next=${AppRoutes.splash}';
+    }
+    if (location == AppRoutes.signIn && gate.signedIn) {
+      final next = _safeNext(state.uri.queryParameters['next']);
+      _step('signed_in_leave_sign_in', {'next': next});
+      return next;
+    }
+    if (!gate.signedIn && !_publicRoutes.contains(location)) {
+      return Uri(
+        path: AppRoutes.signIn,
+        queryParameters: {'next': state.uri.toString()},
+      ).toString();
+    }
+  } else if (state.matchedLocation == AppRoutes.signIn) {
+    return AppRoutes.splash;
+  }
+
   final onSplashOrWelcome =
       state.matchedLocation == AppRoutes.splash ||
       state.matchedLocation == AppRoutes.welcome;
@@ -508,16 +685,8 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
     // load (defense in depth, and the behavior its own unit tests exercise
     // in isolation) — this router-level guard exists so the route never
     // even builds the camera-owning view in the stale case.
-    final consentRepository = context.read<ConsentRepository>();
-    final localResult = await consentRepository.getLocalRecord();
-    final record = localResult.valueOrNull;
-    final textResult = await consentRepository.getCurrentText();
-    final isCurrent = textResult.when(
-      ok: (text) =>
-          record != null &&
-          record.status == ConsentRecordStatus.active &&
-          record.textVersionId == text.id,
-      error: (_, _) => false,
+    final isCurrent = await _hasCurrentConsent(
+      context.read<ConsentRepository>(),
     );
     return isCurrent ? null : AppRoutes.consent;
   }
@@ -554,6 +723,13 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
     return _credentialActivatedRedirect(context);
   }
 
+  // 015 FR-025: release has no agent chat, so its route leads back to 010,
+  // which states the conventional lane.
+  if (state.matchedLocation == AppRoutes.agentChat &&
+      context.read<AgentChatRepository?>() == null) {
+    return AppRoutes.agentEscalation;
+  }
+
   if (!onSplashOrWelcome) {
     // A deep link straight into a stub route (consent/trips/recovery/
     // terms/withdrawal) is let through unguarded — none of those need a
@@ -563,16 +739,23 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
 
   final repository = context.read<CredentialRepository>();
   final consentRepository = context.read<ConsentRepository>();
-  final escalationRepository = context.read<EscalationRepository>();
+  final escalationRepository = context.read<EscalationRepository?>();
   final jobRepository = context.read<VerificationJobRepository>();
+  final passengerRepository = context.read<PassengerRepository?>();
   final enrollmentSessionController = context
       .read<EnrollmentSessionController>();
   final clock = context.read<Clock>();
+  _step('credential_status_start', {'from': state.matchedLocation});
+  final statusWatch = Stopwatch()..start();
   final result = await repository.getStatus();
   final status = result.when(
     ok: (value) => value,
     error: (_, _) => const CredentialStatus.unreachable(lastKnownStatus: null),
   );
+  _step('credential_status', {
+    'status': status.runtimeType,
+    'ms': statusWatch.elapsedMilliseconds,
+  });
 
   final shouldShowTrips = switch (status) {
     Valid() => true,
@@ -581,6 +764,7 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   };
 
   if (shouldShowTrips) {
+    _step('decision', {'branch': 'trips'});
     return state.matchedLocation == AppRoutes.trips ? null : AppRoutes.trips;
   }
 
@@ -589,7 +773,48 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   // before this, 010's "Volver al inicio" bounced straight back.
   final coldLaunch = state.matchedLocation == AppRoutes.splash;
   if (coldLaunch && status is NoCredential) {
-    if (await _hasOpenEscalation(consentRepository, escalationRepository)) {
+    // 015 FR-023: with the real backend, one `/me` decides resume. Pending
+    // resumes at the selfie, and manual review goes to the agent. Not
+    // registered, or unreachable, falls through to welcome.
+    if (passengerRepository != null) {
+      _step('me_start');
+      final meWatch = Stopwatch()..start();
+      final me = await passengerRepository.me();
+      final passenger = me.valueOrNull;
+      _step('me', {
+        'result': me.when(
+          ok: (p) => p?.state.name ?? 'not_registered',
+          error: (e, _) => 'error:${e.runtimeType}',
+        ),
+        'ms': meWatch.elapsedMilliseconds,
+        'signed_in': gate?.signedIn,
+      });
+      // 015: signed in (a gate exists only with sign-in) but never
+      // registered, as with an account created in the Clerk dashboard or a
+      // "Ya tengo cuenta" before any registration. Registration continues:
+      // consent first, unless it is already current. Welcome would leave the
+      // passenger with nowhere to go, since "Ya tengo cuenta" leads back here.
+      if (me.isOk && passenger == null && (gate?.signedIn ?? false)) {
+        final consented = await _hasCurrentConsent(consentRepository);
+        _step('decision', {'branch': 'register', 'consent_current': consented});
+        return consented ? AppRoutes.documentCapture : AppRoutes.consent;
+      }
+      switch (passenger?.state) {
+        case PassengerState.pendingVerification:
+          _step('decision', {'branch': 'selfie'});
+          enrollmentSessionController.resumeAfterVerification();
+          _step('enrollment_resumed');
+          return AppRoutes.selfieInstructions;
+        case PassengerState.manualReview:
+          _step('decision', {'branch': 'agent'});
+          return AppRoutes.agentEscalation;
+        case PassengerState.verified || null:
+          break;
+      }
+    }
+    if (escalationRepository != null &&
+        await _hasOpenEscalation(consentRepository, escalationRepository)) {
+      _step('decision', {'branch': 'open_escalation'});
       return AppRoutes.agentEscalation;
     }
     if (await _hasResumableVerification(
@@ -597,12 +822,32 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
       jobRepository,
       clock,
     )) {
+      _step('decision', {'branch': 'resumable_verification'});
       enrollmentSessionController.resumeAfterVerification();
       return AppRoutes.verificationProgress;
     }
   }
 
+  _step('decision', {'branch': 'welcome', 'cold_launch': coldLaunch});
   return state.matchedLocation == AppRoutes.welcome ? null : AppRoutes.welcome;
+}
+
+/// One step of the launch/resume decision, for the production trail.
+void _step(String step, [Map<String, Object?> attributes = const {}]) =>
+    const Diagnostics().info('redirect_step', {'step': step, ...attributes});
+
+/// Whether the recorded consent is active and refers to the currently
+/// published text (003-escanear-documento FR-001).
+Future<bool> _hasCurrentConsent(ConsentRepository consentRepository) async {
+  final record = (await consentRepository.getLocalRecord()).valueOrNull;
+  final textResult = await consentRepository.getCurrentText();
+  return textResult.when(
+    ok: (text) =>
+        record != null &&
+        record.status == ConsentRecordStatus.active &&
+        record.textVersionId == text.id,
+    error: (_, _) => false,
+  );
 }
 
 /// 010-escalar-agente FR-010: a passenger who left screen 10 with an

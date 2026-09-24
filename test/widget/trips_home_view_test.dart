@@ -190,7 +190,8 @@ void main() {
       expect(find.text('Mateo González'), findsOneWidget);
       expect(find.text('•••• 4821'), findsOneWidget);
       expect(find.text('MG'), findsWidgets);
-      expect(find.text('ACTIVA'), findsOneWidget);
+      // 015 FR-020: "REGISTRADO" while the biometrics are simulated.
+      expect(find.text('REGISTRADO'), findsOneWidget);
       expect(find.byType(Image), findsNothing);
       expect(find.byType(CircleAvatar), findsNothing);
       await leave(tester);
@@ -434,7 +435,8 @@ void main() {
         find.textContaining('con el mismo documento con el que te registraste'),
         findsOneWidget,
       );
-      expect(find.text('ACTIVA'), findsOneWidget);
+      // 015 FR-020: "REGISTRADO" while the biometrics are simulated.
+      expect(find.text('REGISTRADO'), findsOneWidget);
       expect(find.text('VIAJES RECIENTES'), findsNothing);
       expect(find.textContaining('90 días'), findsNothing);
       expect(

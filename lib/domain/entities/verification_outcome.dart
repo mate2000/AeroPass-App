@@ -26,6 +26,11 @@ sealed class VerificationOutcome with _$VerificationOutcome {
 
   const factory VerificationOutcome.serviceFailure() =
       VerificationServiceFailure;
+
+  /// 015 FR-009: the backend put the passenger in manual review
+  /// (`REQUIERE_REVISION_MANUAL`), or no attempts are left. It goes to the
+  /// agent path, not to a retry.
+  const factory VerificationOutcome.manualReview() = VerificationManualReview;
 }
 
 /// The bucket `AnalyticsEmitter.verificationOutcome` carries

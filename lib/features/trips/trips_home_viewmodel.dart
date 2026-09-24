@@ -3,9 +3,11 @@ import 'dart:async' show Timer, unawaited;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
 
+import '../../app/flight_code_handoff.dart';
 import '../../core/clock.dart';
 import '../../core/result.dart';
 import '../../domain/entities/credential_summary.dart';
+import '../../domain/entities/flight_code.dart';
 import '../../domain/entities/trip.dart';
 import '../../domain/repositories/analytics_emitter.dart';
 import '../../domain/repositories/credential_summary_repository.dart';
@@ -74,10 +76,11 @@ enum TripsHomeTarget { startTrip, viewPass, welcome }
 class TripsHomeViewModel extends ChangeNotifier {
   TripsHomeViewModel({
     required CredentialSummaryRepository summaryRepository,
-    required TripRepository tripRepository,
+    required TripRepository? tripRepository,
     required AnalyticsEmitter analyticsEmitter,
     required Clock clock,
     PassRepository? passRepository,
+    FlightCodeHandoff? flightCodeHandoff,
     @visibleForTesting Duration refreshInterval = tripsHomeRefreshInterval,
     @visibleForTesting Duration actionTick = tripsHomeActionTick,
     @visibleForTesting Duration Function()? deviceOffset,
@@ -87,8 +90,9 @@ class TripsHomeViewModel extends ChangeNotifier {
        _analyticsEmitter = analyticsEmitter,
        _clock = clock,
        _passRepository = passRepository,
+       _flightCodeHandoff = flightCodeHandoff,
        _deviceOffset = deviceOffset ?? (() => DateTime.now().timeZoneOffset) {
-    _trips = tripRepository.lastKnown;
+    _trips = tripRepository?.lastKnown;
     _refreshTimer = Timer.periodic(
       refreshInterval,
       (_) => unawaited(refresh()),
@@ -101,11 +105,18 @@ class TripsHomeViewModel extends ChangeNotifier {
   }
 
   final CredentialSummaryRepository _summaryRepository;
-  final TripRepository _tripRepository;
+
+  /// 015 DEC-03: `null` in release, where no trips endpoint exists. The
+  /// screen then asks for the flight code instead ([flightCodeEntry]).
+  final TripRepository? _tripRepository;
+  final FlightCodeHandoff? _flightCodeHandoff;
   final AnalyticsEmitter _analyticsEmitter;
   final Clock _clock;
   final PassRepository? _passRepository;
   final Duration Function() _deviceOffset;
+
+  String _flightCodeInput = '';
+  bool _flightCodeInvalid = false;
 
   CredentialSummary? _summary;
   TripsSnapshot? _trips;
@@ -211,6 +222,42 @@ class TripsHomeViewModel extends ChangeNotifier {
     return const TripActionStart();
   }
 
+  // --- 015 DEC-03: flight-code entry -----------------------------------------
+
+  /// No trips source: the passenger types the flight code (FR-010).
+  bool get flightCodeEntry => _tripRepository == null;
+
+  String get flightCodeInput => _flightCodeInput;
+
+  /// The last submitted code broke the backend's format (V-06).
+  bool get flightCodeInvalid => _flightCodeInvalid;
+
+  /// "Mostrar mi pase" is possible only for a confirmed, active
+  /// credential. Otherwise the strip already says why.
+  bool get canShowPass => _summary?.showsActive ?? false;
+
+  void onFlightCodeChanged(String input) {
+    _flightCodeInput = input;
+    if (_flightCodeInvalid) {
+      _flightCodeInvalid = false;
+      _notify();
+    }
+  }
+
+  /// "Mostrar mi pase": validates on the device, then opens the pass, which
+  /// issues it (FR-010). A malformed code sends nothing.
+  void showPass() {
+    if (!flightCodeEntry || !canShowPass || _pendingNavigation != null) return;
+    switch (FlightCode.parse(_flightCodeInput)) {
+      case Ok(:final value):
+        _flightCodeHandoff?.set(value);
+        _navigateTo(TripsHomeTarget.viewPass);
+      case Error():
+        _flightCodeInvalid = true;
+        _notify();
+    }
+  }
+
   TripsHomeTarget? get pendingNavigation => _pendingNavigation;
 
   void consumeNavigation() => _pendingNavigation = null;
@@ -255,7 +302,7 @@ class TripsHomeViewModel extends ChangeNotifier {
     if (_refreshing || _disposed) return;
     _refreshing = true;
     final summaryRead = _summaryRepository.getSummary();
-    final tripsRead = _tripRepository.getTrips();
+    final tripsRead = _tripRepository?.getTrips();
     final summaryResult = await summaryRead;
     final tripsResult = await tripsRead;
     _refreshing = false;
@@ -274,11 +321,13 @@ class TripsHomeViewModel extends ChangeNotifier {
     }
 
     switch (tripsResult) {
+      case null:
+        break;
       case Ok(:final value):
         _trips = value;
         _tripsStale = false;
       case Error():
-        _trips = _tripRepository.lastKnown ?? _trips;
+        _trips = _tripRepository?.lastKnown ?? _trips;
         _tripsStale = true;
     }
     _loaded = true;

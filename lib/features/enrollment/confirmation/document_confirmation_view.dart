@@ -50,6 +50,8 @@ class _DocumentConfirmationViewState extends State<DocumentConfirmationView> {
         context.go(AppRoutes.documentCapture);
       case DocumentConfirmationNavigationTarget.selfieInstructions:
         context.push(AppRoutes.selfieInstructions);
+      case DocumentConfirmationNavigationTarget.agentEscalation:
+        context.go(AppRoutes.agentEscalation);
     }
   }
 
@@ -186,7 +188,9 @@ class _ReadyBody extends StatelessWidget {
   final DocumentConfirmationViewModel viewModel;
 
   bool get _canConfirm =>
-      !state.confirming && state.fields.every((f) => !f.blocksConfirmation);
+      !state.confirming &&
+      state.fields.every((f) => !f.blocksConfirmation) &&
+      (!state.typedEntry || state.documentType != null);
 
   @override
   Widget build(BuildContext context) {
@@ -207,10 +211,19 @@ class _ReadyBody extends StatelessWidget {
                     ),
                   const SizedBox(height: 16),
                   Text(
-                    l10n.confirmationNoticeText,
+                    state.typedEntry
+                        ? l10n.confirmationTypedNotice
+                        : l10n.confirmationNoticeText,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 8),
+                  if (state.typedEntry)
+                    _DocumentTypeChoice(
+                      selected: state.documentType,
+                      invalid: state.documentTypeInvalid,
+                      enabled: !state.confirming,
+                      onSelected: viewModel.selectDocumentType,
+                    ),
                   for (final field in state.fields)
                     FieldRow(
                       state: field,
@@ -226,7 +239,17 @@ class _ReadyBody extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                l10n.confirmationConfirmFailedMessage,
+                switch (state.failureKind) {
+                  ConfirmFailureKind.generic =>
+                    l10n.confirmationConfirmFailedMessage,
+                  ConfirmFailureKind.connection =>
+                    l10n.confirmationFailedConnection,
+                  ConfirmFailureKind.serviceBusy =>
+                    l10n.confirmationFailedServiceBusy,
+                  ConfirmFailureKind.session => l10n.confirmationFailedSession,
+                  ConfirmFailureKind.accountHasOtherDocument =>
+                    l10n.confirmationFailedAccountHasOtherDocument,
+                },
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
                 textAlign: TextAlign.center,
               ),
@@ -264,4 +287,64 @@ class _ReadyBody extends StatelessWidget {
     FieldKey.nationality => l10n.confirmationFieldNationalityLabel,
     FieldKey.expiryDate => l10n.confirmationFieldExpiryDateLabel,
   };
+}
+
+/// 015 FR-002: CC, CE or Pasaporte. It is shown only for typed entry,
+/// because no extraction supplies the type.
+class _DocumentTypeChoice extends StatelessWidget {
+  const _DocumentTypeChoice({
+    required this.selected,
+    required this.invalid,
+    required this.enabled,
+    required this.onSelected,
+  });
+
+  final DocumentType? selected;
+  final bool invalid;
+  final bool enabled;
+  final ValueChanged<DocumentType> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    String label(DocumentType type) => switch (type) {
+      DocumentType.cc => l10n.confirmationDocumentTypeCc,
+      DocumentType.ce => l10n.confirmationDocumentTypeCe,
+      DocumentType.pasaporte => l10n.confirmationDocumentTypePasaporte,
+    };
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.confirmationDocumentTypeLabel,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final type in DocumentType.values)
+                ChoiceChip(
+                  key: Key('document-type-${type.name}'),
+                  label: Text(label(type)),
+                  selected: selected == type,
+                  onSelected: enabled ? (_) => onSelected(type) : null,
+                ),
+            ],
+          ),
+          if (invalid)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                l10n.confirmationDocumentTypeInvalid,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

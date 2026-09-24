@@ -10,11 +10,15 @@ import '../../../l10n/generated/app_localizations.dart';
 class JourneyStepper extends StatelessWidget {
   const JourneyStepper({
     required this.validated,
+    this.steps = const {Checkpoint.security, Checkpoint.boarding},
     required this.current,
     super.key,
   });
 
   final Set<Checkpoint> validated;
+
+  /// The checkpoints shown, in journey order (015 FR-024).
+  final Set<Checkpoint> steps;
 
   /// Null once boarding is confirmed.
   final Checkpoint? current;
@@ -28,7 +32,10 @@ class JourneyStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final steps = Checkpoint.values;
+    final steps = [
+      for (final checkpoint in Checkpoint.values)
+        if (this.steps.contains(checkpoint)) checkpoint,
+    ];
     return Row(
       children: [
         for (final (index, step) in steps.indexed) ...[

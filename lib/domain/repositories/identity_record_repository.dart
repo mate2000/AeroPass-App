@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:meta/meta.dart';
 
 import '../../core/result.dart';
@@ -20,6 +22,15 @@ abstract class IdentityRecordRepository {
   /// Constitution's Principle I allowlist. On `Error` (offline, timeout,
   /// backend rejection), nothing is written locally — FR-017's "where it
   /// cannot be recorded, the flow MUST NOT advance."
+  ///
+  /// 015: the backend registration (`POST /v1/identity`) also needs the
+  /// document photo, [documentPhoto], which becomes the biometric reference.
+  /// A backend refusal is `Result.error(RegistrationRejection)`
+  /// (contracts/outcome-mapping.md). The caller drops the bytes once this
+  /// returns.
   @useResult
-  Future<Result<IdentityRecord>> confirm(IdentityRecord record);
+  Future<Result<IdentityRecord>> confirm(
+    IdentityRecord record, {
+    Uint8List? documentPhoto,
+  });
 }

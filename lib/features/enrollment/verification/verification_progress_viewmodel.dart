@@ -8,6 +8,7 @@ import '../../../app/enrollment_session_controller.dart';
 import '../../../app/pending_document_controller.dart';
 import '../../../app/technical_error_controller.dart';
 import '../../../core/clock.dart';
+import '../../../core/diagnostics.dart';
 import '../../../core/result.dart';
 import '../../../domain/entities/capture_attempt_counter.dart';
 import '../../../domain/entities/issuance_outcome.dart';
@@ -62,6 +63,9 @@ enum VerificationNavigationTarget {
   documentCapture,
   retryGuidance,
   technicalError,
+
+  /// 015 FR-009: manual review, 010.
+  agentEscalation,
 }
 
 /// Screen 07's ViewModel (007-validando). Replaces 008's placeholder
@@ -384,6 +388,15 @@ class VerificationProgressViewModel extends ChangeNotifier {
           VerificationOutcomeKind.biometricRejected,
           VerificationNavigationTarget.retryGuidance,
         );
+      case VerificationManualReview():
+        // 015 FR-009: the backend's review state, or no attempts left. The
+        // agent path, never a retry, and nothing is counted: the server owns
+        // the budget (FR-008).
+        _fail(
+          VerificationStage.faceComparison,
+          VerificationOutcomeKind.biometricRejected,
+          VerificationNavigationTarget.agentEscalation,
+        );
       case VerificationServiceFailure():
         // R10: the service's fault; no attempt is counted (SC-006). The job
         // can never finish, so 011's retry needs a new selfie.
@@ -413,6 +426,12 @@ class VerificationProgressViewModel extends ChangeNotifier {
     VerificationOutcomeKind kind,
     VerificationNavigationTarget target,
   ) {
+    const Diagnostics().warn('verification_failed', {
+      'stage': stage.name,
+      'kind': kind.name,
+      'target': target.name,
+      'elapsed_ms': _clock.now().difference(_openedAt).inMilliseconds,
+    });
     _decide();
     if (_disposed) return;
     if (_stages[stage] != StageStatus.failed) {

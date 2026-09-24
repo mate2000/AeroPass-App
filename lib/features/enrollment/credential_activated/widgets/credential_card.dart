@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/design/app_colors.dart';
 import '../../../../domain/entities/activated_credential.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../../core/happy_path_flags.dart';
 
 /// The credential card (008-identidad-activa, UI reference): label, holder
 /// name, masked document, issue date, validity and status, with a generic
@@ -107,30 +108,37 @@ class CredentialCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          // 015: the badge wraps below the dates when the row is too tight
+          // (200% text, or the longer "REGISTRADO"), rather than overflowing.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.end,
+            spacing: 12,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.credentialCardIssuedOn(issuedOn),
-                      style: theme.bodySmall?.copyWith(color: onCard),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.credentialCardIssuedOn(issuedOn),
+                    style: theme.bodySmall?.copyWith(color: onCard),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.credentialCardValidUntil(validUntil),
+                    style: theme.bodySmall?.copyWith(
+                      color: onCard,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.credentialCardValidUntil(validUntil),
-                      style: theme.bodySmall?.copyWith(
-                        color: onCard,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              _ActiveBadge(label: l10n.credentialCardActiveBadge),
+              _ActiveBadge(
+                label: HappyPathFlags.biometricProviderMock
+                    ? l10n.credentialCardBadgeMock
+                    : l10n.credentialCardActiveBadge,
+              ),
             ],
           ),
         ],
@@ -194,10 +202,14 @@ class _ActiveBadge extends StatelessWidget {
             child: Icon(Icons.circle, color: Colors.white, size: 8),
           ),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium
-                ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+          // Flexible, so a long label at 200% text wraps inside the badge
+          // instead of overflowing the card.
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium
+                  ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),

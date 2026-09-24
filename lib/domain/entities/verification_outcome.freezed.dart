@@ -56,7 +56,7 @@ extension VerificationOutcomePatterns on VerificationOutcome {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( VerificationMatched value)?  matched,TResult Function( VerificationDocumentRejected value)?  documentRejected,TResult Function( VerificationFaceMismatch value)?  faceMismatch,TResult Function( VerificationLivenessRejected value)?  livenessRejected,TResult Function( VerificationAttackDetected value)?  attackDetected,TResult Function( VerificationServiceFailure value)?  serviceFailure,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( VerificationMatched value)?  matched,TResult Function( VerificationDocumentRejected value)?  documentRejected,TResult Function( VerificationFaceMismatch value)?  faceMismatch,TResult Function( VerificationLivenessRejected value)?  livenessRejected,TResult Function( VerificationAttackDetected value)?  attackDetected,TResult Function( VerificationServiceFailure value)?  serviceFailure,TResult Function( VerificationManualReview value)?  manualReview,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case VerificationMatched() when matched != null:
@@ -65,7 +65,8 @@ return documentRejected(_that);case VerificationFaceMismatch() when faceMismatch
 return faceMismatch(_that);case VerificationLivenessRejected() when livenessRejected != null:
 return livenessRejected(_that);case VerificationAttackDetected() when attackDetected != null:
 return attackDetected(_that);case VerificationServiceFailure() when serviceFailure != null:
-return serviceFailure(_that);case _:
+return serviceFailure(_that);case VerificationManualReview() when manualReview != null:
+return manualReview(_that);case _:
   return orElse();
 
 }
@@ -83,7 +84,7 @@ return serviceFailure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( VerificationMatched value)  matched,required TResult Function( VerificationDocumentRejected value)  documentRejected,required TResult Function( VerificationFaceMismatch value)  faceMismatch,required TResult Function( VerificationLivenessRejected value)  livenessRejected,required TResult Function( VerificationAttackDetected value)  attackDetected,required TResult Function( VerificationServiceFailure value)  serviceFailure,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( VerificationMatched value)  matched,required TResult Function( VerificationDocumentRejected value)  documentRejected,required TResult Function( VerificationFaceMismatch value)  faceMismatch,required TResult Function( VerificationLivenessRejected value)  livenessRejected,required TResult Function( VerificationAttackDetected value)  attackDetected,required TResult Function( VerificationServiceFailure value)  serviceFailure,required TResult Function( VerificationManualReview value)  manualReview,}){
 final _that = this;
 switch (_that) {
 case VerificationMatched():
@@ -92,7 +93,8 @@ return documentRejected(_that);case VerificationFaceMismatch():
 return faceMismatch(_that);case VerificationLivenessRejected():
 return livenessRejected(_that);case VerificationAttackDetected():
 return attackDetected(_that);case VerificationServiceFailure():
-return serviceFailure(_that);}
+return serviceFailure(_that);case VerificationManualReview():
+return manualReview(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -106,7 +108,7 @@ return serviceFailure(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( VerificationMatched value)?  matched,TResult? Function( VerificationDocumentRejected value)?  documentRejected,TResult? Function( VerificationFaceMismatch value)?  faceMismatch,TResult? Function( VerificationLivenessRejected value)?  livenessRejected,TResult? Function( VerificationAttackDetected value)?  attackDetected,TResult? Function( VerificationServiceFailure value)?  serviceFailure,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( VerificationMatched value)?  matched,TResult? Function( VerificationDocumentRejected value)?  documentRejected,TResult? Function( VerificationFaceMismatch value)?  faceMismatch,TResult? Function( VerificationLivenessRejected value)?  livenessRejected,TResult? Function( VerificationAttackDetected value)?  attackDetected,TResult? Function( VerificationServiceFailure value)?  serviceFailure,TResult? Function( VerificationManualReview value)?  manualReview,}){
 final _that = this;
 switch (_that) {
 case VerificationMatched() when matched != null:
@@ -115,7 +117,8 @@ return documentRejected(_that);case VerificationFaceMismatch() when faceMismatch
 return faceMismatch(_that);case VerificationLivenessRejected() when livenessRejected != null:
 return livenessRejected(_that);case VerificationAttackDetected() when attackDetected != null:
 return attackDetected(_that);case VerificationServiceFailure() when serviceFailure != null:
-return serviceFailure(_that);case _:
+return serviceFailure(_that);case VerificationManualReview() when manualReview != null:
+return manualReview(_that);case _:
   return null;
 
 }
@@ -132,7 +135,7 @@ return serviceFailure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  matched,TResult Function()?  documentRejected,TResult Function()?  faceMismatch,TResult Function()?  livenessRejected,TResult Function()?  attackDetected,TResult Function()?  serviceFailure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  matched,TResult Function()?  documentRejected,TResult Function()?  faceMismatch,TResult Function()?  livenessRejected,TResult Function()?  attackDetected,TResult Function()?  serviceFailure,TResult Function()?  manualReview,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case VerificationMatched() when matched != null:
 return matched();case VerificationDocumentRejected() when documentRejected != null:
@@ -140,7 +143,8 @@ return documentRejected();case VerificationFaceMismatch() when faceMismatch != n
 return faceMismatch();case VerificationLivenessRejected() when livenessRejected != null:
 return livenessRejected();case VerificationAttackDetected() when attackDetected != null:
 return attackDetected();case VerificationServiceFailure() when serviceFailure != null:
-return serviceFailure();case _:
+return serviceFailure();case VerificationManualReview() when manualReview != null:
+return manualReview();case _:
   return orElse();
 
 }
@@ -158,7 +162,7 @@ return serviceFailure();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  matched,required TResult Function()  documentRejected,required TResult Function()  faceMismatch,required TResult Function()  livenessRejected,required TResult Function()  attackDetected,required TResult Function()  serviceFailure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  matched,required TResult Function()  documentRejected,required TResult Function()  faceMismatch,required TResult Function()  livenessRejected,required TResult Function()  attackDetected,required TResult Function()  serviceFailure,required TResult Function()  manualReview,}) {final _that = this;
 switch (_that) {
 case VerificationMatched():
 return matched();case VerificationDocumentRejected():
@@ -166,7 +170,8 @@ return documentRejected();case VerificationFaceMismatch():
 return faceMismatch();case VerificationLivenessRejected():
 return livenessRejected();case VerificationAttackDetected():
 return attackDetected();case VerificationServiceFailure():
-return serviceFailure();}
+return serviceFailure();case VerificationManualReview():
+return manualReview();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -180,7 +185,7 @@ return serviceFailure();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  matched,TResult? Function()?  documentRejected,TResult? Function()?  faceMismatch,TResult? Function()?  livenessRejected,TResult? Function()?  attackDetected,TResult? Function()?  serviceFailure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  matched,TResult? Function()?  documentRejected,TResult? Function()?  faceMismatch,TResult? Function()?  livenessRejected,TResult? Function()?  attackDetected,TResult? Function()?  serviceFailure,TResult? Function()?  manualReview,}) {final _that = this;
 switch (_that) {
 case VerificationMatched() when matched != null:
 return matched();case VerificationDocumentRejected() when documentRejected != null:
@@ -188,7 +193,8 @@ return documentRejected();case VerificationFaceMismatch() when faceMismatch != n
 return faceMismatch();case VerificationLivenessRejected() when livenessRejected != null:
 return livenessRejected();case VerificationAttackDetected() when attackDetected != null:
 return attackDetected();case VerificationServiceFailure() when serviceFailure != null:
-return serviceFailure();case _:
+return serviceFailure();case VerificationManualReview() when manualReview != null:
+return manualReview();case _:
   return null;
 
 }
@@ -380,6 +386,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
     return 'VerificationOutcome.serviceFailure()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class VerificationManualReview implements VerificationOutcome {
+  const VerificationManualReview();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is VerificationManualReview);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+    return 'VerificationOutcome.manualReview()';
 }
 
 

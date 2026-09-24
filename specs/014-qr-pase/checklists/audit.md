@@ -57,8 +57,9 @@ These are findings, not a reviewer checklist, so they use no checkboxes.
 
 ## Open items
 
-- **Phase B** (T026–T031) is blocked on ratifying contracts/constitution-amendment-proposal.md.
-  Until then the pass does not work offline, and says so.
+- **Phase B** (T026–T031) is cancelled under 015 DEC-01: the pass is online-only. Since 015 the
+  real backend issues the token, `BackendPassRepository` renews it every `renovar_en_segundos`, and a
+  failed renewal hides the code at `expira_at`.
 - **iOS** cannot block screenshots. The Swift channel code was not compiled here, because there is
   no Xcode toolchain.
 - **CI** reads `env/prod.env`, so that file must be committed.

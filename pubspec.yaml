@@ -50,6 +50,9 @@ dependencies:
   # 014-qr-pase research.md §3: a pure-Dart QR encoder (no camera, storage,
   # network or device-identifier access), drawn with a CustomPainter.
   qr: ^4.0.0
+  clerk_auth: ^0.0.18-beta
+  http: ^1.6.0
+  clerk_flutter: ^0.0.18-beta
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +84,13 @@ flutter:
   # Enables Flutter's gen-l10n code generation from lib/l10n/*.arb, configured
   # via l10n.yaml at the repository root (research.md §5).
   generate: true
+
+  # 015 research.md §4: the only TLS trust anchors (see assets/tls/README.md).
+  assets:
+    - assets/tls/gts-root-r1.pem
+    - assets/tls/gts-root-r2.pem
+    - assets/tls/gts-root-r3.pem
+    - assets/tls/gts-root-r4.pem
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -1,0 +1,8 @@
+{
+  "status": 503,
+  "retry_after": 30,
+  "body": {
+    "codigo": "ALMACENAMIENTO_NO_DISPONIBLE",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

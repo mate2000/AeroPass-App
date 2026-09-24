@@ -801,12 +801,12 @@ return ready(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( DocumentBlockReason reason)?  blocked,TResult Function( List<FieldRowState> fields,  bool confirming,  bool confirmFailed)?  ready,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( DocumentBlockReason reason)?  blocked,TResult Function( List<FieldRowState> fields,  bool confirming,  bool confirmFailed,  bool typedEntry,  DocumentType? documentType,  bool documentTypeInvalid,  ConfirmFailureKind failureKind,  Duration? retryAfter)?  ready,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case DocumentConfirmationViewLoading() when loading != null:
 return loading();case DocumentConfirmationViewBlocked() when blocked != null:
 return blocked(_that.reason);case DocumentConfirmationViewReady() when ready != null:
-return ready(_that.fields,_that.confirming,_that.confirmFailed);case _:
+return ready(_that.fields,_that.confirming,_that.confirmFailed,_that.typedEntry,_that.documentType,_that.documentTypeInvalid,_that.failureKind,_that.retryAfter);case _:
   return orElse();
 
 }
@@ -824,12 +824,12 @@ return ready(_that.fields,_that.confirming,_that.confirmFailed);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( DocumentBlockReason reason)  blocked,required TResult Function( List<FieldRowState> fields,  bool confirming,  bool confirmFailed)  ready,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( DocumentBlockReason reason)  blocked,required TResult Function( List<FieldRowState> fields,  bool confirming,  bool confirmFailed,  bool typedEntry,  DocumentType? documentType,  bool documentTypeInvalid,  ConfirmFailureKind failureKind,  Duration? retryAfter)  ready,}) {final _that = this;
 switch (_that) {
 case DocumentConfirmationViewLoading():
 return loading();case DocumentConfirmationViewBlocked():
 return blocked(_that.reason);case DocumentConfirmationViewReady():
-return ready(_that.fields,_that.confirming,_that.confirmFailed);}
+return ready(_that.fields,_that.confirming,_that.confirmFailed,_that.typedEntry,_that.documentType,_that.documentTypeInvalid,_that.failureKind,_that.retryAfter);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -843,12 +843,12 @@ return ready(_that.fields,_that.confirming,_that.confirmFailed);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( DocumentBlockReason reason)?  blocked,TResult? Function( List<FieldRowState> fields,  bool confirming,  bool confirmFailed)?  ready,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( DocumentBlockReason reason)?  blocked,TResult? Function( List<FieldRowState> fields,  bool confirming,  bool confirmFailed,  bool typedEntry,  DocumentType? documentType,  bool documentTypeInvalid,  ConfirmFailureKind failureKind,  Duration? retryAfter)?  ready,}) {final _that = this;
 switch (_that) {
 case DocumentConfirmationViewLoading() when loading != null:
 return loading();case DocumentConfirmationViewBlocked() when blocked != null:
 return blocked(_that.reason);case DocumentConfirmationViewReady() when ready != null:
-return ready(_that.fields,_that.confirming,_that.confirmFailed);case _:
+return ready(_that.fields,_that.confirming,_that.confirmFailed,_that.typedEntry,_that.documentType,_that.documentTypeInvalid,_that.failureKind,_that.retryAfter);case _:
   return null;
 
 }
@@ -960,7 +960,7 @@ as DocumentBlockReason,
 
 
 class DocumentConfirmationViewReady implements DocumentConfirmationViewState {
-  const DocumentConfirmationViewReady({required  List<FieldRowState> fields, this.confirming = false, this.confirmFailed = false}): _fields = fields;
+  const DocumentConfirmationViewReady({required  List<FieldRowState> fields, this.confirming = false, this.confirmFailed = false, this.typedEntry = false, this.documentType, this.documentTypeInvalid = false, this.failureKind = ConfirmFailureKind.generic, this.retryAfter}): _fields = fields;
   
 
  final  List<FieldRowState> _fields;
@@ -972,6 +972,19 @@ class DocumentConfirmationViewReady implements DocumentConfirmationViewState {
 
 @JsonKey() final  bool confirming;
 @JsonKey() final  bool confirmFailed;
+/// 015 FR-002a: the passenger types every field, because the backend
+/// reads nothing from the photo. True when the capture handed over
+/// only empty fields, as the release capture does.
+@JsonKey() final  bool typedEntry;
+/// 015 FR-002: CC, CE or Pasaporte, chosen by the passenger. It is
+/// required when [typedEntry] is true.
+ final  DocumentType? documentType;
+/// The backend refused the document type (`DATOS_INVALIDOS`).
+@JsonKey() final  bool documentTypeInvalid;
+/// Why the last confirm failed. It is read only when [confirmFailed].
+@JsonKey() final  ConfirmFailureKind failureKind;
+/// For [ConfirmFailureKind.serviceBusy]: the backend's Retry-After.
+ final  Duration? retryAfter;
 
 /// Create a copy of DocumentConfirmationViewState
 /// with the given fields replaced by the non-null parameter values.
@@ -983,18 +996,18 @@ $DocumentConfirmationViewReadyCopyWith<DocumentConfirmationViewReady> get copyWi
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentConfirmationViewReady&&const DeepCollectionEquality().equals(other.fields, _fields)&&(identical(other.confirming, confirming) || other.confirming == confirming)&&(identical(other.confirmFailed, confirmFailed) || other.confirmFailed == confirmFailed));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DocumentConfirmationViewReady&&const DeepCollectionEquality().equals(other.fields, _fields)&&(identical(other.confirming, confirming) || other.confirming == confirming)&&(identical(other.confirmFailed, confirmFailed) || other.confirmFailed == confirmFailed)&&(identical(other.typedEntry, typedEntry) || other.typedEntry == typedEntry)&&(identical(other.documentType, documentType) || other.documentType == documentType)&&(identical(other.documentTypeInvalid, documentTypeInvalid) || other.documentTypeInvalid == documentTypeInvalid)&&(identical(other.failureKind, failureKind) || other.failureKind == failureKind)&&(identical(other.retryAfter, retryAfter) || other.retryAfter == retryAfter));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_fields),confirming,confirmFailed);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_fields),confirming,confirmFailed,typedEntry,documentType,documentTypeInvalid,failureKind,retryAfter);
 }
 
 @override
 String toString() {
-    return 'DocumentConfirmationViewState.ready(fields: $fields, confirming: $confirming, confirmFailed: $confirmFailed)';
+    return 'DocumentConfirmationViewState.ready(fields: $fields, confirming: $confirming, confirmFailed: $confirmFailed, typedEntry: $typedEntry, documentType: $documentType, documentTypeInvalid: $documentTypeInvalid, failureKind: $failureKind, retryAfter: $retryAfter)';
 }
 
 
@@ -1005,7 +1018,7 @@ abstract mixin class $DocumentConfirmationViewReadyCopyWith<$Res> implements $Do
   factory $DocumentConfirmationViewReadyCopyWith(DocumentConfirmationViewReady value, $Res Function(DocumentConfirmationViewReady) _then) = _$DocumentConfirmationViewReadyCopyWithImpl;
 @useResult
 $Res call({
- List<FieldRowState> fields, bool confirming, bool confirmFailed
+ List<FieldRowState> fields, bool confirming, bool confirmFailed, bool typedEntry, DocumentType? documentType, bool documentTypeInvalid, ConfirmFailureKind failureKind, Duration? retryAfter
 });
 
 
@@ -1022,12 +1035,17 @@ class _$DocumentConfirmationViewReadyCopyWithImpl<$Res>
 
 /// Create a copy of DocumentConfirmationViewState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? fields = null,Object? confirming = null,Object? confirmFailed = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? fields = null,Object? confirming = null,Object? confirmFailed = null,Object? typedEntry = null,Object? documentType = freezed,Object? documentTypeInvalid = null,Object? failureKind = null,Object? retryAfter = freezed,}) {
   return _then(DocumentConfirmationViewReady(
 fields: null == fields ? _self._fields : fields // ignore: cast_nullable_to_non_nullable
 as List<FieldRowState>,confirming: null == confirming ? _self.confirming : confirming // ignore: cast_nullable_to_non_nullable
 as bool,confirmFailed: null == confirmFailed ? _self.confirmFailed : confirmFailed // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,typedEntry: null == typedEntry ? _self.typedEntry : typedEntry // ignore: cast_nullable_to_non_nullable
+as bool,documentType: freezed == documentType ? _self.documentType : documentType // ignore: cast_nullable_to_non_nullable
+as DocumentType?,documentTypeInvalid: null == documentTypeInvalid ? _self.documentTypeInvalid : documentTypeInvalid // ignore: cast_nullable_to_non_nullable
+as bool,failureKind: null == failureKind ? _self.failureKind : failureKind // ignore: cast_nullable_to_non_nullable
+as ConfirmFailureKind,retryAfter: freezed == retryAfter ? _self.retryAfter : retryAfter // ignore: cast_nullable_to_non_nullable
+as Duration?,
   ));
 }
 

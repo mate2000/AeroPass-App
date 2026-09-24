@@ -1,0 +1,8 @@
+{
+  "status": 413,
+  "retry_after": null,
+  "body": {
+    "codigo": "IMAGEN_DEMASIADO_GRANDE",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

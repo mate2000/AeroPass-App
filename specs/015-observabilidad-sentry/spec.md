@@ -38,6 +38,7 @@ La feature `011-error-tecnico` dejó una integración base de Sentry. Este spec 
 - Q: ¿Qué entornos disparan alertas y alimentan el dashboard? → A: Todos los entornos, separados por la etiqueta de entorno en el dashboard; las alertas de métricas de negocio solo en prod, y las de crashes y errores operativos en todos.
 - Q: ¿En qué periodo y con qué mínimo se evalúan las alertas de conversión y p90? → A: Periodo de 1 hora, con un mínimo de 10 intentos de registro; con menos, no se alerta.
 - Q: ¿Después de cuánto tiempo sin Identidad Digital activa se considera abandonado un intento? → A: 15 minutos desde el primer escaneo de documento.
+- Decisión en el plan (research §3–§4): el p90 de duración se calcula solo con registros completados sin reiniciar la app, y las alertas de conversión y p90 se evalúan por hora sin mínimo de 10 intentos ni plazo de 15 minutos, porque Sentry no admite esas condiciones → aceptado por el usuario; FR-007 y FR-014 ajustados.
 - Nota del usuario: el proyecto se presenta en 15 minutos y en la presentación se deben inyectar fallos (diseño pendiente) → se agregan las Historias 7 (demostración) y 8 (inyección de fallos).
 
 ## User Scenarios & Testing *(mandatory)*
@@ -87,9 +88,9 @@ Como responsable de producto, quiero ver qué porcentaje de los pasajeros que em
 **Acceptance Scenarios**:
 
 1. **Given** los intentos de registro de un periodo, **When** se calcula la métrica, **Then** es (intentos con `credentialActivatedShown` ÷ intentos con `captureStepEntered`) × 100, agrupando por `EnrollmentAttemptId`.
-2. **Given** los intentos que completaron, **When** se calcula la duración, **Then** es el p90 del tiempo entre el primer `captureStepEntered` y `credentialActivatedShown` del mismo `EnrollmentAttemptId`.
+2. **Given** los intentos que completaron sin reiniciar la app, **When** se calcula la duración, **Then** es el p90 del tiempo entre el primer `captureStepEntered` y `credentialActivatedShown` del mismo `EnrollmentAttemptId`; los intentos retomados en otro arranque no aportan duración.
 3. **Given** un intento abandonado, **When** se consulta, **Then** se puede ver el último paso alcanzado, para saber dónde se concentra el abandono.
-4. **Given** un pasajero cierra la app a mitad del registro y lo retoma en otro arranque, **When** completa, **Then** cuenta como un solo intento completado, no como un abandono más una finalización.
+4. **Given** un pasajero cierra la app a mitad del registro y lo retoma en otro arranque, **When** completa, **Then** cuenta como un solo intento completado en la conversión, no como un abandono más una finalización, y no aporta duración al p90.
 
 ---
 
@@ -137,8 +138,8 @@ Como responsable de producto/soporte, quiero un dashboard en el proyecto `aeropa
 
 1. **Given** el proyecto `aeropass-app`, **When** se abre el dashboard, **Then** muestra sin configuración adicional: sesiones y usuarios libres de crash por versión, tasa de conversión de onboarding y su p90, embudo por paso, tasas de auto rechazo (dispositivo, backend, liveness), rendimiento por pantalla crítica y tiempo hasta el pase, con cada widget separado o filtrable por entorno (dev, dev-offline, prod) para que los datos de prueba no se mezclen con los de prod.
 2. **Given** existe la regla de alerta sobre `failure_class:service`, **When** llega un evento con esa etiqueta desde cualquier entorno, **Then** se envía un correo al equipo que indica el entorno, y ese entorno puede declarar `SENTRY_ALERT_RULE_CONFIRMED=true`.
-3. **Given** en prod, en la última hora, hubo al menos 10 intentos de registro y la conversión baja de 90% o el p90 de registro supera 3 minutos, **When** se evalúa la regla, **Then** llega un correo que identifica la métrica, sin datos personales; el mismo umbral cruzado en dev no dispara correo.
-4. **Given** en prod hubo menos de 10 intentos de registro en la última hora, **When** se evalúa la regla, **Then** no se envía correo, aunque la tasa esté por debajo de 90%.
+3. **Given** en prod, en la última hora, la conversión baja de 90% o el p90 de registro supera 3 minutos, **When** se evalúa la regla, **Then** llega un correo que identifica la métrica, sin datos personales; el mismo umbral cruzado en dev o demo no dispara correo.
+4. **Given** en prod hubo muy pocos intentos en la última hora, **When** la tasa cae por debajo de 90%, **Then** la regla puede disparar igual (Sentry no admite un volumen mínimo); quien recibe el correo revisa el volumen en el dashboard antes de actuar.
 5. **Given** hay un pico de crashes en una versión nueva en cualquier entorno, **When** se cruza el umbral, **Then** llega un correo que identifica la versión y el entorno.
 
 ---
@@ -201,8 +202,8 @@ Como equipo del proyecto, queremos provocar a voluntad fallos concretos durante 
 - Dispositivo comprometido, fallo de pinning o backend no disponible: quedan como eventos propios, sin detalles que ayuden a evadir la protección.
 - Pantallas de credencial y pase con bloqueo de captura: no se generan capturas de pantalla.
 - Un evento de negocio con un campo no previsto en su contrato: no se envía ese campo.
-- Volumen bajo en prod (menos de 10 intentos en una hora): la alerta de conversión no se evalúa en ese periodo; con el mínimo de 10, dos abandonos seguidos ya pueden disparar un correo, que es el costo aceptado de detectar rápido.
-- Un registro en curso cuando termina la hora evaluada: no cuenta como abandono hasta cumplir 15 minutos desde su inicio.
+- Volumen bajo en prod: con pocos intentos en una hora, un solo abandono puede bajar la tasa de 90% y disparar el correo; es el costo aceptado de usar solo lo que Sentry admite. El dashboard muestra el volumen para juzgarlo.
+- Un registro en curso cuando termina la hora evaluada: el análisis no lo cuenta como abandono hasta cumplir 15 minutos; la alerta horaria sí puede verlo como no completado (sesgo pequeño, porque el p90 esperado es de 3 minutos).
 - *(Diferido, Historia 8)* Un fallo inyectado que coincide con un fallo real: el real se distingue por no llevar la marca de inyectado.
 - Pruebas en dev que abandonan registros a propósito: bajan la conversión de dev, pero no disparan la alerta de negocio, que solo mira prod.
 - Alguien cambia un umbral de alerta en la UI de Sentry: la UI es la fuente de verdad del valor vigente; este spec fija qué se alerta y su meta de referencia (los KR).
@@ -217,14 +218,14 @@ Como equipo del proyecto, queremos provocar a voluntad fallos concretos durante 
 - **FR-004**: Session Replay DEBE mantenerse activo en toda la app, con textos, imágenes y la vista de cámara enmascarados en todas las pantallas. El enmascarado DEBE verificarse en las pantallas de documento, selfie, liveness, confirmación, credencial y pase antes de cada release: ninguna grabación puede mostrar un dato prohibido por FR-002.
 - **FR-005**: La app DEBE enviar a Sentry cada evento del `AnalyticsEmitter`, con el mismo nombre, payload e identificador de sesión anónimo de su contrato, manteniendo también el log local. Los eventos emitidos después de confirmar el consentimiento DEBEN llevar además el `EnrollmentAttemptId` del intento en curso; los anteriores (bienvenida, consentimiento no confirmado) no lo llevan.
 - **FR-006**: El envío de eventos de negocio NO DEBE añadir campos fuera del contrato de cada evento.
-- **FR-007**: La app DEBE permitir calcular la tasa de conversión/finalización de onboarding (`credentialActivatedShown` ÷ `captureStepEntered` por `EnrollmentAttemptId`) y su p90 de duración, contando un registro retomado en otro arranque como un solo intento. Un intento sin `credentialActivatedShown` 15 minutos después de su primer `captureStepEntered` cuenta como abandonado; la alerta horaria solo evalúa intentos que ya cumplieron ese plazo. Si un intento abandonado se completa después, el dashboard lo cuenta como completado.
+- **FR-007**: La app DEBE permitir calcular la tasa de conversión/finalización de onboarding (`credentialActivatedShown` ÷ `captureStepEntered` por `EnrollmentAttemptId`), contando un registro retomado en otro arranque como un solo intento. Un intento sin `credentialActivatedShown` 15 minutos después de su primer `captureStepEntered` cuenta como abandonado en el análisis; si se completa después, el dashboard lo cuenta como completado. El p90 de duración se calcula solo con los registros completados sin reiniciar la app (primer `captureStepEntered` y `credentialActivatedShown` en el mismo arranque): los retomados cuentan en la conversión pero no aportan duración, para no guardar en el dispositivo la hora de inicio (Principio I).
 - **FR-008**: La app DEBE permitir calcular por separado la tasa de auto rechazo del dispositivo, la del backend y la de liveness (separando `attackDetected`).
 - **FR-009**: Las trazas de las pantallas críticas DEBEN identificarse por nombre de ruta sin parámetros que lleven datos personales, y DEBE existir una medición del tiempo desde el arranque hasta el pase utilizable.
 - **FR-010**: Las tasas de muestreo de trazas, profiling y replay DEBEN definirse en el plan con justificación de costo frente al KR A4.3. Los errores, los crashes y los eventos del embudo se envían al 100%, sin muestreo, para que las tasas y el p90 sean exactos y coincidan con los conteos del backend.
 - **FR-011**: Todo evento DEBE llevar entorno (flavor) y versión de build, sin identificadores que re-identifiquen al pasajero.
 - **FR-012**: La observabilidad NO DEBE bloquear ni retrasar ninguna pantalla u operación, incluso si Sentry no está disponible.
 - **FR-013**: DEBE existir en `aeropass-app` un dashboard con los widgets de la Historia 6, cada uno separado o filtrable por entorno.
-- **FR-014**: DEBEN existir reglas de alerta por correo para: conversión de onboarding <90% y p90 de registro >3 min, evaluadas solo sobre prod en periodos de 1 hora y solo cuando el periodo tiene al menos 10 intentos de registro; y eventos `failure_class:service` y pico de crashes en una versión nueva, evaluadas en todos los entornos e indicando el entorno en el correo.
+- **FR-014**: DEBEN existir reglas de alerta por correo para: conversión de onboarding <90% y p90 de registro >3 min, evaluadas solo sobre prod en periodos de 1 hora (sin volumen mínimo ni plazo de 15 minutos, que Sentry no admite; aceptado por el usuario); y eventos `failure_class:service` y pico de crashes en una versión nueva, evaluadas en todos los entornos e indicando el entorno en el correo.
 - **FR-015**: Una vez creada la regla sobre `failure_class:service`, el archivo de entorno correspondiente DEBE declarar `SENTRY_ALERT_RULE_CONFIRMED=true`, y solo entonces.
 - **FR-016**: El dashboard y las alertas se configuran manualmente en la UI de Sentry en este ciclo, y el plan DEBE documentar cada widget y regla (consulta, umbral, destinatario) para poder recrearlos.
 - **FR-017**: Los símbolos de depuración de cada build de release (Android e iOS) DEBEN subirse a Sentry para que los crashes muestren función y línea.

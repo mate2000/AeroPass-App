@@ -8,9 +8,11 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../app/enrollment_session_controller.dart';
 import '../app/pending_document_controller.dart';
 import 'activated_credential_handoff.dart';
+import 'full_display_marker.dart';
 import 'technical_error_controller.dart';
 import '../core/clock.dart';
 import '../data/services/camera_capture_service.dart';
+import '../data/services/full_display_reporter.dart';
 import '../data/services/liveness_camera_service.dart';
 import '../data/services/system_settings_launcher.dart';
 import '../domain/entities/consent_record.dart';
@@ -210,8 +212,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
             systemSettingsLauncher: context.read<SystemSettingsLauncher>(),
           ),
           child: Consumer<CaptureViewModel>(
-            builder: (context, viewModel, _) =>
-                CaptureView(viewModel: viewModel),
+            builder: (context, viewModel, _) => FullDisplayMarker(
+              reporter: context.read<FullDisplayReporter>(),
+              ready: true,
+              child: CaptureView(viewModel: viewModel),
+            ),
           ),
         ),
       ),
@@ -230,8 +235,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
             clock: context.read<Clock>(),
           ),
           child: Consumer<DocumentConfirmationViewModel>(
-            builder: (context, viewModel, _) =>
-                DocumentConfirmationView(viewModel: viewModel),
+            builder: (context, viewModel, _) => FullDisplayMarker(
+              reporter: context.read<FullDisplayReporter>(),
+              ready: true,
+              child: DocumentConfirmationView(viewModel: viewModel),
+            ),
           ),
         ),
       ),
@@ -263,8 +271,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
             analyticsEmitter: context.read<AnalyticsEmitter>(),
           ),
           child: Consumer<LivenessCaptureViewModel>(
-            builder: (context, viewModel, _) =>
-                LivenessCaptureView(viewModel: viewModel),
+            builder: (context, viewModel, _) => FullDisplayMarker(
+              reporter: context.read<FullDisplayReporter>(),
+              ready: true,
+              child: LivenessCaptureView(viewModel: viewModel),
+            ),
           ),
         ),
       ),
@@ -286,8 +297,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
             clock: context.read<Clock>(),
           ),
           child: Consumer<VerificationProgressViewModel>(
-            builder: (context, viewModel, _) =>
-                VerificationProgressView(viewModel: viewModel),
+            builder: (context, viewModel, _) => FullDisplayMarker(
+              reporter: context.read<FullDisplayReporter>(),
+              ready: true,
+              child: VerificationProgressView(viewModel: viewModel),
+            ),
           ),
         ),
       ),
@@ -300,8 +314,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
             screenCaptureGuard: context.read<ScreenCaptureGuard>(),
           ),
           child: Consumer<CredentialActivatedViewModel>(
-            builder: (context, viewModel, _) =>
-                CredentialActivatedView(viewModel: viewModel),
+            builder: (context, viewModel, _) => FullDisplayMarker(
+              reporter: context.read<FullDisplayReporter>(),
+              ready: true,
+              child: CredentialActivatedView(viewModel: viewModel),
+            ),
           ),
         ),
       ),
@@ -451,8 +468,11 @@ GoRouter buildAppRouter({String? initialLocation}) {
                   : null,
             ),
             child: Consumer<PassViewModel>(
-              builder: (context, viewModel, _) =>
-                  PassView(viewModel: viewModel),
+              builder: (context, viewModel, _) => FullDisplayMarker(
+                reporter: context.read<FullDisplayReporter>(),
+                ready: viewModel.state is PassShowing,
+                child: PassView(viewModel: viewModel),
+              ),
             ),
           );
         },

@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/widgets.dart';
@@ -61,9 +63,15 @@ import '../data/services/identity_record_service.dart';
 import '../data/services/liveness_camera_service.dart';
 import '../data/services/liveness_verification_repository_impl.dart';
 import '../data/services/liveness_verification_service.dart';
+import '../data/services/analytics_sink.dart';
+import '../data/services/attempt_tracking_consent_repository.dart';
+import '../data/services/current_enrollment_attempt.dart';
+import '../data/services/enrollment_duration_tracker.dart';
+import '../data/services/full_display_reporter.dart';
 import '../data/services/logging_analytics_emitter.dart';
 import '../data/services/pinned_dio_factory.dart';
 import '../data/services/screen_capture_guard.dart';
+import '../data/services/sentry_log_analytics_sink.dart';
 import '../data/services/sentry_operational_alert_reporter.dart';
 import '../data/services/service_status_repository_impl.dart';
 import '../data/services/service_status_service.dart';
@@ -151,9 +159,9 @@ class CompositionRoot extends StatelessWidget {
         _useFakeVerificationBackend
         ? DevCredentialSummaryRepository(credentialService: credentialService)
         : CredentialSummaryRepositoryImpl(credentialService, clock: clock);
-    final ConsentRepository consentRepository;
+    final ConsentRepository baseConsentRepository;
     if (_useFakeConsentBackend) {
-      consentRepository = DevConsentRepository(
+      baseConsentRepository = DevConsentRepository(
         credentialService: credentialService,
       );
     } else {
@@ -161,15 +169,34 @@ class CompositionRoot extends StatelessWidget {
         dio: dio,
         secureStorage: const FlutterSecureStorage(),
       );
-      consentRepository = ConsentRepositoryImpl(
+      baseConsentRepository = ConsentRepositoryImpl(
         consentService,
         clock: clock,
         credentialService: credentialService,
       );
     }
+    // 015-observabilidad-sentry research §10–§11: the current enrollment
+    // attempt tags funnel telemetry; the decorator keeps it in step with
+    // consent, and funnel events also go to Sentry when it is configured.
+    final currentEnrollmentAttempt = CurrentEnrollmentAttempt(
+      consentRepository: baseConsentRepository,
+    );
+    unawaited(currentEnrollmentAttempt.load());
+    final ConsentRepository consentRepository =
+        AttemptTrackingConsentRepository(
+          baseConsentRepository,
+          attempt: currentEnrollmentAttempt,
+        );
     final AnalyticsEmitter analyticsEmitter = LoggingAnalyticsEmitter(
-      sessionId: sessionId,
-      clock: clock,
+      sinks: [
+        DeveloperLogAnalyticsSink(sessionId: sessionId, clock: clock),
+        if (SentryConfig.isEnabled)
+          SentryLogAnalyticsSink(
+            sessionId: sessionId,
+            attempt: currentEnrollmentAttempt,
+            durationTracker: EnrollmentDurationTracker(clock: clock),
+          ),
+      ],
     );
     final enrollmentSessionController = EnrollmentSessionController(
       clock: clock,
@@ -343,6 +370,11 @@ class CompositionRoot extends StatelessWidget {
         Provider<CredentialRepository>.value(value: credentialRepository),
         Provider<ConsentRepository>.value(value: consentRepository),
         Provider<AnalyticsEmitter>.value(value: analyticsEmitter),
+        Provider<FullDisplayReporter>.value(
+          value: SentryConfig.isEnabled
+              ? const SentryFullDisplayReporter()
+              : const NoopFullDisplayReporter(),
+        ),
         Provider<DeviceCapabilityChecker>.value(value: deviceCapabilityChecker),
         Provider<DocumentVerificationRepository>.value(
           value: documentVerificationRepository,

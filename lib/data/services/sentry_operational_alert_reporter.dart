@@ -11,7 +11,7 @@ import '../../domain/repositories/operational_alert_reporter.dart';
 /// `failure_class:service` tag turns it into a notification to the team.
 ///
 /// The event carries a message, two tags and a fingerprint, and nothing
-/// about the passenger. `stripAlertEventPii` removes the user, request and
+/// about the passenger. `SentryPrivacyFilter` removes the user, request and
 /// breadcrumbs that the global options would otherwise attach (FR-018).
 class SentryOperationalAlertReporter implements OperationalAlertReporter {
   const SentryOperationalAlertReporter();

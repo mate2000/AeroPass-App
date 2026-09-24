@@ -29,6 +29,7 @@ import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/core/result.dart';
 import 'package:aeropass_app/data/services/capture_attempt_counter_repository_impl.dart';
 import 'package:aeropass_app/data/services/capture_attempt_counter_service.dart';
+import 'package:aeropass_app/data/services/full_display_reporter.dart';
 import 'package:aeropass_app/data/services/heuristic_quality_assessor.dart';
 import 'package:aeropass_app/domain/entities/consent_record.dart';
 import 'package:aeropass_app/domain/entities/consent_text_version.dart';
@@ -220,6 +221,9 @@ Future<void> _pumpApp(
         ),
         Provider<ConsentRepository>.value(value: consentRepository),
         Provider<AnalyticsEmitter>.value(value: analyticsEmitter),
+        Provider<FullDisplayReporter>.value(
+          value: const NoopFullDisplayReporter(),
+        ),
         Provider<DeviceCapabilityChecker>.value(value: deviceCapabilityChecker),
         Provider<CameraCaptureService>.value(value: cameraCaptureService),
         Provider<DocumentQualityAssessor>.value(value: qualityAssessor),

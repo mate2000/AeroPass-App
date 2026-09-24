@@ -20,6 +20,15 @@
             ]
         },
         {
+            "name": "aeropass_app (demo)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define-from-file=env/demo.env"
+            ]
+        },
+        {
             "name": "aeropass_app (prod)",
             "request": "launch",
             "type": "dart",

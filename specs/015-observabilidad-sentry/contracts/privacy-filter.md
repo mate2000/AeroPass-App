@@ -7,7 +7,7 @@ Un solo componente, conectado a todos los puntos de salida del SDK. Es código d
 | Punto de salida del SDK | Qué hace el filtro |
 |---|---|
 | Opciones globales | `sendDefaultPii = false`; `attachScreenshot = false` (se conserva de 011) |
-| `beforeSend` (errores y crashes) | Elimina `user`, `request` y la IP; elimina de `extra`/`contexts` cualquier clave fuera de una lista mínima técnica (dispositivo, SO, app, cultura); filtra breadcrumbs con la misma regla que `beforeBreadcrumb`. Reemplaza a `stripAlertEventPii`. |
+| `beforeSend` (errores y crashes) | Elimina `user` (incluida la IP) y `request`; borra el nombre del dispositivo del contexto (puede llevar el nombre de una persona); filtra breadcrumbs con la misma regla que `beforeBreadcrumb`, salvo en el evento de alerta de 011 (etiqueta `failure_class`), que los pierde todos (011 research §7). `extra` no se toca: está deprecado en el SDK y la app no lo usa. Reemplaza a `stripAlertEventPii`. |
 | `beforeSendTransaction` (trazas) | Elimina `user` y `request`; conserva nombres de ruta y spans del SDK; elimina datos de spans HTTP que incluyan query o cuerpo. |
 | `beforeBreadcrumb` | Conserva: navegación (solo nombre de ruta, sin `extra`), ciclo de vida de la app, conectividad. Descarta: consola/`print`, entrada de texto, HTTP con query o cuerpo. |
 | `beforeSendLog` | Lista blanca de atributos de [telemetry-events.md](telemetry-events.md) §1; elimina `user.*`; el cuerpo del mensaje debe ser igual a `aeropass.event` (si no, el log se descarta). |

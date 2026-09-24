@@ -66,6 +66,19 @@ dev_dependencies:
   build_runner: ^2.16.1
   mocktail: ^1.0.5
   flutter_secure_storage_platform_interface: ^2.1.1
+  # 015 research §9: build-time only (uploads debug symbols to Sentry); not
+  # bundled in the app and has no access to camera, storage or device network.
+  sentry_dart_plugin: ^3.4.0
+
+# 015 research §9: debug-symbol upload after a release build made with
+# --obfuscate --split-debug-info=debug-info. The auth token comes from
+# SENTRY_AUTH_TOKEN in the environment, never from this file.
+sentry:
+  org: aeropass
+  project: aeropass-app
+  upload_debug_symbols: true
+  upload_source_maps: false
+  symbols_path: debug-info
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

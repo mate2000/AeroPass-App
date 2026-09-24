@@ -25,10 +25,10 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 **Purpose**: dependencias, entornos y configuración de arranque
 
-- [ ] T001 Agregar `sentry_dart_plugin` a `dev_dependencies` y un bloque `sentry:` (org `aeropass`, project `aeropass-app`, `upload_debug_symbols: true`, `upload_source_maps: false`; el token se lee de la variable de entorno `SENTRY_AUTH_TOKEN`, nunca en el archivo) en `pubspec.yaml`; ejecutar `flutter pub get` y confirmar que `pubspec.lock` resuelve (research §9)
-- [ ] T002 [P] Crear `env/demo.env` a partir de `env/dev-offline.env` (mismas banderas de backend falso), con `SENTRY_ENVIRONMENT=demo`, `SENTRY_SEND_TEST_EVENT=false`, `SENTRY_ALERT_RULE_CONFIRMED=false` y las cuatro tasas de muestreo en `1.0` (research §7, §12)
-- [ ] T003 [P] Agregar `SENTRY_TRACES_SAMPLE_RATE`, `SENTRY_PROFILES_SAMPLE_RATE`, `SENTRY_REPLAY_SESSION_SAMPLE_RATE` y `SENTRY_REPLAY_ON_ERROR_SAMPLE_RATE` a `env/dev.env` y `env/dev-offline.env` (todas `1.0`) y a `env/prod.env` (`0.2`, `0.2`, `0.1`, `1.0`) (research §7)
-- [ ] T004 [P] Agregar la configuración `"aeropass_app (demo)"` con `--dart-define-from-file=env/demo.env` en `.vscode/launch.json`
+- [X] T001 Agregar `sentry_dart_plugin` a `dev_dependencies` y un bloque `sentry:` (org `aeropass`, project `aeropass-app`, `upload_debug_symbols: true`, `upload_source_maps: false`, `symbols_path: debug-info`; el token se lee de `SENTRY_AUTH_TOKEN`, nunca del archivo; `/debug-info/` en `.gitignore`) en `pubspec.yaml`; ejecutar `flutter pub get` y confirmar que `pubspec.lock` resuelve (research §9)
+- [X] T002 [P] Crear `env/demo.env` a partir de `env/dev-offline.env` (mismas banderas de backend falso), con `SENTRY_ENVIRONMENT=demo`, `SENTRY_SEND_TEST_EVENT=false`, `SENTRY_ALERT_RULE_CONFIRMED=false` y las cuatro tasas de muestreo en `1.0` (research §7, §12)
+- [X] T003 [P] Agregar `SENTRY_TRACES_SAMPLE_RATE`, `SENTRY_PROFILES_SAMPLE_RATE`, `SENTRY_REPLAY_SESSION_SAMPLE_RATE` y `SENTRY_REPLAY_ON_ERROR_SAMPLE_RATE` a `env/dev.env` y `env/dev-offline.env` (todas `1.0`) y a `env/prod.env` (`0.2`, `0.2`, `0.1`, `1.0`) (research §7)
+- [X] T004 [P] Agregar la configuración `"aeropass_app (demo)"` con `--dart-define-from-file=env/demo.env` en `.vscode/launch.json`
 
 ---
 
@@ -38,11 +38,11 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 **⚠️ CRITICAL**: US2, US3 y US4 dependen de esta fase
 
-- [ ] T005 En `lib/core/sentry_config.dart`, reemplazar las constantes fijas `_tracesSampleRate`, `_profilesSampleRate`, `_replaySessionSampleRate` y `_replayOnErrorSampleRate` por valores leídos de las variables de T003 (`String.fromEnvironment` + `double.tryParse`), con los valores por defecto de prod como constantes con nombre (0.2, 0.2, 0.1, 1.0); un valor fuera de [0, 1] lanza `assert` en debug y cae al valor por defecto en release (data-model `TelemetryConfig`)
-- [ ] T006 [P] Crear el puerto `AnalyticsSink` (`void record(String eventName, Map<String, Object?> payload)`, nunca lanza ni espera la red) y `DeveloperLogAnalyticsSink` (mueve aquí la escritura `developer.log(..., name: 'aeropass.analytics')` actual con `sessionId` y `timestamp`) en `lib/data/services/analytics_sink.dart` (research §11)
-- [ ] T007 Modificar `LoggingAnalyticsEmitter` para que `_log` arme el payload una vez y lo entregue a cada `AnalyticsSink` de una lista recibida por constructor; nombres de eventos y payloads sin cambios, en `lib/data/services/logging_analytics_emitter.dart` (depende de T006)
-- [ ] T008 En `lib/app/composition_root.dart`, construir `LoggingAnalyticsEmitter` con `sinks: [DeveloperLogAnalyticsSink(sessionId: sessionId, clock: clock)]` (depende de T007)
-- [ ] T009 Ajustar los tests existentes que construyen el emisor (`test/unit/pass_analytics_payload_test.dart`, `test/unit/technical_error_analytics_payload_test.dart`, `test/unit/trips_analytics_payload_test.dart` y cualquier otro que falle) a la nueva firma, y confirmar `flutter test` en verde (depende de T007)
+- [X] T005 En `lib/core/sentry_config.dart`, reemplazar las constantes fijas `_tracesSampleRate`, `_profilesSampleRate`, `_replaySessionSampleRate` y `_replayOnErrorSampleRate` por valores leídos de las variables de T003 (`String.fromEnvironment` + `double.tryParse`), con los valores por defecto de prod como constantes con nombre (0.2, 0.2, 0.1, 1.0); un valor fuera de [0, 1] lanza `assert` en debug y cae al valor por defecto en release (data-model `TelemetryConfig`)
+- [X] T006 [P] Crear el puerto `AnalyticsSink` (`void record(String eventName, Map<String, Object?> payload)`, nunca lanza ni espera la red) y `DeveloperLogAnalyticsSink` (mueve aquí la escritura `developer.log(..., name: 'aeropass.analytics')` actual con `sessionId` y `timestamp`) en `lib/data/services/analytics_sink.dart` (research §11)
+- [X] T007 Modificar `LoggingAnalyticsEmitter` para que `_log` arme el payload una vez y lo entregue a cada `AnalyticsSink` de una lista recibida por constructor; nombres de eventos y payloads sin cambios, en `lib/data/services/logging_analytics_emitter.dart` (depende de T006)
+- [X] T008 En `lib/app/composition_root.dart`, construir `LoggingAnalyticsEmitter` con `sinks: [DeveloperLogAnalyticsSink(sessionId: sessionId, clock: clock)]` (depende de T007)
+- [X] T009 Ajustar los tests existentes que construyen el emisor (`test/unit/pass_analytics_payload_test.dart`, `test/unit/technical_error_analytics_payload_test.dart`, `test/unit/trips_analytics_payload_test.dart` y cualquier otro que falle) a la nueva firma, y confirmar `flutter test` en verde (depende de T007)
 
 **Checkpoint**: la app se comporta igual que antes; el emisor ya admite más destinos
 
@@ -56,15 +56,15 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 ### Tests for User Story 1 ⚠️ (escribir primero, deben fallar)
 
-- [ ] T010 [P] [US1] Escribir `test/unit/sentry_privacy_filter_test.dart` con las 6 garantías de `contracts/privacy-filter.md` (evento sin `user`/IP/`request`; log sin atributos fuera de la lista blanca; log descartado si su mensaje ≠ `aeropass.event`; métrica no listada descartada; breadcrumb de consola o de entrada de texto descartado y de navegación sin `extra`; evento `verification_service_failure` de 011 conserva sus etiquetas y pierde el usuario)
+- [X] T010 [P] [US1] Escribir `test/unit/sentry_privacy_filter_test.dart` con las 6 garantías de `contracts/privacy-filter.md` (evento sin `user`/IP/`request`; log sin atributos fuera de la lista blanca; log descartado si su mensaje ≠ `aeropass.event`; métrica no listada descartada; breadcrumb de consola o de entrada de texto descartado y de navegación sin `extra`; evento `verification_service_failure` de 011 conserva sus etiquetas y pierde el usuario)
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Implementar `SentryPrivacyFilter` en `lib/data/services/sentry_privacy_filter.dart` con métodos para `beforeSend`, `beforeSendTransaction`, `beforeBreadcrumb`, `beforeSendLog` y `beforeSendMetric`; la lista blanca de atributos de logs (`aeropass.event`, `aeropass.session_id`, `aeropass.enrollment_attempt_id` y las claves de payload de `contracts/telemetry-events.md` §1) y la de métricas (`enrollment.duration` con `aeropass.resumed`) como constantes `Set<String>` públicas para que T017 las compare (depende de T010)
-- [ ] T012 [US1] En `lib/core/sentry_config.dart`: `sendDefaultPii = false`; conectar los cinco hooks al filtro de T011; eliminar `stripAlertEventPii` (su caso queda cubierto por el filtro) (depende de T011)
-- [ ] T013 [US1] Reescribir `test/unit/sentry_before_send_test.dart` para que pruebe el evento de alerta de 011 a través de `SentryPrivacyFilter` en lugar de `stripAlertEventPii` (no regresión; depende de T012)
-- [ ] T014 [US1] En `SentryConfig.configure` (`lib/core/sentry_config.dart`), agregar `options.privacy.mask<QrCodeView>()`, `mask<SelfieFramePreview>()` y `mask<LivenessOvalOverlay>()` junto al `mask<CameraPreview>()` existente, con los imports de `lib/features/pass/widgets/qr_code_painter.dart`, `lib/features/enrollment/selfie/widgets/selfie_frame_preview.dart` y `lib/features/enrollment/liveness/widgets/liveness_oval_overlay.dart` (research §6)
-- [ ] T015 [US1] Paso manual en Sentry, proyecto `aeropass-app` → Settings → Security & Privacy: activar "Prevent Storing of IP Addresses" y confirmar las reglas de Data Scrubbing por defecto (`contracts/dashboard-and-alerts.md`, "Configuración del proyecto")
+- [X] T011 [US1] Implementar `SentryPrivacyFilter` en `lib/data/services/sentry_privacy_filter.dart` con métodos para `beforeSend`, `beforeSendTransaction`, `beforeBreadcrumb`, `beforeSendLog` y `beforeSendMetric`; la lista blanca de atributos de logs (`aeropass.event`, `aeropass.session_id`, `aeropass.enrollment_attempt_id` y las claves de payload de `contracts/telemetry-events.md` §1) y la de métricas (`enrollment.duration` con `aeropass.resumed`) como constantes `Set<String>` públicas para que T017 las compare (depende de T010)
+- [X] T012 [US1] En `lib/core/sentry_config.dart`: `sendDefaultPii = false`; conectar los cinco hooks al filtro de T011; eliminar `stripAlertEventPii` (su caso queda cubierto por el filtro) (depende de T011)
+- [X] T013 [US1] Reescribir `test/unit/sentry_before_send_test.dart` para que pruebe el evento de alerta de 011 a través de `SentryPrivacyFilter` en lugar de `stripAlertEventPii` (no regresión; depende de T012)
+- [X] T014 [US1] En `SentryConfig.configure` (`lib/core/sentry_config.dart`), agregar `options.privacy.mask<QrCodeView>()`, `mask<SelfieFramePreview>()` y `mask<LivenessOvalOverlay>()` junto al `mask<CameraPreview>()` existente, con los imports de `lib/features/pass/widgets/qr_code_painter.dart`, `lib/features/enrollment/selfie/widgets/selfie_frame_preview.dart` y `lib/features/enrollment/liveness/widgets/liveness_oval_overlay.dart` (research §6)
+- [X] T015 [US1] Paso manual en Sentry, proyecto `aeropass-app` → Settings → Security & Privacy: activar "Prevent Storing of IP Addresses" y confirmar las reglas de Data Scrubbing por defecto (`contracts/dashboard-and-alerts.md`, "Configuración del proyecto")
 - [ ] T016 [US1] Validar quickstart §2 (crash de prueba en `dev`) y §4 (grabación de Replay en `demo` con la tabla de pantallas); si una pantalla muestra datos, agregar su widget a las máscaras de T014 antes de continuar
 
 **Checkpoint**: la condición previa a publicar que registró 011 (`sendDefaultPii`) queda resuelta
@@ -81,16 +81,16 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 ### Tests for User Story 2 ⚠️ (escribir primero, deben fallar)
 
-- [ ] T017 [P] [US2] Escribir `test/contract/telemetry_allowlist_contract_test.dart`: lee `lib/data/services/logging_analytics_emitter.dart` como texto, extrae las claves de los payloads de `_log` (regex `'([a-zA-Z]+)':`, excluyendo `event`, `sessionId`, `timestamp`), las convierte a `aeropass.<snake_case>` y exige que el conjunto sea igual a la lista blanca de payload de `SentryPrivacyFilter` (falla si alguien agrega una clave sin actualizar el contrato)
-- [ ] T018 [P] [US2] Escribir `test/unit/current_enrollment_attempt_test.dart`: `null` sin registro de consentimiento; toma el `enrollmentAttemptId` del registro local al cargar; se actualiza cuando `recordConsent` devuelve `Ok`; vuelve a `null` cuando `withdraw` devuelve `Ok`; no cambia cuando cualquiera devuelve `Error`
-- [ ] T019 [P] [US2] Escribir `test/unit/sentry_log_analytics_sink_test.dart` con un escritor de logs inyectado (sin SDK): mensaje = nombre del evento; atributos `aeropass.event`, `aeropass.session_id` y el payload en `aeropass.<snake_case>`; `aeropass.enrollment_attempt_id` presente solo si hay intento vigente; `record` retorna sin esperar
+- [X] T017 [P] [US2] Escribir `test/contract/telemetry_allowlist_contract_test.dart`: lee `lib/data/services/logging_analytics_emitter.dart` como texto, extrae las claves de los payloads de `_log` (regex `'([a-zA-Z]+)':`, excluyendo `event`, `sessionId`, `timestamp`), las convierte a `aeropass.<snake_case>` y exige que el conjunto sea igual a la lista blanca de payload de `SentryPrivacyFilter` (falla si alguien agrega una clave sin actualizar el contrato)
+- [X] T018 [P] [US2] Escribir `test/unit/current_enrollment_attempt_test.dart`: `null` sin registro de consentimiento; toma el `enrollmentAttemptId` del registro local al cargar; se actualiza cuando `recordConsent` devuelve `Ok`; vuelve a `null` cuando `withdraw` devuelve `Ok`; no cambia cuando cualquiera devuelve `Error`
+- [X] T019 [P] [US2] Escribir `test/unit/sentry_log_analytics_sink_test.dart` con un escritor de logs inyectado (sin SDK): mensaje = nombre del evento; atributos `aeropass.event`, `aeropass.session_id` y el payload en `aeropass.<snake_case>`; `aeropass.enrollment_attempt_id` presente solo si hay intento vigente; `record` retorna sin esperar
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Implementar `CurrentEnrollmentAttempt` (valor en memoria, `Future<void> load()` que lee `ConsentRepository.getLocalRecord()` una vez, `set`/`clear`) en `lib/data/services/current_enrollment_attempt.dart` (depende de T018)
-- [ ] T021 [US2] Implementar el decorador `AttemptTrackingConsentRepository implements ConsentRepository` en `lib/data/services/attempt_tracking_consent_repository.dart`: delega todo en el repositorio envuelto y actualiza `CurrentEnrollmentAttempt` cuando `recordConsent` (set) o `withdraw` (clear) devuelven `Ok`; sin modificar `ConsentRepositoryImpl` ni `DevConsentRepository` (depende de T020)
-- [ ] T022 [US2] Implementar `SentryLogAnalyticsSink implements AnalyticsSink` en `lib/data/services/sentry_log_analytics_sink.dart`, con un escritor inyectable cuyo valor por defecto llama a `Sentry.logger.info(eventName, attributes: …)` con `SentryAttribute` según el tipo (string, int, bool, enum por nombre), sin `await` en el camino del emisor (depende de T019)
-- [ ] T023 [US2] En `lib/app/composition_root.dart`: crear `CurrentEnrollmentAttempt`, envolver el `consentRepository` elegido (real o dev) con `AttemptTrackingConsentRepository`, llamar a `load()` sin bloquear la construcción, y agregar `SentryLogAnalyticsSink` a los `sinks` del emisor solo si `SentryConfig.isEnabled` (depende de T021, T022)
+- [X] T020 [US2] Implementar `CurrentEnrollmentAttempt` (valor en memoria, `Future<void> load()` que lee `ConsentRepository.getLocalRecord()` una vez, `set`/`clear`) en `lib/data/services/current_enrollment_attempt.dart` (depende de T018)
+- [X] T021 [US2] Implementar el decorador `AttemptTrackingConsentRepository implements ConsentRepository` en `lib/data/services/attempt_tracking_consent_repository.dart`: delega todo en el repositorio envuelto y actualiza `CurrentEnrollmentAttempt` cuando `recordConsent` (set) o `withdraw` (clear) devuelven `Ok`; sin modificar `ConsentRepositoryImpl` ni `DevConsentRepository` (depende de T020)
+- [X] T022 [US2] Implementar `SentryLogAnalyticsSink implements AnalyticsSink` en `lib/data/services/sentry_log_analytics_sink.dart`, con un escritor inyectable cuyo valor por defecto llama a `Sentry.logger.info(eventName, attributes: …)` con `SentryAttribute` según el tipo (string, int, bool, enum por nombre), sin `await` en el camino del emisor (depende de T019)
+- [X] T023 [US2] En `lib/app/composition_root.dart`: crear `CurrentEnrollmentAttempt`, envolver el `consentRepository` elegido (real o dev) con `AttemptTrackingConsentRepository`, llamar a `load()` sin bloquear la construcción, y agregar `SentryLogAnalyticsSink` a los `sinks` del emisor solo si `SentryConfig.isEnabled` (depende de T021, T022)
 - [ ] T024 [US2] Validar quickstart §3 en `dev` (incluido el caso sin red); confirmar en Sentry que no aparecen atributos fuera del contrato
 
 **Checkpoint**: el embudo ya es visible en Sentry; sin DSN, la app sigue escribiendo solo en el log local
@@ -107,12 +107,12 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 ### Tests for User Story 3 ⚠️ (escribir primero, deben fallar)
 
-- [ ] T025 [P] [US3] Escribir `test/unit/enrollment_duration_tracker_test.dart` con `Clock` falso y escritor de métricas inyectado: el primer `capture_step_entered` de un intento fija el inicio y los siguientes no lo cambian; `credential_activated_shown` emite `enrollment.duration` en ms con `aeropass.resumed=false` y descarta el inicio; sin inicio en este arranque (retomado) no emite nada; sin intento vigente no emite nada
+- [X] T025 [P] [US3] Escribir `test/unit/enrollment_duration_tracker_test.dart` con `Clock` falso y escritor de métricas inyectado: el primer `capture_step_entered` de un intento fija el inicio y los siguientes no lo cambian; `credential_activated_shown` emite `enrollment.duration` en ms con `aeropass.resumed=false` y descarta el inicio; sin inicio en este arranque (retomado) no emite nada; sin intento vigente no emite nada
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Implementar `EnrollmentDurationTracker` (mapa en memoria `EnrollmentAttemptId → DateTime` del `Clock` inyectado; escritor por defecto `Sentry.metrics.distribution('enrollment.duration', ms, unit: 'millisecond', attributes: …)`) en `lib/data/services/enrollment_duration_tracker.dart` (depende de T025; data-model `EnrollmentTiming`)
-- [ ] T027 [US3] Hacer que `SentryLogAnalyticsSink` notifique al tracker en `capture_step_entered` y `credential_activated_shown`, con el intento vigente de `CurrentEnrollmentAttempt`, en `lib/data/services/sentry_log_analytics_sink.dart`; cablear el tracker en `lib/app/composition_root.dart` (depende de T026)
+- [X] T026 [US3] Implementar `EnrollmentDurationTracker` (mapa en memoria `EnrollmentAttemptId → DateTime` del `Clock` inyectado; escritor por defecto `Sentry.metrics.distribution('enrollment.duration', ms, unit: 'millisecond', attributes: …)`) en `lib/data/services/enrollment_duration_tracker.dart` (depende de T025; data-model `EnrollmentTiming`)
+- [X] T027 [US3] Hacer que `SentryLogAnalyticsSink` notifique al tracker en `capture_step_entered` y `credential_activated_shown`, con el intento vigente de `CurrentEnrollmentAttempt`, en `lib/data/services/sentry_log_analytics_sink.dart`; cablear el tracker en `lib/app/composition_root.dart` (depende de T026)
 - [ ] T028 [US3] Validar quickstart §5 pasos 2–3 en `demo` (W3, W4 y W5 con la consulta del contrato, aunque el dashboard aún no exista: usar *Explore*)
 
 **Checkpoint**: la conversión y el p90 se pueden calcular en Sentry
@@ -127,9 +127,9 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 **Depende de**: US2 y US3 para W3–W5; W1, W2 y W11 funcionan desde US1
 
-- [ ] T029 [US6] Crear en Sentry el dashboard "AeroPass App — Observabilidad" con el filtro global de entorno y los widgets W1–W5 y W11 exactamente como en `contracts/dashboard-and-alerts.md`; anotar la URL del dashboard en ese contrato
+- [X] T029 [US6] Crear en Sentry el dashboard "AeroPass App — Observabilidad" con el filtro global de entorno y los widgets W1–W5 y W11 exactamente como en `contracts/dashboard-and-alerts.md`; anotar la URL del dashboard en ese contrato
 - [ ] T030 [US6] Crear las reglas A1 (issue alert `failure_class:service`, todos los entornos), A2 (crash-free sessions < 99% por release, 1 hora, todos), A3 (ecuación de W3 < 0,90, 1 hora, solo `prod`) y A4 (`p90(enrollment.duration)` > 180000 ms, 1 hora, solo `prod`), con acción de correo al destinatario que defina el usuario
-- [ ] T031 [US6] Poner `SENTRY_ALERT_RULE_CONFIRMED=true` en `env/demo.env`, `env/dev.env` y `env/prod.env` solo después de comprobar que A1 cubre ese entorno (FR-015)
+- [X] T031 [US6] Poner `SENTRY_ALERT_RULE_CONFIRMED=true` en `env/demo.env`, `env/dev.env` y `env/prod.env` solo después de comprobar que A1 cubre ese entorno (FR-015)
 - [ ] T032 [US6] Validar quickstart §5 paso 4 en `demo` (correo de A1 < 2 min; pantalla de error técnico con "Nuestro equipo ya fue notificado")
 
 **Checkpoint**: el equipo recibe correos sin mirar el dashboard
@@ -159,7 +159,7 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 **Depende de**: US2 (los eventos ya fluyen; no requiere código nuevo)
 
-- [ ] T035 [US4] Agregar los widgets W6, W7 y W8 al dashboard según `contracts/dashboard-and-alerts.md`
+- [X] T035 [US4] Agregar los widgets W6, W7 y W8 al dashboard según `contracts/dashboard-and-alerts.md`
 - [ ] T036 [US4] Validar en `demo`: 2 rechazos del dispositivo y 1 del backend sobre intentos conocidos; W6 y W7 muestran la proporción esperada y W8 separa `attackDetected`
 
 ---
@@ -170,21 +170,21 @@ description: "Tasks for 015-observabilidad-sentry (App móvil)"
 
 **Independent Test**: en el dispositivo mínimo de referencia, W9 y W10 muestran duraciones por ruta y el tiempo hasta el pase
 
-- [ ] T037 [P] [US5] Agregar `name:` a cada `GoRoute` de `lib/app/router.dart` con constantes nuevas en una clase `AppRouteNames` junto a `AppRoutes` (mismo archivo), sin cambiar los paths
-- [ ] T038 [P] [US5] Crear el puerto `FullDisplayReporter` (`void reportFullyDisplayed()`) con `SentryFullDisplayReporter` (llama a `SentryFlutter.currentDisplay()?.reportFullyDisplayed()`) y `NoopFullDisplayReporter` en `lib/data/services/full_display_reporter.dart`, y proveerlo en `lib/app/composition_root.dart` según `SentryConfig.isEnabled` (constructor injection; ninguna vista llama a Sentry directamente, Principio IX)
-- [ ] T039 [US5] En `SentryConfig.configure` (`lib/core/sentry_config.dart`) activar `enableTimeToFullDisplayTracing = true` (depende de T037)
-- [ ] T040 [US5] Inyectar `FullDisplayReporter` y llamar a `reportFullyDisplayed()` cuando el contenido está listo en `lib/features/pass/pass_view.dart` (tras el primer frame con el QR dibujado) y en las vistas de captura de documento, confirmación, liveness, verificación en curso y credencial activada bajo `lib/features/enrollment/` (tras el primer frame con contenido); agregar tests de widget que verifiquen la llamada con un reporter falso (depende de T038, T039)
-- [ ] T041 [US5] Agregar los widgets W9 y W10 al dashboard según `contracts/dashboard-and-alerts.md`
+- [X] T037 [P] [US5] (Sin cambios: go_router ya nombra cada página con su path —`name: state.name ?? state.path`, go_router 18.0.1 builder.dart— y ninguna ruta lleva parámetros; las trazas ya salen por ruta.) Agregar `name:` a cada `GoRoute` de `lib/app/router.dart` con constantes nuevas en una clase `AppRouteNames` junto a `AppRoutes` (mismo archivo), sin cambiar los paths
+- [X] T038 [P] [US5] Crear el puerto `FullDisplayReporter` (`void reportFullyDisplayed()`) con `SentryFullDisplayReporter` (llama a `SentryFlutter.currentDisplay()?.reportFullyDisplayed()`) y `NoopFullDisplayReporter` en `lib/data/services/full_display_reporter.dart`, y proveerlo en `lib/app/composition_root.dart` según `SentryConfig.isEnabled` (constructor injection; ninguna vista llama a Sentry directamente, Principio IX)
+- [X] T039 [US5] En `SentryConfig.configure` (`lib/core/sentry_config.dart`) activar `enableTimeToFullDisplayTracing = true` (depende de T037)
+- [X] T040 [US5] (Implementado en la frontera de ruta: `FullDisplayMarker` en `lib/app/full_display_marker.dart` envuelve las 6 pantallas en `lib/app/router.dart`, así ninguna vista importa el reportero; tests en `test/widget/full_display_marker_test.dart`.) Inyectar `FullDisplayReporter` y llamar a `reportFullyDisplayed()` cuando el contenido está listo en `lib/features/pass/pass_view.dart` (tras el primer frame con el QR dibujado) y en las vistas de captura de documento, confirmación, liveness, verificación en curso y credencial activada bajo `lib/features/enrollment/` (tras el primer frame con contenido); agregar tests de widget que verifiquen la llamada con un reporter falso (depende de T038, T039)
+- [X] T041 [US5] Agregar los widgets W9 y W10 al dashboard según `contracts/dashboard-and-alerts.md`
 - [ ] T042 [US5] Validar en el dispositivo mínimo de referencia: W9 muestra p95 por nombre de ruta y W10 el tiempo hasta el pase (meta ≤ 3 s)
 
 ---
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T043 [P] Documentar en `README.md` la sección de observabilidad: variables de `env/*.env` (DSN, entorno, muestreo, `SENTRY_ALERT_RULE_CONFIRMED`), `env/demo.env`, el comando de release con `--obfuscate --split-debug-info` y la subida de símbolos con `dart run sentry_dart_plugin` usando `SENTRY_AUTH_TOKEN`
-- [ ] T044 [P] Anotar en `specs/011-error-tecnico/research.md` §7 que la condición previa sobre `sendDefaultPii` quedó resuelta por 015 (una línea con enlace a este spec)
+- [X] T043 [P] Documentar en `README.md` la sección de observabilidad: variables de `env/*.env` (DSN, entorno, muestreo, `SENTRY_ALERT_RULE_CONFIRMED`), `env/demo.env`, el comando de release con `--obfuscate --split-debug-info` y la subida de símbolos con `dart run sentry_dart_plugin` usando `SENTRY_AUTH_TOKEN`
+- [X] T044 [P] Anotar en `specs/011-error-tecnico/research.md` §7 que la condición previa sobre `sendDefaultPii` quedó resuelta por 015 (una línea con enlace a este spec)
 - [ ] T045 Compilar un release con símbolos separados, subirlos y validar quickstart §7 (pila legible en Sentry)
-- [ ] T046 `flutter analyze` sin advertencias, `flutter test` en verde y cobertura ≥ 85% en `lib/data/services/` para los archivos nuevos (gates de CI de la constitución)
+- [X] T046 `flutter analyze` sin advertencias, `flutter test` en verde y cobertura ≥ 85% en `lib/data/services/` para los archivos nuevos (gates de CI de la constitución)
 - [ ] T047 Recorrer `quickstart.md` completo (§1–§7) en `demo` y marcar cualquier desviación en `contracts/dashboard-and-alerts.md`
 
 ---

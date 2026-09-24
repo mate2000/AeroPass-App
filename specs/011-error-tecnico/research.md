@@ -163,6 +163,11 @@ crashes elsewhere. The plan records it as a release gate: either `sendDefaultPii
 or the Sentry project's "Prevent storing of IP addresses" setting is enabled and recorded. The user
 asked for `sendDefaultPii: true` earlier, so this is their decision to revisit.
 
+**Resolved by [015-observabilidad-sentry](../015-observabilidad-sentry/spec.md) (2026-09-24)**:
+`sendDefaultPii` is now `false`, every Sentry output passes through `SentryPrivacyFilter`, and the
+`aeropass-app` project prevents storing IP addresses. The alert rule on `failure_class:service`
+exists, so every env file declares `SENTRY_ALERT_RULE_CONFIRMED=true`.
+
 ## §8 — Launch resume, and a defect in 010's redirect
 
 **Decision** (FR-012, Clarifications): at launch, after the credential check and 010's escalation

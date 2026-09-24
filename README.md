@@ -72,15 +72,47 @@ Build-time values (backend URL, Sentry DSN and environment, dev-only flags) live
 ```bash
 flutter run --dart-define-from-file=env/dev.env           # dev backend
 flutter run --dart-define-from-file=env/dev-offline.env   # dev fakes, no backend needed
+flutter run --dart-define-from-file=env/demo.env          # dev fakes, `demo` Sentry environment
 flutter run --release --dart-define-from-file=env/prod.env
 ```
 
 Set `SENTRY_SEND_TEST_EVENT=true` in an env file to report one test error at startup. With no
 `SENTRY_DSN`, Sentry stays off. The files hold nothing secret, since the DSN is a public client key.
 
+### Observability (Sentry)
+
+Spec: [`specs/015-observabilidad-sentry/`](specs/015-observabilidad-sentry/spec.md). What each env
+file controls:
+
+| Variable | Meaning |
+|---|---|
+| `SENTRY_DSN` | Project key for `aeropass-app`; empty turns Sentry off |
+| `SENTRY_ENVIRONMENT` | `dev`, `demo` or `prod`; the dashboard and alerts filter on it |
+| `SENTRY_TRACES_SAMPLE_RATE`, `SENTRY_PROFILES_SAMPLE_RATE`, `SENTRY_REPLAY_SESSION_SAMPLE_RATE`, `SENTRY_REPLAY_ON_ERROR_SAMPLE_RATE` | Sampling in [0, 1]; prod defaults 0.2 / 0.2 / 0.1 / 1.0. Errors, crashes and funnel events are always sent in full |
+| `SENTRY_ALERT_RULE_CONFIRMED` | `true` only while the Sentry alert on `failure_class:service` covers that environment (011 FR-006) |
+
+- **Privacy**: every event, trace, breadcrumb, log and metric passes through
+  `lib/data/services/sentry_privacy_filter.dart`, and funnel log attributes follow an allowlist
+  (`contracts/telemetry-events.md`). A new analytics payload key fails
+  `test/contract/telemetry_allowlist_contract_test.dart` until it is added to the contract.
+- **Before each release**: check that Session Replay masks the document, selfie, liveness,
+  confirmation, credential and pass screens, QR included (`quickstart.md` §4).
+- **Dashboard and alerts**: configured by hand in Sentry; the definitions and their ids are in
+  `specs/015-observabilidad-sentry/contracts/dashboard-and-alerts.md`.
+- **Debug symbols** for readable crash stack traces: build release with split debug info, then
+  upload with `sentry_dart_plugin` (org and project come from `pubspec.yaml`; the token only from
+  your environment or the CI secret, never from the repo):
+
+```bash
+flutter build apk --release --obfuscate --split-debug-info=debug-info --dart-define-from-file=env/prod.env
+SENTRY_AUTH_TOKEN=<token> dart run sentry_dart_plugin
+```
+
 The VS Code launch configs in `.vscode/launch.json` pass the matching file:
 
 - **`aeropass_app (dev)`** — debug mode, points at the (nonexistent) dev backend URL.
+- **`aeropass_app (demo)`** — debug mode with dev fakes, reported to Sentry as `demo`
+  (presentation data, see `specs/015-observabilidad-sentry/quickstart.md` §6).
 - **`aeropass_app (prod)`** — release mode, points at the (nonexistent) prod backend URL.
 
 Both currently fail to reach a real backend — see below.

@@ -1,38 +1,25 @@
-import 'dart:developer' as developer;
-
-import '../../core/analytics_session.dart';
-import '../../core/clock.dart';
 import '../../domain/entities/pass.dart';
 import '../../domain/entities/service_failure.dart';
 import '../../domain/entities/service_status.dart';
 import '../../domain/entities/trip.dart';
 import '../../domain/repositories/analytics_emitter.dart';
+import 'analytics_sink.dart';
 
-/// The composition root's real `AnalyticsEmitter`: logs each funnel event
-/// as a structured line keyed by the in-memory [AnalyticsSessionId],
-/// per contracts/analytics-events.md and Constitution Principle VII
-/// (observability without PII — no payload field here ever carries a
-/// credential token, document data, or name).
-///
-/// This screen has no analytics backend integration in scope (see spec.md
-/// Out of Scope); wiring this sink to a real telemetry pipeline is a
-/// follow-up for whichever feature owns that pipeline.
+/// The composition root's real `AnalyticsEmitter`: defines each funnel
+/// event's name and payload once, per contracts/analytics-events.md and
+/// Constitution Principle VII (observability without PII — no payload field
+/// here ever carries a credential token, document data, or name), and hands
+/// every event to each of its [sinks] (015 research §11).
 class LoggingAnalyticsEmitter implements AnalyticsEmitter {
-  LoggingAnalyticsEmitter({required this.sessionId, required this.clock});
+  LoggingAnalyticsEmitter({required List<AnalyticsSink> sinks})
+    : _sinks = List.unmodifiable(sinks);
 
-  final AnalyticsSessionId sessionId;
-  final Clock clock;
+  final List<AnalyticsSink> _sinks;
 
   void _log(String eventName, [Map<String, Object?> payload = const {}]) {
-    developer.log(
-      <String, Object?>{
-        'event': eventName,
-        'sessionId': sessionId.value,
-        'timestamp': clock.now().toIso8601String(),
-        ...payload,
-      }.toString(),
-      name: 'aeropass.analytics',
-    );
+    for (final sink in _sinks) {
+      sink.record(eventName, payload);
+    }
   }
 
   @override

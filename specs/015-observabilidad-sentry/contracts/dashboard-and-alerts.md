@@ -4,6 +4,16 @@
 
 Se configuran **a mano** en la UI de Sentry (organización Aeropass, proyecto `aeropass-app`). Este archivo es la fuente para recrearlos: si alguien cambia un umbral en la UI, la UI manda (Edge Cases del spec) y se actualiza este archivo en el siguiente PR.
 
+## Estado en Sentry (2026-09-24)
+
+- Dashboard creado: https://aeropass.sentry.io/dashboard/10182580/ con los 11 widgets (W1–W11). W6 y W7 son tablas intentos vs rechazos por la misma limitación de W3; W10 se llena cuando la app real envíe TTFD del pase. W3 es una tabla de intentos únicos iniciados vs completados: los logs no admiten agregados condicionales, así que la proporción no cabe en una sola consulta.
+- A1 creada como alerta (workflow `6057796`) sobre el monitor "Issue Stream" de `aeropass-app`: cada evento con `failure_class = service` → correo al equipo `#aeropass-team`, máximo uno cada 5 min, todos los entornos.
+- A2 creado: monitor `10432968` (crash_free_rate(session) < 99 % en 1 hora, todos los entornos, asignado a `#aeropass-team`) + alerta `6060577` (correo al equipo, máximo 1 por hora).
+- A4 creado: monitor `10432949` (p90 `enrollment.duration` > 180000 ms en 1 hora, solo `prod`, asignado a `#aeropass-team`) + alerta `6060569` (correo al equipo, máximo 1 por hora).
+- A3 pendiente: requiere decidir cómo calcular la proporción (los logs no admiten agregados condicionales; los monitores de Application Metrics sí admiten ecuaciones A/B entre contadores).
+- `SENTRY_ALERT_RULE_CONFIRMED=true` en `env/dev.env`, `env/dev-offline.env`, `env/demo.env` y `env/prod.env` (A1 cubre todos los entornos).
+- Datos simulados de validación en el entorno `simulated` (20 intentos, 16 completos, p90 ≈ 3,7 min, 1 evento `failure_class:service`).
+
 ## Dashboard "AeroPass App — Observabilidad"
 
 Filtro global del dashboard: **Environment** (valores `prod`, `demo`, `dev`, `dev-offline`). Todos los widgets respetan el filtro; por defecto `prod`.

@@ -139,6 +139,10 @@ class _EscalationViewState extends State<EscalationView> {
                       title: l10n.escalationUnavailableTitle,
                       body: l10n.escalationUnavailableBody,
                     ),
+                    EscalationViewLaneOnly() => _MessageBody(
+                      title: l10n.escalationLaneOnlyTitle,
+                      body: l10n.escalationLaneOnlyBody,
+                    ),
                   },
                 ),
                 if (state is! EscalationViewLoading)

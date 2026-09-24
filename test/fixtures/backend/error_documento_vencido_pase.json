@@ -1,0 +1,8 @@
+{
+  "status": 403,
+  "retry_after": null,
+  "body": {
+    "codigo": "DOCUMENTO_VENCIDO",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

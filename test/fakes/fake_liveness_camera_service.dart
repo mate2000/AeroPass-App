@@ -61,4 +61,14 @@ class FakeLivenessCameraService implements LivenessCameraService {
     if (!started) return null;
     return _nextFrame;
   }
+
+  /// 015: the still [captureStill] returns. `null` means no still.
+  Uint8List? still;
+  int captureStillCallCount = 0;
+
+  @override
+  Future<Uint8List?> captureStill() async {
+    captureStillCallCount++;
+    return started ? still : null;
+  }
 }

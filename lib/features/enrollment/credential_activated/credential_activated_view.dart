@@ -9,6 +9,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import 'credential_activated_viewmodel.dart';
 import 'widgets/credential_card.dart';
 import 'widgets/success_marker.dart';
+import '../../../core/happy_path_flags.dart';
 
 /// Screen 08, "Identidad activa" (008-identidad-activa). Composition only
 /// (Constitution Principle VIII): everything here reads
@@ -110,7 +111,11 @@ class _CredentialActivatedViewState extends State<CredentialActivatedView> {
                                 Semantics(
                                   header: true,
                                   child: Text(
-                                    l10n.credentialActivatedTitle,
+                                    // 015 FR-020: nothing says "activa"
+                                    // while the biometrics are simulated.
+                                    HappyPathFlags.biometricProviderMock
+                                        ? l10n.credentialActivatedTitleMock
+                                        : l10n.credentialActivatedTitle,
                                     textAlign: TextAlign.center,
                                     style: textTheme.headlineSmall?.copyWith(
                                       color: AppColors.textPrimary,
@@ -120,7 +125,9 @@ class _CredentialActivatedViewState extends State<CredentialActivatedView> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  l10n.credentialActivatedSubtitle,
+                                  HappyPathFlags.biometricProviderMock
+                                      ? l10n.credentialActivatedSubtitleMock
+                                      : l10n.credentialActivatedSubtitle,
                                   textAlign: TextAlign.center,
                                   style: textTheme.bodyMedium?.copyWith(
                                     color: AppColors.textSecondary,

@@ -38,6 +38,12 @@ sealed class Pass with _$Pass {
     /// Server-defined: at most scheduled departure and 24 h from issuance.
     required DateTime validUntil,
     @Default(passRotation) Duration rotation,
+
+    /// 015 FR-024: the checkpoints this pass opens, from the backend's
+    /// `permisos`. Today that is boarding only, so the screen must not
+    /// promise security.
+    @Default({Checkpoint.security, Checkpoint.boarding})
+    Set<Checkpoint> checkpoints,
   }) = _Pass;
 }
 
@@ -49,6 +55,10 @@ sealed class PassCode with _$PassCode {
     required String payload,
     required DateTime windowStartsAt,
     required DateTime windowEndsAt,
+
+    /// 015 FR-012: renewal failed, and this still-valid code stays on screen
+    /// while it is retried. The view says "Actualizando código…".
+    @Default(false) bool renewalPending,
   }) = _PassCode;
 }
 
@@ -103,4 +113,34 @@ enum PassUnavailableReason {
   compromisedDevice,
   issuanceFailed,
   offlineWithoutPass,
+
+  /// 015 FR-015: 403 `DOCUMENTO_VENCIDO`. No retry. It goes to the agent.
+  documentExpired,
+
+  /// 015 FR-015: 403 `IDENTIDAD_NO_ACTIVA`. Launch re-reads `/me` and routes.
+  identityNotActive,
+}
+
+/// Why the backend refused to issue a pass (015 contracts/outcome-mapping.md
+/// "Pass"). It is returned as the `Result.error` payload of
+/// `PassRepository.issue`. A transport failure stays a `TransportFailure`.
+enum PassIssueRefusal {
+  documentExpired,
+  identityNotActive,
+  invalidFlightCode,
+
+  /// 429 `LIMITE_EMISION_EXCEDIDO` or 503 `ALMACENAMIENTO_NO_DISPONIBLE`: a
+  /// service condition. The caller waits for `retryAfter` (FR-014).
+  busy,
+}
+
+/// The error object for a refused issuance.
+final class PassIssueRefused {
+  const PassIssueRefused(this.refusal, {this.retryAfter});
+
+  final PassIssueRefusal refusal;
+  final Duration? retryAfter;
+
+  @override
+  String toString() => 'PassIssueRefused(${refusal.name})';
 }

@@ -7,6 +7,7 @@ import '../../l10n/generated/app_localizations.dart';
 import 'trip_time_format.dart';
 import 'trips_home_viewmodel.dart';
 import 'widgets/credential_strip.dart';
+import 'widgets/flight_code_entry.dart';
 import 'widgets/next_trip_card.dart';
 import 'widgets/trip_history_list.dart';
 
@@ -136,6 +137,16 @@ class _TripsHomeViewState extends State<TripsHomeView> {
                   const Padding(
                     padding: EdgeInsets.all(24),
                     child: Center(child: CircularProgressIndicator()),
+                  )
+                // 015 DEC-03: no trips source, so the passenger types the
+                // flight code.
+                else if (_viewModel.flightCodeEntry)
+                  FlightCodeEntry(
+                    initialValue: _viewModel.flightCodeInput,
+                    invalid: _viewModel.flightCodeInvalid,
+                    enabled: _viewModel.canShowPass,
+                    onChanged: _viewModel.onFlightCodeChanged,
+                    onSubmit: _viewModel.showPass,
                   )
                 else if (trip != null && departure != null) ...[
                   _SectionHeading(l10n.tripsNextHeading),

@@ -36,6 +36,13 @@ class WithdrawalPlaceholderView extends StatelessWidget {
                     l10n.withdrawalSuccessMessage,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
+                  // 015 research.md §14: withdrawal cannot reach the server,
+                  // and the passenger is told so.
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.withdrawalServerDataNotice,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ] else if (!viewModel.hasRecord) ...[
                   Text(
                     l10n.withdrawalNoRecordMessage,
@@ -44,6 +51,11 @@ class WithdrawalPlaceholderView extends StatelessWidget {
                 ] else ...[
                   Text(
                     l10n.withdrawalDescription,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.withdrawalServerDataNotice,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 24),

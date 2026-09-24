@@ -1,116 +1,49 @@
 // Contract: ConsentRepository (contracts/consent-repository-port.md).
 //
-// The same 9-case suite runs against BOTH the fake and the real
-// implementation, unmodified — Constitution Principle X's Liskov
-// requirement. Only each implementation's *harness* (how a scenario's
-// preconditions are staged) differs; the assertions in `_runContractTests`
-// are shared.
+// The 9-case suite runs against the fake. 015 T048: the network-backed
+// implementation went with the invented contract (DEC-02). Release uses
+// `LocalConsentRepository`, which has its own test, because several of the
+// suite's cases are network failures a local store cannot have.
 import 'dart:io';
 
-import 'package:aeropass_app/core/clock.dart';
 import 'package:aeropass_app/core/result.dart';
 import 'package:aeropass_app/data/dev/dev_consent_repository.dart';
 import 'package:aeropass_app/data/services/credential_service.dart';
-import 'package:aeropass_app/data/services/consent_repository_impl.dart';
-import 'package:aeropass_app/data/services/consent_service.dart';
 import 'package:aeropass_app/domain/entities/consent_record.dart';
 import 'package:aeropass_app/domain/entities/consent_text_version.dart';
 import 'package:aeropass_app/domain/entities/enrollment_attempt_id.dart';
 import 'package:aeropass_app/domain/entities/processing_scope.dart';
 import 'package:aeropass_app/domain/repositories/consent_repository.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../fakes/fake_consent_repository.dart';
-import '../fakes/fake_http_client_adapter.dart';
 import '../fakes/fake_secure_storage_platform.dart';
-
-class _FixedClock implements Clock {
-  const _FixedClock(this._now);
-  final DateTime _now;
-  @override
-  DateTime now() => _now;
-}
 
 void main() {
   group('Fake implementation', () {
     _runContractTests(_FakeHarnessFactory());
   });
 
-  group('Real implementation', () {
-    _runContractTests(_RealHarnessFactory());
-  });
-
-  group('008 addendum: withdrawal deletes the cached credential', () {
-    _runWithdrawalClearsCredentialTests();
+  // 015 T048: the network-backed implementation went with the invented
+  // contract (DEC-02); `LocalConsentRepository` has its own test.
+  group('Dev repository: withdrawal clears the cached credential', () {
+    _runDevWithdrawalTest();
   });
 }
 
-// contracts/consent-withdrawal-addendum.md (008-identidad-activa). Real
-// implementation only: the credential cache lives in secure storage, which
-// the in-memory fake repository has no notion of. The dev repository gets
-// the one case its offline-demo role needs.
-void _runWithdrawalClearsCredentialTests() {
-  late FakeSecureStoragePlatform storage;
-  late FakeHttpClientAdapter adapter;
-  late Dio dio;
+// 008-identidad-activa, contracts/consent-withdrawal-addendum.md: the dev
+// repository's one case (A6).
+void _runDevWithdrawalTest() {
   late CredentialService credentialService;
-  late ConsentRepositoryImpl repository;
 
   setUp(() {
-    storage = FakeSecureStoragePlatform();
-    FlutterSecureStoragePlatform.instance = storage;
-    adapter = FakeHttpClientAdapter()..respondWith(const <String, dynamic>{});
-    dio = Dio(BaseOptions(baseUrl: 'https://api.test.aeropass.example'))
-      ..httpClientAdapter = adapter;
+    FlutterSecureStoragePlatform.instance = FakeSecureStoragePlatform();
     credentialService = CredentialService(
-      dio: dio,
       secureStorage: const FlutterSecureStorage(),
     );
-    repository = ConsentRepositoryImpl(
-      ConsentService(dio: dio, secureStorage: const FlutterSecureStorage()),
-      clock: _FixedClock(DateTime.utc(2026, 1, 1)),
-      credentialService: credentialService,
-    );
-    storage.seed({
-      ConsentService.textVersionIdKey: 'v1',
-      ConsentService.enrollmentAttemptIdKey: 'attempt-1',
-      ConsentService.scopeKey: 'identityVerification',
-      ConsentService.confirmedAtKey: DateTime.utc(2026, 1, 1).toIso8601String(),
-      ConsentService.statusKey: 'active',
-      CredentialService.tokenKey: 'tok-1',
-      CredentialService.validUntilKey: DateTime.utc(2031).toIso8601String(),
-    });
   });
-
-  test('A1. after withdraw() succeeds, no cached credential remains', () async {
-    final result = await repository.withdraw();
-
-    expect(result.isOk, isTrue);
-    expect(await credentialService.readCachedCredential(), isNull);
-  });
-
-  test('A3. offline withdraw() still clears the credential locally', () async {
-    adapter.failWith(const SocketException('unreachable'));
-
-    final result = await repository.withdraw();
-
-    expect(result.isOk, isTrue);
-    expect(await credentialService.readCachedCredential(), isNull);
-  });
-
-  test(
-    'A4. a failure clearing the credential makes withdraw() an Error',
-    () async {
-      storage.deleteError = StateError('keystore unavailable');
-
-      final result = await repository.withdraw();
-
-      expect(result.isError, isTrue);
-    },
-  );
 
   test('A6. the dev repository also clears the cached credential', () async {
     final dev = DevConsentRepository(credentialService: credentialService);
@@ -352,113 +285,4 @@ class _FakeHarness implements _Harness {
     confirmedAt: DateTime.utc(2026, 1, 1),
     status: ConsentRecordStatus.active,
   );
-}
-
-// --- Real-backed harness --------------------------------------------------
-
-class _RealHarnessFactory implements _HarnessFactory {
-  @override
-  _Harness create() => _RealHarness();
-}
-
-class _RealHarness implements _Harness {
-  _RealHarness() {
-    FlutterSecureStoragePlatform.instance = _storagePlatform;
-    _dio.httpClientAdapter = _adapter;
-  }
-
-  final _storagePlatform = FakeSecureStoragePlatform();
-  final _adapter = FakeHttpClientAdapter();
-  final _dio = Dio(BaseOptions(baseUrl: 'https://api.test.aeropass.example'));
-  final _clock = _FixedClock(DateTime.utc(2026, 1, 1));
-
-  late final _service = ConsentService(
-    dio: _dio,
-    secureStorage: const FlutterSecureStorage(),
-  );
-  late final ConsentRepositoryImpl _repo = ConsentRepositoryImpl(
-    _service,
-    clock: _clock,
-    credentialService: CredentialService(
-      dio: _dio,
-      secureStorage: const FlutterSecureStorage(),
-    ),
-  );
-
-  @override
-  ConsentRepository get repository => _repo;
-
-  Map<String, dynamic> get _sampleTextJson => {
-    'id': 'v1',
-    'points': [
-      {
-        'icon': 'camera',
-        'heading': '[PLACEHOLDER] Qué se captura',
-        'body': '[PLACEHOLDER LEGAL TEXT]',
-      },
-    ],
-    'rightsStatement': '[PLACEHOLDER] Tus derechos',
-    'optionalityStatement': '[PLACEHOLDER] Es opcional',
-    'processorDisclosure': '[PLACEHOLDER] Procesador externo',
-    'privacyPolicyUrl': 'https://example.test/privacy',
-    'termsUrl': 'https://example.test/terms',
-    'publishedAt': DateTime.utc(2026, 1, 1).toIso8601String(),
-  };
-
-  @override
-  Future<void> givenCurrentTextAvailable() async {
-    _adapter.respondWith(_sampleTextJson);
-  }
-
-  @override
-  Future<void> givenCurrentTextFetchFails() async {
-    _adapter.failWith(const SocketException('unreachable'));
-  }
-
-  @override
-  Future<void> givenRecordConsentSucceeds() async {
-    _adapter.respondWith(const <String, dynamic>{});
-  }
-
-  @override
-  Future<void> givenRecordConsentFails() async {
-    _adapter.failWith(const SocketException('unreachable'));
-  }
-
-  @override
-  Future<void> givenNoLocalRecord() async {
-    _storagePlatform.clearAll();
-  }
-
-  @override
-  Future<void> givenActiveLocalRecordAndReachableBackend() async {
-    _seedLocalRecord(_activeRecordFields());
-    _adapter.respondWith(const <String, dynamic>{});
-  }
-
-  @override
-  Future<void> givenWithdrawalPendingLocalRecordAndReachableBackend() async {
-    _seedLocalRecord({
-      ..._activeRecordFields(),
-      ConsentService.statusKey: 'withdrawalPending',
-      ConsentService.withdrawalRequestedAtKey: DateTime.utc(
-        2026,
-        1,
-        2,
-      ).toIso8601String(),
-    });
-    _adapter.respondWith(const <String, dynamic>{});
-  }
-
-  Map<String, String> _activeRecordFields() => {
-    ConsentService.textVersionIdKey: 'v1',
-    ConsentService.enrollmentAttemptIdKey: 'attempt-1',
-    ConsentService.scopeKey: 'identityVerification',
-    ConsentService.confirmedAtKey: DateTime.utc(2026, 1, 1).toIso8601String(),
-    ConsentService.statusKey: 'active',
-  };
-
-  void _seedLocalRecord(Map<String, String> fields) {
-    _storagePlatform.seed(fields);
-  }
 }

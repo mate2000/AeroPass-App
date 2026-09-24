@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): the pass is online-only (DEC-01). Its token is issued by flight code and renewed every `renovar_en_segundos`, and it opens boarding only. Phase B is cancelled.
+
 **Input**: User description: "Screen 14 QR Pase — the pass the passenger presents at a checkpoint. A
 rotating QR code with a countdown, the journey's checkpoints, and an expired variant offering a new
 code."

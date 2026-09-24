@@ -583,7 +583,7 @@ abstract class AppLocalizations {
   /// No description provided for @captureRejectionWrongDocumentBody.
   ///
   /// In es, this message translates to:
-  /// **'Solo aceptamos cédula de ciudadanía o pasaporte colombiano. Verifica que sea el documento correcto.'**
+  /// **'Aceptamos cédula de ciudadanía, cédula de extranjería o pasaporte. Ubica el documento completo sobre una superficie lisa y de un solo color.'**
   String get captureRejectionWrongDocumentBody;
 
   /// No description provided for @captureRejectionLowResolutionHeadline.
@@ -2005,6 +2005,234 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ver pase'**
   String get tripsViewPass;
+
+  /// No description provided for @devSyntheticMarkerLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'DEV · Resultado simulado'**
+  String get devSyntheticMarkerLabel;
+
+  /// No description provided for @devSyntheticMarkerOk.
+  ///
+  /// In es, this message translates to:
+  /// **'Aprobado'**
+  String get devSyntheticMarkerOk;
+
+  /// No description provided for @devSyntheticMarkerSpoof.
+  ///
+  /// In es, this message translates to:
+  /// **'Falla de vida'**
+  String get devSyntheticMarkerSpoof;
+
+  /// No description provided for @devSyntheticMarkerOther.
+  ///
+  /// In es, this message translates to:
+  /// **'No coincide'**
+  String get devSyntheticMarkerOther;
+
+  /// No description provided for @devSyntheticMarkerTimeout.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin respuesta'**
+  String get devSyntheticMarkerTimeout;
+
+  /// No description provided for @confirmationTypedNotice.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe los datos tal como aparecen en tu documento y revisa que coincidan. La fecha de vencimiento va como AAAA-MM-DD.'**
+  String get confirmationTypedNotice;
+
+  /// No description provided for @confirmationDocumentTypeLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de documento'**
+  String get confirmationDocumentTypeLabel;
+
+  /// No description provided for @confirmationDocumentTypeCc.
+  ///
+  /// In es, this message translates to:
+  /// **'Cédula de ciudadanía'**
+  String get confirmationDocumentTypeCc;
+
+  /// No description provided for @confirmationDocumentTypeCe.
+  ///
+  /// In es, this message translates to:
+  /// **'Cédula de extranjería'**
+  String get confirmationDocumentTypeCe;
+
+  /// No description provided for @confirmationDocumentTypePasaporte.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasaporte'**
+  String get confirmationDocumentTypePasaporte;
+
+  /// No description provided for @confirmationDocumentTypeInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el tipo de documento.'**
+  String get confirmationDocumentTypeInvalid;
+
+  /// No description provided for @confirmationFailedConnection.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo.'**
+  String get confirmationFailedConnection;
+
+  /// No description provided for @confirmationFailedServiceBusy.
+  ///
+  /// In es, this message translates to:
+  /// **'El servicio está ocupado en este momento. Inténtalo de nuevo en unos segundos.'**
+  String get confirmationFailedServiceBusy;
+
+  /// No description provided for @confirmationFailedSession.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos conectar tu sesión. Revisa tu conexión e inténtalo de nuevo.'**
+  String get confirmationFailedSession;
+
+  /// No description provided for @confirmationFailedAccountHasOtherDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta cuenta ya tiene otro documento registrado. Un agente puede ayudarte.'**
+  String get confirmationFailedAccountHasOtherDocument;
+
+  /// No description provided for @passDocumentExpiredTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu documento está vencido'**
+  String get passDocumentExpiredTitle;
+
+  /// No description provided for @passIdentityNotActiveTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu identidad no está activa'**
+  String get passIdentityNotActiveTitle;
+
+  /// No description provided for @passRenewing.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizando código…'**
+  String get passRenewing;
+
+  /// No description provided for @tripsFlightCodeHeading.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu vuelo'**
+  String get tripsFlightCodeHeading;
+
+  /// No description provided for @tripsFlightCodeLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Código de vuelo'**
+  String get tripsFlightCodeLabel;
+
+  /// No description provided for @tripsFlightCodeHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej. AV9201'**
+  String get tripsFlightCodeHint;
+
+  /// No description provided for @tripsFlightCodeInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa el código de vuelo (ej. AV9201)'**
+  String get tripsFlightCodeInvalid;
+
+  /// No description provided for @tripsShowPass.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar mi pase'**
+  String get tripsShowPass;
+
+  /// No description provided for @escalationLaneOnlyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Te atienden en el control habitual'**
+  String get escalationLaneOnlyTitle;
+
+  /// No description provided for @escalationLaneOnlyBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Por ahora no hay agentes disponibles desde la app. Acércate al control de documentos del aeropuerto con tu documento de identidad.'**
+  String get escalationLaneOnlyBody;
+
+  /// No description provided for @demoRibbonLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'DEMO · biometría simulada'**
+  String get demoRibbonLabel;
+
+  /// No description provided for @demoRibbonSemantics.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión de demostración. La verificación biométrica es simulada; ninguna identidad queda verificada.'**
+  String get demoRibbonSemantics;
+
+  /// No description provided for @credentialActivatedTitleMock.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro completado'**
+  String get credentialActivatedTitleMock;
+
+  /// No description provided for @credentialActivatedSubtitleMock.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta es una versión de demostración. La biometría es simulada, así que este registro no sirve para pasar un control.'**
+  String get credentialActivatedSubtitleMock;
+
+  /// No description provided for @credentialCardBadgeMock.
+  ///
+  /// In es, this message translates to:
+  /// **'REGISTRADO'**
+  String get credentialCardBadgeMock;
+
+  /// No description provided for @tripsBadgeMock.
+  ///
+  /// In es, this message translates to:
+  /// **'REGISTRADO'**
+  String get tripsBadgeMock;
+
+  /// No description provided for @verificationStageDocumentPassedMock.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento recibido'**
+  String get verificationStageDocumentPassedMock;
+
+  /// No description provided for @verificationStageFacePassedMock.
+  ///
+  /// In es, this message translates to:
+  /// **'Rostro procesado'**
+  String get verificationStageFacePassedMock;
+
+  /// No description provided for @withdrawalServerDataNotice.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus datos en el servidor no se eliminan todavía desde la app.'**
+  String get withdrawalServerDataNotice;
+
+  /// No description provided for @signInTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Inicia sesión'**
+  String get signInTitle;
+
+  /// No description provided for @signInPrivacy.
+  ///
+  /// In es, this message translates to:
+  /// **'Usamos tu correo solo para iniciar sesión. Lo gestiona Clerk, nuestro proveedor de identidad.'**
+  String get signInPrivacy;
+
+  /// No description provided for @signInErrorNotAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'El inicio de sesión por correo no está disponible ahora.'**
+  String get signInErrorNotAvailable;
+
+  /// 015: shown on the sign-in screen once Clerk has signed the passenger in, while the app checks the account with the backend.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciando sesión…'**
+  String get signInCompleting;
 }
 
 class _AppLocalizationsDelegate

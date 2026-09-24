@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): the retry budget is the server's `intentos_restantes` (FR-008). The limit of 3 is enforced by the backend.
+
 **Input**: User description: "Screen 09 Reintento — shown when verification could not confirm the
 passenger. Explains what happened, shows the attempt count, gives targeted advice, and offers a
 retry or a human agent."

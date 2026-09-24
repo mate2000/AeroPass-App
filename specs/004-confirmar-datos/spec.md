@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): the passenger types the name, number and expiry and chooses CC, CE or Pasaporte (FR-002a). Field re-verification has no backend and is not wired in release.
+
 **Input**: User description: "Screen 04 Confirmar datos — shows the captured document and the fields
 extracted from it, lets the passenger verify them, and takes their confirmation before the flow moves
 to the selfie."

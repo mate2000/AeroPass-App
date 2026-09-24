@@ -54,4 +54,29 @@ void main() {
       returnsNormally,
     );
   });
+
+  // 015 T011: the backend-integration relaxations are release-refused too.
+  test('6. the 015 relaxations are off here and release-refused', () {
+    expect(HappyPathFlags.allowInsecureLocalBackend, isFalse);
+    expect(HappyPathFlags.syntheticCapture, isFalse);
+    expect(HappyPathFlags.authMode, AuthMode.clerk);
+    for (final flag in const [
+      'ALLOW_INSECURE_LOCAL_BACKEND',
+      'SYNTHETIC_CAPTURE',
+      'AUTH_MODE=test',
+    ]) {
+      expect(
+        () => HappyPathFlags.assertReleaseSafe(
+          releaseMode: true,
+          enabledFlagNamesOverride: [flag],
+        ),
+        throwsStateError,
+        reason: flag,
+      );
+    }
+  });
+
+  test('7. the mock declaration defaults on', () {
+    expect(HappyPathFlags.biometricProviderMock, isTrue);
+  });
 }

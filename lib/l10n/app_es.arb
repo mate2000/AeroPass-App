@@ -8,7 +8,6 @@
   "@splashLoadingLabel": {
     "description": "Shown on the branded splash while the launch-time credential-status check runs (FR-017)."
   },
-
   "welcomeBenefitHeadline": "Tu identidad, una sola vez.",
   "@welcomeBenefitHeadline": {
     "description": "US1 / FR-001: the passenger-facing benefit statement."
@@ -17,7 +16,6 @@
   "@welcomeBenefitDescription": {
     "description": "US1 / FR-001: elaboration of the benefit, folding in the fact that the service is free to the passenger."
   },
-
   "welcomeStepDocumentTitle": "Escanea tu documento de identidad",
   "@welcomeStepDocumentTitle": {
     "description": "First of the three enrollment steps (FR-001)."
@@ -30,7 +28,6 @@
   "@welcomeStepTravelTitle": {
     "description": "Third of the three enrollment steps (FR-001)."
   },
-
   "welcomePrimaryActionLabel": "Comenzar",
   "@welcomePrimaryActionLabel": {
     "description": "FR-002: the single primary action."
@@ -39,7 +36,6 @@
   "@welcomeSecondaryActionLabel": {
     "description": "FR-002: the single secondary action, for account recovery on a new device."
   },
-
   "welcomeReenrollmentRequiredHeadline": "Tu credencial ya no es válida",
   "@welcomeReenrollmentRequiredHeadline": {
     "description": "FR-006: distinct explanation shown when a credential exists but is expired/revoked."
@@ -48,19 +44,16 @@
   "@welcomeReenrollmentRequiredExpiredDescription": {},
   "welcomeReenrollmentRequiredRevokedDescription": "Tu credencial fue revocada. Vuelve a inscribirte para seguir usando AeroPass.",
   "@welcomeReenrollmentRequiredRevokedDescription": {},
-
   "welcomeUnrefreshedIndicator": "No pudimos actualizar tu información. Mostramos el último estado conocido.",
   "@welcomeUnrefreshedIndicator": {
     "description": "FR-007: shown when credential validity could not be confirmed because the backend is unreachable."
   },
-
   "welcomeResumeHeadline": "Continúa donde lo dejaste",
   "@welcomeResumeHeadline": {
     "description": "FR-008: shown when an in-progress (process-alive) enrollment session can be resumed."
   },
   "welcomeResumeDescription": "Tienes una inscripción sin terminar. Puedes continuar ahora.",
   "@welcomeResumeDescription": {},
-
   "welcomeDeviceUnsupportedHeadline": "Este dispositivo no admite la inscripción en la app",
   "@welcomeDeviceUnsupportedHeadline": {
     "description": "FR-012: shown when the device can't complete enrollment."
@@ -69,12 +62,10 @@
   "@welcomeDeviceUnsupportedNoCameraDescription": {},
   "welcomeDeviceUnsupportedOsDescription": "La versión del sistema operativo de este dispositivo no es compatible. Dirígete al mostrador del aeropuerto para continuar con el proceso habitual.",
   "@welcomeDeviceUnsupportedOsDescription": {},
-
   "welcomePrivacyTermsLinkLabel": "Cómo tratamos tus datos",
   "@welcomePrivacyTermsLinkLabel": {
     "description": "US3 / FR-010: link to the plain-language data-handling statement."
   },
-
   "termsScreenTitle": "Cómo tratamos tus datos",
   "@termsScreenTitle": {},
   "termsWhatWeCollectHeading": "Qué recopilamos",
@@ -97,7 +88,6 @@
   "@termsPlaceholderLinkNotice": {
     "description": "FR-011: the screen ships against a placeholder link until legal delivers the final published URLs."
   },
-
   "consentTitle": "Cómo tratamos tus datos",
   "@consentTitle": {
     "description": "UI Reference: the gate's title. Static chrome, not part of the fetched ConsentTextVersion."
@@ -134,7 +124,6 @@
   "@consentPriorRecordBanner": {
     "description": "FR-014: shown when the gate is re-presented because the recorded consent refers to a superseded text version."
   },
-
   "consentUnavailableOfflineHeadline": "Sin conexión",
   "@consentUnavailableOfflineHeadline": {},
   "consentUnavailableOfflineBody": "No podemos mostrarte los términos de tratamiento de datos sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.",
@@ -147,7 +136,6 @@
   "@consentUnavailableFetchErrorBody": {},
   "consentRetryLabel": "Reintentar",
   "@consentRetryLabel": {},
-
   "consentConfirmBlockedOfflineMessage": "No podemos iniciar la inscripción sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.",
   "@consentConfirmBlockedOfflineMessage": {
     "description": "FR-008: shown inline when recordConsent() fails while offline — the flow does not advance."
@@ -156,12 +144,10 @@
   "@consentConfirmBlockedGenericMessage": {
     "description": "FR-008: shown inline when recordConsent() fails for a reason other than connectivity."
   },
-
   "consentDeclinedMessage": "Puedes continuar con el proceso habitual del aeropuerto cuando quieras.",
   "@consentDeclinedMessage": {
     "description": "FR-009: statement that the conventional airport process remains available, shown after declining or dismissing the gate."
   },
-
   "withdrawalTitle": "Retirar tu consentimiento",
   "@withdrawalTitle": {
     "description": "FR-015/FR-016: the withdrawal placeholder route's title."
@@ -178,7 +164,6 @@
   },
   "withdrawalNoRecordMessage": "No encontramos un consentimiento activo para retirar en este dispositivo.",
   "@withdrawalNoRecordMessage": {},
-
   "captureTopBarBackLabel": "Atrás",
   "@captureTopBarBackLabel": {
     "description": "UI Reference: top bar left control. FR-012: discards any held image and preserves the session as incomplete."
@@ -193,7 +178,6 @@
   "@captureStepSelfieLabel": {},
   "captureStepDoneLabel": "Listo",
   "@captureStepDoneLabel": {},
-
   "captureInstruction": "Ubica tu cédula o pasaporte dentro del marco",
   "@captureInstruction": {
     "description": "FR-003/FR-019: names the accepted documents — cédula de ciudadanía and Colombian passport only."
@@ -204,7 +188,6 @@
   },
   "captureCaption": "Toca el círculo central para capturar",
   "@captureCaption": {},
-
   "captureTorchOnSemanticLabel": "Apagar la linterna",
   "@captureTorchOnSemanticLabel": {
     "description": "FR-005: announced when the torch is currently on (tapping turns it off)."
@@ -217,7 +200,6 @@
   "@captureButtonSemanticLabel": {
     "description": "FR-004/FR-016: the manual capture control."
   },
-
   "capturePermissionRationale": "AeroPass necesita acceder a la cámara para escanear tu cédula o pasaporte. Solo se usa durante este paso y la foto nunca se guarda en tu dispositivo.",
   "@capturePermissionRationale": {
     "description": "FR-002: the explanation shown alongside the camera-permission request."
@@ -242,7 +224,6 @@
   "@captureConventionalProcessStatement": {
     "description": "FR-014/US3: states that the conventional airport process remains available."
   },
-
   "captureOfflineHeadline": "Sin conexión",
   "@captureOfflineHeadline": {},
   "captureOfflineBody": "No podemos enviar tu documento para verificación sin conexión a internet. Verifica tu conexión e inténtalo de nuevo.",
@@ -251,7 +232,6 @@
   },
   "captureOfflineRetryLabel": "Reintentar",
   "@captureOfflineRetryLabel": {},
-
   "captureRejectionBlurHeadline": "La imagen está borrosa",
   "@captureRejectionBlurHeadline": {},
   "captureRejectionBlurBody": "Mantén el teléfono firme y espera a que enfoque antes de capturar.",
@@ -268,7 +248,7 @@
   "@captureRejectionWrongDocumentHeadline": {
     "description": "FR-019: shown when the shape doesn't match cédula de ciudadanía or Colombian passport."
   },
-  "captureRejectionWrongDocumentBody": "Solo aceptamos cédula de ciudadanía o pasaporte colombiano. Verifica que sea el documento correcto.",
+  "captureRejectionWrongDocumentBody": "Aceptamos cédula de ciudadanía, cédula de extranjería o pasaporte. Ubica el documento completo sobre una superficie lisa y de un solo color.",
   "@captureRejectionWrongDocumentBody": {},
   "captureRejectionLowResolutionHeadline": "La imagen no tiene suficiente calidad",
   "@captureRejectionLowResolutionHeadline": {},
@@ -280,7 +260,6 @@
   "@captureRejectionUnreadableBody": {},
   "captureRejectionRetryLabel": "Reintentar",
   "@captureRejectionRetryLabel": {},
-
   "confirmationNoticeText": "Verifica que los datos coincidan exactamente con tu documento original.",
   "@confirmationNoticeText": {
     "description": "004-confirmar-datos FR-012: visible before the fields, instructing exact comparison."
@@ -289,7 +268,6 @@
   "@confirmationCapturedBadgeLabel": {
     "description": "Paired with a checkmark icon on the document thumbnail card."
   },
-
   "confirmationFieldFullNameLabel": "Nombre completo",
   "@confirmationFieldFullNameLabel": {},
   "confirmationFieldDocumentNumberLabel": "Número de documento",
@@ -298,7 +276,6 @@
   "@confirmationFieldNationalityLabel": {},
   "confirmationFieldExpiryDateLabel": "Fecha de vencimiento",
   "@confirmationFieldExpiryDateLabel": {},
-
   "confirmationEditActionLabel": "Editar",
   "@confirmationEditActionLabel": {
     "description": "Prefixed to the field label to build each field's edit-button semantic label, e.g. 'Editar Nombre completo'."
@@ -317,7 +294,6 @@
   },
   "confirmationReverifyingLabel": "Verificando...",
   "@confirmationReverifyingLabel": {},
-
   "confirmationPrimaryActionLabel": "Los datos son correctos",
   "@confirmationPrimaryActionLabel": {},
   "confirmationSecondaryActionLabel": "Escanear de nuevo",
@@ -326,7 +302,6 @@
   "@confirmationConfirmFailedMessage": {
     "description": "FR-017: confirmation could not be recorded durably."
   },
-
   "confirmationMissingFieldLabel": "No pudimos leer este dato",
   "@confirmationMissingFieldLabel": {
     "description": "FR-009: an explicit gap, never rendered as a blank value."
@@ -343,7 +318,6 @@
   },
   "confirmationMissingFieldBody": "Vuelve a escanear tu documento para intentar leer el dato faltante.",
   "@confirmationMissingFieldBody": {},
-
   "selfieInstructionsTitle": "Ahora una selfie",
   "@selfieInstructionsTitle": {
     "description": "005-instrucciones-selfie FR-001."
@@ -362,7 +336,6 @@
   "@selfieInstructionsRuleEyesLabel": {},
   "selfieInstructionsPrimaryActionLabel": "Tomar selfie",
   "@selfieInstructionsPrimaryActionLabel": {},
-
   "livenessFooter": "La captura es automática — no toques la pantalla",
   "@livenessFooter": {
     "description": "006-selfie-liveness FR-003/FR-018, UI Reference."
@@ -371,7 +344,9 @@
   "@livenessProgressBadge": {
     "description": "FR-006, UI Reference (\"64%\", top right).",
     "placeholders": {
-      "percent": {"type": "int"}
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "livenessInstructionMoveCloser": "Acércate un poco",
@@ -390,7 +365,6 @@
   "@livenessInstructionLookAtCamera": {},
   "livenessInstructionImproveLighting": "Busca un lugar con mejor iluminación",
   "@livenessInstructionImproveLighting": {},
-
   "livenessFailureGenericHeadline": "No pudimos completar la captura",
   "@livenessFailureGenericHeadline": {
     "description": "FR-010/Clarifications: shared verbatim (text and styling) by unclassifiedFailure and attackDetected — never a message unique to attack detection."
@@ -423,7 +397,6 @@
   "@livenessFailureFaceObstructedBody": {},
   "livenessFailureRetryLabel": "Reintentar",
   "@livenessFailureRetryLabel": {},
-
   "livenessStalledHeadline": "La captura tardó más de lo esperado",
   "@livenessStalledHeadline": {
     "description": "FR-013: ends with an explanation rather than continuing indefinitely."
@@ -432,7 +405,6 @@
   "@livenessStalledBody": {},
   "livenessStalledRetryLabel": "Reintentar",
   "@livenessStalledRetryLabel": {},
-
   "credentialActivatedTitle": "Tu identidad digital está activa",
   "@credentialActivatedTitle": {},
   "credentialActivatedSubtitle": "A partir de ahora, pasa los filtros de seguridad donde AeroPass está disponible sin mostrar documentos físicos.",
@@ -443,28 +415,44 @@
   "@credentialCardLabel": {},
   "credentialCardIssuedOn": "Creada el {date}",
   "@credentialCardIssuedOn": {
-    "placeholders": { "date": { "type": "String" } }
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "credentialCardValidUntil": "Válida hasta {date}",
   "@credentialCardValidUntil": {
     "description": "FR-004: the backend-issued validity; never computed by the app.",
-    "placeholders": { "date": { "type": "String" } }
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "credentialCardActiveBadge": "ACTIVA",
   "@credentialCardActiveBadge": {},
   "credentialCardMaskedDocument": "•••• {last4} · {countryCode}",
   "@credentialCardMaskedDocument": {
     "placeholders": {
-      "last4": { "type": "String" },
-      "countryCode": { "type": "String" }
+      "last4": {
+        "type": "String"
+      },
+      "countryCode": {
+        "type": "String"
+      }
     }
   },
   "credentialCardMaskedDocumentSemantics": "Documento terminado en {last4}, {country}",
   "@credentialCardMaskedDocumentSemantics": {
     "description": "FR-014: what assistive technology announces instead of the bullet characters.",
     "placeholders": {
-      "last4": { "type": "String" },
-      "country": { "type": "String" }
+      "last4": {
+        "type": "String"
+      },
+      "country": {
+        "type": "String"
+      }
     }
   },
   "credentialCardPortraitSemantics": "Imagen genérica de perfil",
@@ -477,21 +465,18 @@
   "@credentialActivatedPrimaryAction": {},
   "credentialActivatedSecondaryAction": "Ver mi identidad",
   "@credentialActivatedSecondaryAction": {},
-
   "verificationProgressMessage": "Estamos activando tu identidad digital…",
   "@verificationProgressMessage": {},
   "verificationProgressFailedMessage": "No pudimos completar la activación. Revisa tu conexión y vuelve a intentarlo.",
   "@verificationProgressFailedMessage": {},
   "verificationProgressRetryLabel": "Reintentar",
   "@verificationProgressRetryLabel": {},
-
   "credentialNotActivePlaceholderMessage": "No pudimos activar tu identidad digital. (Pantalla pendiente de su propia especificación.)",
   "@credentialNotActivePlaceholderMessage": {
     "description": "FR-010 destination placeholder until its own spec arrives."
   },
   "credentialDetailPlaceholderMessage": "Tu identidad digital (pantalla pendiente de su propia especificación).",
   "@credentialDetailPlaceholderMessage": {},
-
   "tripsGreetingMorning": "Buenos días,",
   "@tripsGreetingMorning": {},
   "tripsGreetingAfternoon": "Buenas tardes,",
@@ -500,7 +485,11 @@
   "@tripsGreetingEvening": {},
   "tripsMaskedDocument": "•••• {last4}",
   "@tripsMaskedDocument": {
-    "placeholders": { "last4": { "type": "String" } }
+    "placeholders": {
+      "last4": {
+        "type": "String"
+      }
+    }
   },
   "tripsBadgeActive": "ACTIVA",
   "@tripsBadgeActive": {},
@@ -518,27 +507,54 @@
   "@tripsHistoryHeading": {},
   "tripsToday": "Hoy · {hora}",
   "@tripsToday": {
-    "placeholders": { "hora": { "type": "String" } }
+    "placeholders": {
+      "hora": {
+        "type": "String"
+      }
+    }
   },
   "tripsTomorrow": "Mañana · {hora}",
   "@tripsTomorrow": {
-    "placeholders": { "hora": { "type": "String" } }
+    "placeholders": {
+      "hora": {
+        "type": "String"
+      }
+    }
   },
   "tripsOnDate": "{fecha} · {hora}",
   "@tripsOnDate": {
-    "placeholders": { "fecha": { "type": "String" }, "hora": { "type": "String" } }
+    "placeholders": {
+      "fecha": {
+        "type": "String"
+      },
+      "hora": {
+        "type": "String"
+      }
+    }
   },
   "tripsLocalTimeOf": "(hora local de {ciudad})",
   "@tripsLocalTimeOf": {
-    "placeholders": { "ciudad": { "type": "String" } }
+    "placeholders": {
+      "ciudad": {
+        "type": "String"
+      }
+    }
   },
   "tripsGate": "Puerta {gate}",
   "@tripsGate": {
-    "placeholders": { "gate": { "type": "String" } }
+    "placeholders": {
+      "gate": {
+        "type": "String"
+      }
+    }
   },
   "tripsSeat": "Asiento {seat}",
   "@tripsSeat": {
-    "placeholders": { "seat": { "type": "String" } }
+    "placeholders": {
+      "seat": {
+        "type": "String"
+      }
+    }
   },
   "tripsDetailsUnavailable": "Detalles no disponibles",
   "@tripsDetailsUnavailable": {},
@@ -550,11 +566,19 @@
   "@tripsStatusUnknown": {},
   "tripsConnectsTo": "Conexión a {ciudad}",
   "@tripsConnectsTo": {
-    "placeholders": { "ciudad": { "type": "String" } }
+    "placeholders": {
+      "ciudad": {
+        "type": "String"
+      }
+    }
   },
   "tripsUpdatedAgo": "Actualizado hace {min} min",
   "@tripsUpdatedAgo": {
-    "placeholders": { "min": { "type": "int" } }
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
   },
   "tripsStart": "Iniciar viaje",
   "@tripsStart": {},
@@ -570,11 +594,31 @@
   "@tripsReasonDeparted": {},
   "tripsReasonAvailableFrom": "Disponible desde el {dia} a las {hora}",
   "@tripsReasonAvailableFrom": {
-    "placeholders": { "dia": { "type": "String" }, "hora": { "type": "String" } }
+    "placeholders": {
+      "dia": {
+        "type": "String"
+      },
+      "hora": {
+        "type": "String"
+      }
+    }
   },
   "tripsRouteSemantics": "De {origen} a {destino}, vuelo {vuelo}, {cuando}",
   "@tripsRouteSemantics": {
-    "placeholders": { "origen": { "type": "String" }, "destino": { "type": "String" }, "vuelo": { "type": "String" }, "cuando": { "type": "String" } }
+    "placeholders": {
+      "origen": {
+        "type": "String"
+      },
+      "destino": {
+        "type": "String"
+      },
+      "vuelo": {
+        "type": "String"
+      },
+      "cuando": {
+        "type": "String"
+      }
+    }
   },
   "tripsEmptyTitle": "Aún no tienes viajes",
   "@tripsEmptyTitle": {},
@@ -584,7 +628,14 @@
   "@tripsHistoryRetention": {},
   "tripsHistoryRow": "{vuelo} · {fecha}",
   "@tripsHistoryRow": {
-    "placeholders": { "vuelo": { "type": "String" }, "fecha": { "type": "String" } }
+    "placeholders": {
+      "vuelo": {
+        "type": "String"
+      },
+      "fecha": {
+        "type": "String"
+      }
+    }
   },
   "tripsUnavailableTitle": "No pudimos cargar tus viajes",
   "@tripsUnavailableTitle": {},
@@ -638,7 +689,6 @@
   "@verificationKeepWaiting": {},
   "verificationHelp": "Ayuda",
   "@verificationHelp": {},
-
   "technicalErrorHelp": "Ayuda",
   "@technicalErrorHelp": {},
   "technicalErrorServiceTitle": "No pudimos completar la validación",
@@ -669,7 +719,11 @@
   },
   "technicalErrorRetryAt": "Puedes reintentar a las {hora}.",
   "@technicalErrorRetryAt": {
-    "placeholders": { "hora": { "type": "String" } }
+    "placeholders": {
+      "hora": {
+        "type": "String"
+      }
+    }
   },
   "technicalErrorPreservedNewSelfie": "Tus datos del documento quedaron guardados. Al reintentar, solo tendrás que tomarte una nueva selfie.",
   "@technicalErrorPreservedNewSelfie": {
@@ -699,11 +753,19 @@
   "@technicalErrorRetry": {},
   "technicalErrorRetryIn": "Reintentar en {segundos} s",
   "@technicalErrorRetryIn": {
-    "placeholders": { "segundos": { "type": "int" } }
+    "placeholders": {
+      "segundos": {
+        "type": "int"
+      }
+    }
   },
   "technicalErrorRetryHeldSemantics": "Reintentar no disponible por {segundos} segundos",
   "@technicalErrorRetryHeldSemantics": {
-    "placeholders": { "segundos": { "type": "int" } }
+    "placeholders": {
+      "segundos": {
+        "type": "int"
+      }
+    }
   },
   "technicalErrorExit": "Salir",
   "@technicalErrorExit": {},
@@ -719,7 +781,6 @@
   "@stepIndicatorPendingSuffix": {
     "description": "007 FR-006: appended to the step indicator label when the current step is not yet reached."
   },
-
   "retryGuidanceHelp": "Ayuda",
   "@retryGuidanceHelp": {},
   "retryGuidanceIconSemantics": "Aviso",
@@ -752,7 +813,6 @@
   "@retryAction": {},
   "retryAgentAction": "Hablar con un agente",
   "@retryAgentAction": {},
-
   "escalationHelp": "Ayuda",
   "@escalationHelp": {},
   "escalationTitle": "Necesitamos verificarte en persona",
@@ -779,14 +839,22 @@
   "@escalationUnavailable": {},
   "escalationOpensAt": "Abre {when}",
   "@escalationOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "escalationEstimatedWait": "Espera estimada: {min}–{max} minutos",
   "@escalationEstimatedWait": {
     "description": "010 FR-006: shown only when the channel supplies a wait.",
     "placeholders": {
-      "min": { "type": "int" },
-      "max": { "type": "int" }
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
   "escalationDirectionsAction": "Cómo llegar al módulo",
@@ -823,7 +891,11 @@
   "@escalationLocationSheetTitle": {},
   "escalationLocationHours": "Horario: {hours}",
   "@escalationLocationHours": {
-    "placeholders": { "hours": { "type": "String" } }
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
   },
   "agentChatTitle": "Chat con un agente",
   "@agentChatTitle": {},
@@ -843,11 +915,28 @@
   "@passHelp": {},
   "passSeat": "Asiento {seat}",
   "@passSeat": {
-    "placeholders": { "seat": { "type": "String" } }
+    "placeholders": {
+      "seat": {
+        "type": "String"
+      }
+    }
   },
   "passTripLine": "{vuelo} · {origen} → {destino} · {cuando}",
   "@passTripLine": {
-    "placeholders": { "vuelo": { "type": "String" }, "origen": { "type": "String" }, "destino": { "type": "String" }, "cuando": { "type": "String" } }
+    "placeholders": {
+      "vuelo": {
+        "type": "String"
+      },
+      "origen": {
+        "type": "String"
+      },
+      "destino": {
+        "type": "String"
+      },
+      "cuando": {
+        "type": "String"
+      }
+    }
   },
   "passCheckpointSecurity": "Seguridad",
   "@passCheckpointSecurity": {},
@@ -855,19 +944,35 @@
   "@passCheckpointBoarding": {},
   "passStepDone": "{paso}, completado",
   "@passStepDone": {
-    "placeholders": { "paso": { "type": "String" } }
+    "placeholders": {
+      "paso": {
+        "type": "String"
+      }
+    }
   },
   "passStepCurrent": "{paso}, siguiente",
   "@passStepCurrent": {
-    "placeholders": { "paso": { "type": "String" } }
+    "placeholders": {
+      "paso": {
+        "type": "String"
+      }
+    }
   },
   "passStepPending": "{paso}, pendiente",
   "@passStepPending": {
-    "placeholders": { "paso": { "type": "String" } }
+    "placeholders": {
+      "paso": {
+        "type": "String"
+      }
+    }
   },
   "passRefreshesIn": "Se actualiza en {tiempo}",
   "@passRefreshesIn": {
-    "placeholders": { "tiempo": { "type": "String" } }
+    "placeholders": {
+      "tiempo": {
+        "type": "String"
+      }
+    }
   },
   "passCodeUpdated": "Código actualizado",
   "@passCodeUpdated": {},
@@ -914,5 +1019,83 @@
   "passContinueToPass": "Continuar a tu pase",
   "@passContinueToPass": {},
   "tripsViewPass": "Ver pase",
-  "@tripsViewPass": {}
+  "@tripsViewPass": {},
+  "devSyntheticMarkerLabel": "DEV · Resultado simulado",
+  "@devSyntheticMarkerLabel": {},
+  "devSyntheticMarkerOk": "Aprobado",
+  "@devSyntheticMarkerOk": {},
+  "devSyntheticMarkerSpoof": "Falla de vida",
+  "@devSyntheticMarkerSpoof": {},
+  "devSyntheticMarkerOther": "No coincide",
+  "@devSyntheticMarkerOther": {},
+  "devSyntheticMarkerTimeout": "Sin respuesta",
+  "@devSyntheticMarkerTimeout": {},
+  "confirmationTypedNotice": "Escribe los datos tal como aparecen en tu documento y revisa que coincidan. La fecha de vencimiento va como AAAA-MM-DD.",
+  "@confirmationTypedNotice": {},
+  "confirmationDocumentTypeLabel": "Tipo de documento",
+  "@confirmationDocumentTypeLabel": {},
+  "confirmationDocumentTypeCc": "Cédula de ciudadanía",
+  "@confirmationDocumentTypeCc": {},
+  "confirmationDocumentTypeCe": "Cédula de extranjería",
+  "@confirmationDocumentTypeCe": {},
+  "confirmationDocumentTypePasaporte": "Pasaporte",
+  "@confirmationDocumentTypePasaporte": {},
+  "confirmationDocumentTypeInvalid": "Elige el tipo de documento.",
+  "@confirmationDocumentTypeInvalid": {},
+  "confirmationFailedConnection": "No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo.",
+  "@confirmationFailedConnection": {},
+  "confirmationFailedServiceBusy": "El servicio está ocupado en este momento. Inténtalo de nuevo en unos segundos.",
+  "@confirmationFailedServiceBusy": {},
+  "confirmationFailedSession": "No pudimos conectar tu sesión. Revisa tu conexión e inténtalo de nuevo.",
+  "@confirmationFailedSession": {},
+  "confirmationFailedAccountHasOtherDocument": "Esta cuenta ya tiene otro documento registrado. Un agente puede ayudarte.",
+  "@confirmationFailedAccountHasOtherDocument": {},
+  "passDocumentExpiredTitle": "Tu documento está vencido",
+  "@passDocumentExpiredTitle": {},
+  "passIdentityNotActiveTitle": "Tu identidad no está activa",
+  "@passIdentityNotActiveTitle": {},
+  "passRenewing": "Actualizando código…",
+  "@passRenewing": {},
+  "tripsFlightCodeHeading": "Tu vuelo",
+  "@tripsFlightCodeHeading": {},
+  "tripsFlightCodeLabel": "Código de vuelo",
+  "@tripsFlightCodeLabel": {},
+  "tripsFlightCodeHint": "Ej. AV9201",
+  "@tripsFlightCodeHint": {},
+  "tripsFlightCodeInvalid": "Revisa el código de vuelo (ej. AV9201)",
+  "@tripsFlightCodeInvalid": {},
+  "tripsShowPass": "Mostrar mi pase",
+  "@tripsShowPass": {},
+  "escalationLaneOnlyTitle": "Te atienden en el control habitual",
+  "@escalationLaneOnlyTitle": {},
+  "escalationLaneOnlyBody": "Por ahora no hay agentes disponibles desde la app. Acércate al control de documentos del aeropuerto con tu documento de identidad.",
+  "@escalationLaneOnlyBody": {},
+  "demoRibbonLabel": "DEMO · biometría simulada",
+  "@demoRibbonLabel": {},
+  "demoRibbonSemantics": "Versión de demostración. La verificación biométrica es simulada; ninguna identidad queda verificada.",
+  "@demoRibbonSemantics": {},
+  "credentialActivatedTitleMock": "Registro completado",
+  "@credentialActivatedTitleMock": {},
+  "credentialActivatedSubtitleMock": "Esta es una versión de demostración. La biometría es simulada, así que este registro no sirve para pasar un control.",
+  "@credentialActivatedSubtitleMock": {},
+  "credentialCardBadgeMock": "REGISTRADO",
+  "@credentialCardBadgeMock": {},
+  "tripsBadgeMock": "REGISTRADO",
+  "@tripsBadgeMock": {},
+  "verificationStageDocumentPassedMock": "Documento recibido",
+  "@verificationStageDocumentPassedMock": {},
+  "verificationStageFacePassedMock": "Rostro procesado",
+  "@verificationStageFacePassedMock": {},
+  "withdrawalServerDataNotice": "Tus datos en el servidor no se eliminan todavía desde la app.",
+  "@withdrawalServerDataNotice": {},
+  "signInTitle": "Inicia sesión",
+  "@signInTitle": {},
+  "signInPrivacy": "Usamos tu correo solo para iniciar sesión. Lo gestiona Clerk, nuestro proveedor de identidad.",
+  "@signInPrivacy": {},
+  "signInErrorNotAvailable": "El inicio de sesión por correo no está disponible ahora.",
+  "@signInErrorNotAvailable": {},
+  "signInCompleting": "Iniciando sesión…",
+  "@signInCompleting": {
+    "description": "015: shown on the sign-in screen once Clerk has signed the passenger in, while the app checks the account with the backend."
+  }
 }

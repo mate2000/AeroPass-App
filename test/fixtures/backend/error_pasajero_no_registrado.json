@@ -1,0 +1,8 @@
+{
+  "status": 404,
+  "retry_after": null,
+  "body": {
+    "codigo": "PASAJERO_NO_REGISTRADO",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

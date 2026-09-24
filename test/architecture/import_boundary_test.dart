@@ -89,8 +89,9 @@ void main() {
     // Any log or print in pass code must not interpolate pass data.
     final passFiles = [
       ...featureDir.listSync(recursive: true),
-      File('lib/data/services/pass_repository_impl.dart'),
-      File('lib/data/services/backend_pass_code_source.dart'),
+      // 015: the backend pass repository and its token code source.
+      File('lib/data/services/backend_pass_repository.dart'),
+      File('lib/data/services/issued_token_pass_code_source.dart'),
       File('lib/data/services/pass_service.dart'),
       File('lib/data/services/platform_pass_display.dart'),
       File('lib/data/dev/dev_pass_repository.dart'),
@@ -170,5 +171,56 @@ void main() {
       }
     }
     expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  // 015 T079 (FR-017): the session and backend code never logs a token, a
+  // header, an image or a registration field. Views reach none of it.
+  test('the session and backend code logs no token, image or document', () {
+    final files = [
+      ...Directory('lib/data/auth').listSync(recursive: true),
+      for (final name in [
+        'backend_error_mapper',
+        'backend_identity_record_repository',
+        'backend_biometric_verification_repository',
+        'backend_pass_repository',
+        'biometric_service',
+        'issued_token_pass_code_source',
+        'passenger_backed_credential_repository',
+        'passenger_issuance_repository',
+        'passenger_service',
+        'pass_service',
+        'local_consent_repository',
+      ])
+        File('lib/data/services/$name.dart'),
+      File('lib/app/verification_submission.dart'),
+    ];
+    final leakyLog = RegExp(
+      r'''(developer\.log|print|debugPrint|Sentry\.capture\w*)\(.*'''
+      r'''(token|authorization|bearer|selfie|foto|numero|jpeg|bytes)''',
+      caseSensitive: false,
+    );
+    final violations = <String>[];
+    for (final entity in files) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      for (final (i, line) in entity.readAsLinesSync().indexed) {
+        if (leakyLog.hasMatch(line)) {
+          violations.add('${entity.path}:${i + 1}: ${line.trim()}');
+        }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('no view imports the session layer', () {
+    final violations = <String>[];
+    for (final entity in Directory('lib/features').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('_view.dart')) continue;
+      for (final line in entity.readAsLinesSync()) {
+        if (line.startsWith('import ') && line.contains('data/auth/')) {
+          violations.add('${entity.path}: $line');
+        }
+      }
+    }
+    expect(violations, isEmpty);
   });
 }

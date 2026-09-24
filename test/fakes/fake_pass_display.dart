@@ -9,6 +9,9 @@ class FakePassCodeSource implements PassCodeSource {
   bool failing = false;
   int callCount = 0;
 
+  /// 015: marks every code as a still-valid code whose renewal failed.
+  bool renewalPending = false;
+
   @override
   Future<Result<PassCode>> codeAt(Pass pass, DateTime instant) async {
     callCount++;
@@ -24,6 +27,7 @@ class FakePassCodeSource implements PassCodeSource {
         payload: 'TEST.$window',
         windowStartsAt: start,
         windowEndsAt: start.add(pass.rotation),
+        renewalPending: renewalPending,
       ),
     );
   }

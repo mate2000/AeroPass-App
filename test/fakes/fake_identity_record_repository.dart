@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:aeropass_app/core/result.dart';
 import 'package:aeropass_app/domain/entities/identity_record.dart';
 import 'package:aeropass_app/domain/repositories/identity_record_repository.dart';
@@ -12,6 +14,9 @@ class FakeIdentityRecordRepository implements IdentityRecordRepository {
   Result<IdentityRecord>? _response;
   int confirmCallCount = 0;
   IdentityRecord? lastSubmittedRecord;
+
+  /// 015: the photo handed to the last [confirm].
+  Uint8List? lastDocumentPhoto;
   Map<String, String> cachedSubset = {};
 
   /// Sets the value the next (and subsequent, until re-scripted) call to
@@ -21,9 +26,13 @@ class FakeIdentityRecordRepository implements IdentityRecordRepository {
   }
 
   @override
-  Future<Result<IdentityRecord>> confirm(IdentityRecord record) async {
+  Future<Result<IdentityRecord>> confirm(
+    IdentityRecord record, {
+    Uint8List? documentPhoto,
+  }) async {
     confirmCallCount++;
     lastSubmittedRecord = record;
+    lastDocumentPhoto = documentPhoto;
     final response =
         _response ?? Result.error(StateError('no confirm() response scripted'));
     if (response.isOk) {

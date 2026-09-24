@@ -70,11 +70,40 @@ Build-time values (backend URL, Sentry DSN and environment, dev-only flags) live
 `env/`, one per launch config. Flutter reads them with `--dart-define-from-file`:
 
 ```bash
-flutter run --dart-define-from-file=env/dev.env           # dev backend
+flutter run --dart-define-from-file=env/dev.env           # local backend (see below)
+flutter run --dart-define-from-file=env/staging.env       # deployed backend, synthetic images only
 flutter run --dart-define-from-file=env/dev-offline.env   # dev fakes, no backend needed
 flutter run --dart-define-from-file=env/demo.env          # dev fakes, `demo` Sentry environment
 flutter run --release --dart-define-from-file=env/prod.env
 ```
+
+**Three flavors** (specs/015-integracion-backend/contracts/flavor-wiring.md):
+
+| Flavor | Backend | Auth | Images sent |
+|---|---|---|---|
+| `dev` | a local backend in fake-adapter mode, `http://10.0.2.2:8000` | `Bearer test:<id>`, no Clerk | synthetic `MOCK:` markers only |
+| `staging` | the deployed service, `https://aeropass-lac.vercel.app` | Clerk sign-in | synthetic markers only; the camera runs, its frames are never sent |
+| `prod` | the deployed service | Clerk sign-in | real capture |
+
+`tool/check_release_env.dart env/prod.env` (run in CI) refuses test auth, plain HTTP, synthetic
+capture and any happy-path flag.
+
+**Running the local backend** for the dev flavor. In the backend repository (`AirPass/Aeropass`),
+start Postgres, then:
+
+```bash
+uv run alembic upgrade head
+AEROPASS_ADAPTERS=fake uv run uvicorn aeropass.main:app --host 0.0.0.0 --port 8000
+```
+
+The Android emulator reaches it at `10.0.2.2:8000`. In dev and staging, 006 shows a dev-only picker.
+It chooses which mock result the synthetic selfie asks for (approved, liveness failure, no match,
+no answer), so screens 009, 010 and 011 can be reached against a real backend.
+
+**The "DEMO · biometría simulada" ribbon.** The deployed biometric provider is a mock that approves
+any image (015 R-01). While `BIOMETRIC_PROVIDER_MOCK` is true, which is the default in every flavor,
+every screen carries the ribbon and nothing says the identity is verified or active. It can be
+turned off only with a real `BIOMETRIC_PROVIDER_NAME` in the same env file.
 
 Set `SENTRY_SEND_TEST_EVENT=true` in an env file to report one test error at startup. With no
 `SENTRY_DSN`, Sentry stays off. The files hold nothing secret, since the DSN is a public client key.
@@ -110,24 +139,25 @@ SENTRY_AUTH_TOKEN=<token> dart run sentry_dart_plugin
 
 The VS Code launch configs in `.vscode/launch.json` pass the matching file:
 
-- **`aeropass_app (dev)`** — debug mode, points at the (nonexistent) dev backend URL.
+- **`aeropass_app (dev, local backend)`** — debug mode, against a local backend.
+- **`aeropass_app (dev, offline demo)`** — debug mode with dev fakes, offline.
+- **`aeropass_app (staging)`** — debug mode, against the deployed service with synthetic images.
 - **`aeropass_app (demo)`** — debug mode with dev fakes, reported to Sentry as `demo`
   (presentation data, see `specs/015-observabilidad-sentry/quickstart.md` §6).
-- **`aeropass_app (prod)`** — release mode, points at the (nonexistent) prod backend URL.
+- **`aeropass_app (prod)`** — release mode, against the deployed service.
 
-Both currently fail to reach a real backend — see below.
+Staging and prod sign in through Clerk's embedded sign-in widget, which asks for whatever the
+Clerk instance requires. The sign-in screen comes
+after consent, and "Ya tengo cuenta" opens it too. Set `CLERK_PUBLISHABLE_KEY` in the env file.
+Only the publishable key (`pk_…`) goes there: a secret key (`sk_…`) must never be in the app. The
+session is held in memory until constitution amendment 1.5.0 (A3) allows storing it, so a restart
+means signing in again.
 
 ### Running without a backend
 
-There is no backend deployed anywhere yet. Most screens handle this gracefully (e.g. the welcome
-screen falls back to "last known state" when the credential check is unreachable), but the consent
-gate's text is intentionally never faked or cached on a failed fetch — that's a legal/audit
-requirement, not a bug (see `specs/002-consentimiento/spec.md`'s Edge Cases and
-`research.md` §5). To actually see the consent gate's content without a backend, use the
-**`aeropass_app (dev, offline demo)`** launch config (or `env/dev-offline.env`), which sets
-`USE_FAKE_CONSENT_BACKEND=true` and swaps in `lib/data/dev/dev_consent_repository.dart`
-— an explicitly-flagged, dev-only in-memory substitute. It does not weaken the real
-`ConsentRepositoryImpl`'s behavior in any build where the flag isn't set.
+The **`aeropass_app (dev, offline demo)`** launch config (`env/dev-offline.env`) wires every port to
+a dev fake under `lib/data/dev/`, so the whole flow can be walked with no backend. A release build
+refuses its flags.
 
 Document capture (003) additionally needs a physical device or emulator with a camera — it cannot be
 exercised in a pure widget-test environment for its camera-dependent paths.
@@ -182,7 +212,17 @@ actually runs against it.
 
 ## Known limitations
 
-- No backend exists — every network path is currently unreachable by design (see above).
+- **Release blockers carried by 015** (specs/015-integracion-backend/quickstart.md):
+  - the biometric provider is a mock that approves any image (R-01);
+  - retention has three figures and no deletion job, so screen 02's retention sentence cannot ship
+    (F-03);
+  - consent is recorded on the device only, so it is not auditable (DEC-02);
+  - withdrawal cannot delete what the server holds;
+  - constitution amendment 1.5.0 is not ratified;
+  - Sentry `sendDefaultPii` is still on;
+  - the Clerk instance configuration is unconfirmed.
+- The pass is online-only (DEC-01). In a terminal with poor connectivity, a failed renewal leaves
+  the passenger with the conventional lane.
 - Document capture's on-device quality heuristics (blur/glare/framing thresholds) are tuned against
   synthetic test fixtures only, not real document photographs — see
   `specs/003-escanear-documento`'s implementation notes before relying on its accuracy targets.

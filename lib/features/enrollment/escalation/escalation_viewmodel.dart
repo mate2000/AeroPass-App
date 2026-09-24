@@ -37,6 +37,10 @@ sealed class EscalationViewState with _$EscalationViewState {
 
   /// The case could not be opened.
   const factory EscalationViewState.unavailable() = EscalationViewUnavailable;
+
+  /// 015 FR-025: no agent can be reached from the app, because the backend
+  /// has no escalation endpoint. The conventional lane is the path.
+  const factory EscalationViewState.laneOnly() = EscalationViewLaneOnly;
 }
 
 /// Where the screen goes next, once.
@@ -55,7 +59,7 @@ enum EscalationNavigationTarget {
 /// `material.dart` import (Principle VIII).
 class EscalationViewModel extends ChangeNotifier {
   EscalationViewModel({
-    required EscalationRepository escalationRepository,
+    required EscalationRepository? escalationRepository,
     required CredentialIssuanceRepository issuanceRepository,
     required ActivatedCredentialHandoff handoff,
     required EnrollmentSessionController enrollmentSessionController,
@@ -75,7 +79,8 @@ class EscalationViewModel extends ChangeNotifier {
     unawaited(_start());
   }
 
-  final EscalationRepository _escalationRepository;
+  /// 015 FR-025: `null` in release, where there is no escalation backend.
+  final EscalationRepository? _escalationRepository;
   final CredentialIssuanceRepository _issuanceRepository;
   final ActivatedCredentialHandoff _handoff;
   final EnrollmentSessionController _enrollmentSessionController;
@@ -130,7 +135,12 @@ class EscalationViewModel extends ChangeNotifier {
   }
 
   Future<void> _open() async {
-    final result = await _escalationRepository.openOrResume(arrival: _arrival);
+    final escalations = _escalationRepository;
+    if (escalations == null) {
+      _setState(const EscalationViewState.laneOnly());
+      return;
+    }
+    final result = await escalations.openOrResume(arrival: _arrival);
     if (_disposed) return;
     if (result.isError) {
       _setState(const EscalationViewState.unavailable());
@@ -151,9 +161,10 @@ class EscalationViewModel extends ChangeNotifier {
   }
 
   Future<void> _poll() async {
-    if (_settled || _polling || _disposed) return;
+    final escalations = _escalationRepository;
+    if (escalations == null || _settled || _polling || _disposed) return;
     _polling = true;
-    final result = await _escalationRepository.getStatus();
+    final result = await escalations.getStatus();
     _polling = false;
     if (_settled || _disposed) return;
 

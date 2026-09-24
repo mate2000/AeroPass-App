@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): the consent text is bundled with the app and the record is kept on the device only (DEC-02), because the backend has no consent endpoint. Withdrawal cannot delete server data.
+
 **Input**: User description: "Screen 02 Consentimiento — the blocking gate between the welcome screen and any capture. Presents the three privacy points and a blocking checkbox; nothing may be captured or transmitted until consent is recorded."
 
 ## UI Reference

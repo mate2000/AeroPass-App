@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../core/happy_path_flags.dart';
 import '../../../core/design/step_indicator.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'liveness_capture_view_state.dart';
@@ -11,6 +12,7 @@ import 'widgets/liveness_failure_message.dart';
 import 'widgets/liveness_instruction_banner.dart';
 import 'widgets/liveness_oval_overlay.dart';
 import 'widgets/phase_indicator.dart';
+import 'widgets/synthetic_marker_picker.dart';
 
 /// Composition only (Constitution Principle VIII): no business logic, no
 /// repository/service call directly — everything here reads
@@ -114,6 +116,9 @@ class _LivenessCaptureViewState extends State<LivenessCaptureView>
                       const StepIndicator(
                         currentStep: EnrollmentProgressStep.selfie,
                       ),
+                      // 015 T044: dev and staging only, compiled out of prod.
+                      if (HappyPathFlags.syntheticCapture)
+                        const SyntheticMarkerPicker(),
                       Expanded(
                         child: _CaptureBody(viewModel: widget.viewModel),
                       ),

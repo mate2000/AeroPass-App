@@ -56,7 +56,9 @@ class EnrollmentSessionController extends ChangeNotifier {
   /// progress.
   void advanceTo(EnrollmentStep step) {
     final existing = _current;
-    if (existing == null) return;
+    // 015: no change, no notification. A resume from `/me` already sits at
+    // the selfie step, and 005's constructor re-affirms it during a build.
+    if (existing == null || existing.stepReached == step) return;
     _current = existing.copyWith(stepReached: step);
     notifyListeners();
   }

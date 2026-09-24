@@ -1,0 +1,8 @@
+{
+  "status": 415,
+  "retry_after": null,
+  "body": {
+    "codigo": "FORMATO_NO_ADMITIDO",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

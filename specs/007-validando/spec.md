@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): verification is synchronous (`POST /v1/biometrics/verifications`). The job is read from an in-memory broker, and `REQUIERE_REVISION_MANUAL` routes to 010.
+
 **Input**: User description: "Screen 07 Validando — the wait between the liveness capture and the
 activated credential. Shows a three-step checklist that completes progressively while the
 verification runs."

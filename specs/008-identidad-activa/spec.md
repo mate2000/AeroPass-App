@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): issuance reads `GET /v1/identity/me`. While the biometric provider is a mock, the screen says "Registro completado" and never "activa" (FR-020).
+
 **Input**: User description: "Screen 08 Identidad activa — the end of enrollment. Confirms the
 digital identity is active, presents the credential card, and routes the passenger onward to their
 trips."

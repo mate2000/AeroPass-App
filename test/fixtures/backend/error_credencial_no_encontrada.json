@@ -1,0 +1,8 @@
+{
+  "status": 404,
+  "retry_after": null,
+  "body": {
+    "codigo": "CREDENCIAL_NO_ENCONTRADA",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

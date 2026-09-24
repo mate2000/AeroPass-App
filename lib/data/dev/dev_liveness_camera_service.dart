@@ -53,4 +53,9 @@ class DevLivenessCameraService implements LivenessCameraService {
     if (_usingRealCamera) return _realCamera.sampleFrame();
     return Uint8List(1);
   }
+
+  /// The offline demo never submits a selfie, so its fake verification has
+  /// nothing to read.
+  @override
+  Future<Uint8List?> captureStill() async => null;
 }

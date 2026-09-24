@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 
+import '../../core/diagnostics.dart';
 import 'raw_luma_frame.dart';
 
 /// The pair of byte buffers one manual capture produces (data-model.md:
@@ -115,10 +116,20 @@ class CameraPluginCaptureService implements CameraCaptureService {
     _controller = null;
     _latestPreviewFrame = null;
     if (controller == null) return;
-    if (controller.value.isStreamingImages) {
-      await controller.stopImageStream();
+    // The Android plugin can throw while releasing a preview it had not
+    // finished setting up (see FrontCameraLivenessService._release). The
+    // camera is being given up either way.
+    try {
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+      }
+      await controller.dispose();
+    } on Object catch (error) {
+      const Diagnostics().warn('camera_release_failed', {
+        'code': error.runtimeType,
+        'camera': 'document',
+      });
     }
-    await controller.dispose();
   }
 
   @override

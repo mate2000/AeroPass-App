@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+> **Superseded in part by 015** (`specs/015-integracion-backend`): the backend reads nothing from the document, so the capture is accepted locally with empty fields, and the photo is registered in memory with `POST /v1/identity` (V-07).
+
 **Input**: User description: "Screen 03 Escanear documento — the first capture step. Full-screen dark camera with a framing guide, torch control, manual capture, and an inline error variant for unusable captures."
 
 ## UI Reference

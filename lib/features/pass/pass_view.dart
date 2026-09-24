@@ -176,6 +176,8 @@ class _PassViewState extends State<PassView> {
                     vertical: 12,
                   ),
                   child: JourneyStepper(
+                    // 015 FR-024: only the checkpoints the pass opens.
+                    steps: pass?.checkpoints ?? Checkpoint.values.toSet(),
                     validated: switch (state) {
                       PassShowing(:final pass) => pass.validated,
                       PassBoardedView() => Checkpoint.values.toSet(),
@@ -279,7 +281,11 @@ class _Showing extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          l10n.passRefreshesIn(countdown),
+          // 015 FR-012: a failed renewal keeps the still-valid code and says
+          // so, until its expiry removes it.
+          viewModel.renewalPending
+              ? l10n.passRenewing
+              : l10n.passRefreshesIn(countdown),
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: AppColors.textSecondary),
         ),
@@ -369,6 +375,14 @@ class _Unavailable extends StatelessWidget {
         null,
       ),
       PassUnavailableReason.offlineWithoutPass => (l10n.passOfflineTitle, null),
+      PassUnavailableReason.documentExpired => (
+        l10n.passDocumentExpiredTitle,
+        null,
+      ),
+      PassUnavailableReason.identityNotActive => (
+        l10n.passIdentityNotActiveTitle,
+        null,
+      ),
     };
     final (String label, VoidCallback onPressed) = switch (reason) {
       PassUnavailableReason.expired => (
@@ -381,9 +395,15 @@ class _Unavailable extends StatelessWidget {
         l10n.passBackToTrips,
         () => context.go(AppRoutes.trips),
       ),
-      PassUnavailableReason.compromisedDevice => (
+      PassUnavailableReason.compromisedDevice ||
+      PassUnavailableReason.documentExpired => (
         l10n.passTalkToAgent,
         () => context.push(AppRoutes.agentEscalation),
+      ),
+      // Launch re-reads `/me` and routes by the passenger's state.
+      PassUnavailableReason.identityNotActive => (
+        l10n.passRetry,
+        () => context.go(AppRoutes.splash),
       ),
       PassUnavailableReason.untrustedClock ||
       PassUnavailableReason.issuanceFailed ||

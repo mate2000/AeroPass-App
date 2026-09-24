@@ -230,10 +230,10 @@ void main() {
       );
       await _advance(tester, _poll * 3);
 
-      expect(find.text('Documento verificado'), findsOneWidget);
-      expect(find.text('Rostro verificado'), findsNothing);
+      expect(find.text('Documento recibido'), findsOneWidget);
+      expect(find.text('Rostro procesado'), findsNothing);
       expect(find.text('Comparando rostro'), findsOneWidget);
-      expect(h.announcements, contains('Documento verificado'));
+      expect(h.announcements, contains('Documento recibido'));
       expect(h.announcements, contains('Comparando rostro'));
     });
 

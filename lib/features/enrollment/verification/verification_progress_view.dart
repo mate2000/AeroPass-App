@@ -130,6 +130,7 @@ class _VerificationProgressViewState extends State<VerificationProgressView>
       VerificationNavigationTarget.documentCapture => AppRoutes.documentCapture,
       VerificationNavigationTarget.retryGuidance => AppRoutes.retryGuidance,
       VerificationNavigationTarget.technicalError => AppRoutes.technicalError,
+      VerificationNavigationTarget.agentEscalation => AppRoutes.agentEscalation,
     });
   }
 

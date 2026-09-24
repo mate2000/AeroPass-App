@@ -1,0 +1,8 @@
+{
+  "status": 409,
+  "retry_after": null,
+  "body": {
+    "codigo": "ESTADO_NO_PERMITE_VERIFICACION",
+    "mensaje": "MENSAJE_INTERNO_NO_MOSTRAR"
+  }
+}

@@ -41,4 +41,9 @@ abstract final class AppColors {
   /// passenger's (FR-001).
   static const slate = Color(0xFF475467);
   static const slateTile = Color(0xFFE4E8EE);
+
+  /// 015 FR-020: the permanent "DEMO · biometría simulada" ribbon. Amber on
+  /// dark text, so it reads as a caution, not as an error.
+  static const demoRibbonBackground = amber;
+  static const demoRibbonForeground = textPrimary;
 }

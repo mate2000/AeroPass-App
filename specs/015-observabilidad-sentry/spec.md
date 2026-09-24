@@ -29,6 +29,17 @@ La feature `011-error-tecnico` dejó una integración base de Sentry. Este spec 
 | La regla de alerta sobre `failure_class:service` no existe todavía (`SENTRY_ALERT_RULE_CONFIRMED=false`) | Mientras no exista, la pantalla de error técnico no puede decir "Nuestro equipo ya fue notificado" (011 FR-006). |
 | Session Replay activado (60% de sesiones, 100% con error), con textos, imágenes y cámara enmascarados | Se mantiene (decisión del usuario), pero el enmascarado pasa a verificarse en cada pantalla sensible antes de cada release (FR-004). |
 
+## Clarifications
+
+### Session 2026-09-23
+
+- Q: ¿Qué identificador conecta el inicio y el fin de un mismo registro para la conversión y el p90? → A: El `EnrollmentAttemptId` (anónimo, generado al confirmar el consentimiento y ya persistido), añadido a los eventos del embudo desde el consentimiento; se acepta que el backend pueda enlazarlo con un pasajero.
+- Q: ¿Los eventos del embudo se envían todos o solo una muestra? → A: Todos (100%), sin muestreo; solo se muestrean trazas, profiling y replay.
+- Q: ¿Qué entornos disparan alertas y alimentan el dashboard? → A: Todos los entornos, separados por la etiqueta de entorno en el dashboard; las alertas de métricas de negocio solo en prod, y las de crashes y errores operativos en todos.
+- Q: ¿En qué periodo y con qué mínimo se evalúan las alertas de conversión y p90? → A: Periodo de 1 hora, con un mínimo de 10 intentos de registro; con menos, no se alerta.
+- Q: ¿Después de cuánto tiempo sin Identidad Digital activa se considera abandonado un intento? → A: 15 minutos desde el primer escaneo de documento.
+- Nota del usuario: el proyecto se presenta en 15 minutos y en la presentación se deben inyectar fallos (diseño pendiente) → se agregan las Historias 7 (demostración) y 8 (inyección de fallos).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Cero datos personales en toda la observabilidad (Priority: P1)
@@ -75,9 +86,10 @@ Como responsable de producto, quiero ver qué porcentaje de los pasajeros que em
 
 **Acceptance Scenarios**:
 
-1. **Given** las sesiones de un periodo, **When** se calcula la métrica, **Then** es (sesiones con `credentialActivatedShown` ÷ sesiones con `captureStepEntered`) × 100.
-2. **Given** las sesiones que completaron, **When** se calcula la duración, **Then** es el p90 del tiempo entre `captureStepEntered` y `credentialActivatedShown` de la misma sesión.
-3. **Given** una sesión abandonada, **When** se consulta, **Then** se puede ver el último paso alcanzado, para saber dónde se concentra el abandono.
+1. **Given** los intentos de registro de un periodo, **When** se calcula la métrica, **Then** es (intentos con `credentialActivatedShown` ÷ intentos con `captureStepEntered`) × 100, agrupando por `EnrollmentAttemptId`.
+2. **Given** los intentos que completaron, **When** se calcula la duración, **Then** es el p90 del tiempo entre el primer `captureStepEntered` y `credentialActivatedShown` del mismo `EnrollmentAttemptId`.
+3. **Given** un intento abandonado, **When** se consulta, **Then** se puede ver el último paso alcanzado, para saber dónde se concentra el abandono.
+4. **Given** un pasajero cierra la app a mitad del registro y lo retoma en otro arranque, **When** completa, **Then** cuenta como un solo intento completado, no como un abandono más una finalización.
 
 ---
 
@@ -123,13 +135,51 @@ Como responsable de producto/soporte, quiero un dashboard en el proyecto `aeropa
 
 **Acceptance Scenarios**:
 
-1. **Given** el proyecto `aeropass-app`, **When** se abre el dashboard, **Then** muestra sin configuración adicional: sesiones y usuarios libres de crash por versión, tasa de conversión de onboarding y su p90, embudo por paso, tasas de auto rechazo (dispositivo, backend, liveness), rendimiento por pantalla crítica y tiempo hasta el pase.
-2. **Given** existe la regla de alerta sobre `failure_class:service`, **When** llega un evento con esa etiqueta, **Then** se envía un correo al equipo, y el entorno correspondiente puede declarar `SENTRY_ALERT_RULE_CONFIRMED=true`.
-3. **Given** la conversión baja de 90%, el p90 de registro supera 3 minutos, o hay un pico de crashes en una versión nueva, **When** se cruza el umbral, **Then** llega un correo que identifica la métrica y la versión, sin datos personales.
+1. **Given** el proyecto `aeropass-app`, **When** se abre el dashboard, **Then** muestra sin configuración adicional: sesiones y usuarios libres de crash por versión, tasa de conversión de onboarding y su p90, embudo por paso, tasas de auto rechazo (dispositivo, backend, liveness), rendimiento por pantalla crítica y tiempo hasta el pase, con cada widget separado o filtrable por entorno (dev, dev-offline, prod) para que los datos de prueba no se mezclen con los de prod.
+2. **Given** existe la regla de alerta sobre `failure_class:service`, **When** llega un evento con esa etiqueta desde cualquier entorno, **Then** se envía un correo al equipo que indica el entorno, y ese entorno puede declarar `SENTRY_ALERT_RULE_CONFIRMED=true`.
+3. **Given** en prod, en la última hora, hubo al menos 10 intentos de registro y la conversión baja de 90% o el p90 de registro supera 3 minutos, **When** se evalúa la regla, **Then** llega un correo que identifica la métrica, sin datos personales; el mismo umbral cruzado en dev no dispara correo.
+4. **Given** en prod hubo menos de 10 intentos de registro en la última hora, **When** se evalúa la regla, **Then** no se envía correo, aunque la tasa esté por debajo de 90%.
+5. **Given** hay un pico de crashes en una versión nueva en cualquier entorno, **When** se cruza el umbral, **Then** llega un correo que identifica la versión y el entorno.
 
 ---
 
-### User Story 7 - Métricas no priorizadas (Priority: N/A, diferida)
+### User Story 7 - Demostración de métricas en una presentación de 15 minutos (Priority: P1)
+
+Como equipo del proyecto, queremos mostrar en una presentación de 15 minutos las métricas de negocio y técnicas funcionando, sin depender de que los plazos de evaluación (1 hora de alerta, 15 minutos de abandono) se cumplan durante la presentación.
+
+**Why this priority**: La presentación es la entrega del proyecto. Varias métricas se evalúan en periodos más largos que la presentación, así que si no se preparan, se mostraría un dashboard vacío.
+
+**Independent Test**: Ejecutar el procedimiento de preparación en un entorno no productivo, y en un ensayo de 15 minutos confirmar que el dashboard ya muestra cifras y que llegan en vivo los correos de las alertas inmediatas.
+
+**Acceptance Scenarios**:
+
+1. **Given** el procedimiento de preparación se ejecutó al menos 1 hora antes, con registros completados, abandonados y rechazados, **When** se abre el dashboard en la presentación, **Then** muestra la conversión, el p90, las tasas de auto rechazo y la salud de la app con esos datos, filtrados por el entorno de demostración.
+2. **Given** la presentación en curso, **When** se provoca un crash o un evento `failure_class:service`, **Then** el evento aparece en Sentry y el correo de alerta llega en menos de 2 minutos.
+3. **Given** la presentación usa un entorno no productivo, **When** se muestran las alertas de negocio (que solo evalúan prod), **Then** se presentan con su configuración y con datos preparados, sin afirmar que dispararon en vivo.
+
+---
+
+### User Story 8 - Inyección controlada de fallos (Priority: diferida)
+
+**Diferida por decisión del usuario (2026-09-23)**: no se trabaja por ahora; el plan de este ciclo no la incluye. Se conserva la definición para retomarla. FR-019 a FR-021 y SC-010 quedan diferidos con ella.
+
+Como equipo del proyecto, queremos provocar a voluntad fallos concretos durante la presentación (y en pruebas) para mostrar que la observabilidad los detecta, los clasifica y alerta, sin tocar el código ni depender de que el fallo ocurra por azar.
+
+**Why this priority**: La presentación exige inyectar fallos. Sin un mecanismo controlado, mostrar la detección de fallos dependería de romper algo real en vivo.
+
+**Independent Test**: Activar cada fallo del catálogo en un entorno no productivo y comprobar que aparece en Sentry con su clasificación correcta y, cuando aplica, dispara su alerta.
+
+**Acceptance Scenarios**:
+
+1. **Given** un fallo del catálogo activado en un entorno no productivo, **When** el flujo pasa por el punto afectado, **Then** el fallo ocurre de forma reproducible y aparece en Sentry clasificado igual que lo estaría un fallo real del mismo tipo.
+2. **Given** un build de release, **When** se intenta activar cualquier fallo, **Then** no es posible: la app se niega a arrancar con la inyección activada, igual que con las banderas del modo happy-path (Principio III).
+3. **Given** un fallo inyectado, **When** se revisa el evento en Sentry, **Then** está marcado como inyectado, para poder excluirlo de los KR reales.
+
+**Catálogo inicial (a confirmar en el diseño)**: crash no controlado; fallo del servicio de verificación (`failure_class:service`); backend no disponible o con timeout (tasa de contingencia); rechazo de captura por el dispositivo y por el backend (auto rechazo); latencia añadida al cargar el pase (rendimiento). Qué fallos se inyectan desde la app y cuáles desde el backend se decide en el plan, junto con el spec de backend.
+
+---
+
+### User Story 9 - Métricas no priorizadas (Priority: N/A, diferida)
 
 - **Tiempo de escalamiento a agente humano (KR A2.3, ≤90 s p95)**: ya no está bloqueado del lado de la app. `010-escalar-agente` define `escalationOutcome` con `elapsedSeconds`, pero su medición (010 FR-017/FR-018) está diferida por el modo happy-path de esa feature, y el backend de escalamiento (`/v1/escalations`) no existe en el repo de backend. Cuando 010 lo implemente, llegará a Sentry por el mismo camino de la Historia 2 sin trabajo adicional aquí, y podrá sumarse al dashboard.
 - **Costo de fallover/contingencia**: es un cálculo financiero derivado (duración de la contingencia × costo), no un evento que la app emita.
@@ -151,6 +201,10 @@ Como responsable de producto/soporte, quiero un dashboard en el proyecto `aeropa
 - Dispositivo comprometido, fallo de pinning o backend no disponible: quedan como eventos propios, sin detalles que ayuden a evadir la protección.
 - Pantallas de credencial y pase con bloqueo de captura: no se generan capturas de pantalla.
 - Un evento de negocio con un campo no previsto en su contrato: no se envía ese campo.
+- Volumen bajo en prod (menos de 10 intentos en una hora): la alerta de conversión no se evalúa en ese periodo; con el mínimo de 10, dos abandonos seguidos ya pueden disparar un correo, que es el costo aceptado de detectar rápido.
+- Un registro en curso cuando termina la hora evaluada: no cuenta como abandono hasta cumplir 15 minutos desde su inicio.
+- *(Diferido, Historia 8)* Un fallo inyectado que coincide con un fallo real: el real se distingue por no llevar la marca de inyectado.
+- Pruebas en dev que abandonan registros a propósito: bajan la conversión de dev, pero no disparan la alerta de negocio, que solo mira prod.
 - Alguien cambia un umbral de alerta en la UI de Sentry: la UI es la fuente de verdad del valor vigente; este spec fija qué se alerta y su meta de referencia (los KR).
 
 ## Requirements *(mandatory)*
@@ -161,24 +215,29 @@ Como responsable de producto/soporte, quiero un dashboard en el proyecto `aeropa
 - **FR-002**: Ningún evento enviado a Sentry —crash, error, traza, breadcrumb, log, replay o evento de negocio— DEBE contener la IP del dispositivo, datos de usuario, imágenes de documento, frames de selfie o liveness, nombre, fecha de nacimiento, número de documento, token de credencial, payload de QR ni respuestas crudas del proveedor. Esto reemplaza el envío de datos personales por defecto que hoy aplica a toda la app.
 - **FR-003**: El filtro de datos personales DEBE ser único y central, aplicado a todos los eventos, no solo al de alerta operativa.
 - **FR-004**: Session Replay DEBE mantenerse activo en toda la app, con textos, imágenes y la vista de cámara enmascarados en todas las pantallas. El enmascarado DEBE verificarse en las pantallas de documento, selfie, liveness, confirmación, credencial y pase antes de cada release: ninguna grabación puede mostrar un dato prohibido por FR-002.
-- **FR-005**: La app DEBE enviar a Sentry cada evento del `AnalyticsEmitter`, con el mismo nombre, payload e identificador de sesión anónimo de su contrato, manteniendo también el log local.
+- **FR-005**: La app DEBE enviar a Sentry cada evento del `AnalyticsEmitter`, con el mismo nombre, payload e identificador de sesión anónimo de su contrato, manteniendo también el log local. Los eventos emitidos después de confirmar el consentimiento DEBEN llevar además el `EnrollmentAttemptId` del intento en curso; los anteriores (bienvenida, consentimiento no confirmado) no lo llevan.
 - **FR-006**: El envío de eventos de negocio NO DEBE añadir campos fuera del contrato de cada evento.
-- **FR-007**: La app DEBE permitir calcular la tasa de conversión/finalización de onboarding (`credentialActivatedShown` ÷ `captureStepEntered` por sesión) y su p90 de duración.
+- **FR-007**: La app DEBE permitir calcular la tasa de conversión/finalización de onboarding (`credentialActivatedShown` ÷ `captureStepEntered` por `EnrollmentAttemptId`) y su p90 de duración, contando un registro retomado en otro arranque como un solo intento. Un intento sin `credentialActivatedShown` 15 minutos después de su primer `captureStepEntered` cuenta como abandonado; la alerta horaria solo evalúa intentos que ya cumplieron ese plazo. Si un intento abandonado se completa después, el dashboard lo cuenta como completado.
 - **FR-008**: La app DEBE permitir calcular por separado la tasa de auto rechazo del dispositivo, la del backend y la de liveness (separando `attackDetected`).
 - **FR-009**: Las trazas de las pantallas críticas DEBEN identificarse por nombre de ruta sin parámetros que lleven datos personales, y DEBE existir una medición del tiempo desde el arranque hasta el pase utilizable.
-- **FR-010**: Las tasas de muestreo de trazas, profiling y replay DEBEN definirse en el plan con justificación de costo frente al KR A4.3; los errores y crashes se capturan al 100%.
+- **FR-010**: Las tasas de muestreo de trazas, profiling y replay DEBEN definirse en el plan con justificación de costo frente al KR A4.3. Los errores, los crashes y los eventos del embudo se envían al 100%, sin muestreo, para que las tasas y el p90 sean exactos y coincidan con los conteos del backend.
 - **FR-011**: Todo evento DEBE llevar entorno (flavor) y versión de build, sin identificadores que re-identifiquen al pasajero.
 - **FR-012**: La observabilidad NO DEBE bloquear ni retrasar ninguna pantalla u operación, incluso si Sentry no está disponible.
-- **FR-013**: DEBE existir en `aeropass-app` un dashboard con los widgets de la Historia 6.
-- **FR-014**: DEBEN existir reglas de alerta por correo para: eventos `failure_class:service`, conversión de onboarding <90%, p90 de registro >3 min, y pico de crashes en una versión nueva.
+- **FR-013**: DEBE existir en `aeropass-app` un dashboard con los widgets de la Historia 6, cada uno separado o filtrable por entorno.
+- **FR-014**: DEBEN existir reglas de alerta por correo para: conversión de onboarding <90% y p90 de registro >3 min, evaluadas solo sobre prod en periodos de 1 hora y solo cuando el periodo tiene al menos 10 intentos de registro; y eventos `failure_class:service` y pico de crashes en una versión nueva, evaluadas en todos los entornos e indicando el entorno en el correo.
 - **FR-015**: Una vez creada la regla sobre `failure_class:service`, el archivo de entorno correspondiente DEBE declarar `SENTRY_ALERT_RULE_CONFIRMED=true`, y solo entonces.
 - **FR-016**: El dashboard y las alertas se configuran manualmente en la UI de Sentry en este ciclo, y el plan DEBE documentar cada widget y regla (consulta, umbral, destinatario) para poder recrearlos.
 - **FR-017**: Los símbolos de depuración de cada build de release (Android e iOS) DEBEN subirse a Sentry para que los crashes muestren función y línea.
+- **FR-018**: DEBE existir un procedimiento documentado para preparar los datos de la demostración en un entorno no productivo (registros completados, abandonados y rechazados) con al menos 1 hora de anticipación, de forma que el dashboard tenga cifras al empezar la presentación.
+- **FR-019** *(diferido, Historia 8)*: DEBE existir un mecanismo para inyectar, a voluntad y de forma reproducible, cada fallo del catálogo de la Historia 8, sin cambiar código entre una inyección y otra.
+- **FR-020** *(diferido, Historia 8)*: La inyección de fallos NO DEBE poder activarse en un build de release: la app se niega a arrancar si está activada, igual que con las banderas del modo happy-path (Principio III).
+- **FR-021** *(diferido, Historia 8)*: Cada evento producido por un fallo inyectado DEBE estar marcado como inyectado en Sentry, y los widgets y alertas de KR DEBEN poder excluirlo.
 
 ### Key Entities
 
 - **Evento de error**: crash o excepción con pila de llamadas, pantalla, entorno, versión e id de sesión anónimo.
-- **Evento de negocio**: un evento del `AnalyticsEmitter` enviado a Sentry, con el nombre y payload de su contrato.
+- **Evento de negocio**: un evento del `AnalyticsEmitter` enviado a Sentry, con el nombre y payload de su contrato, el id de sesión por arranque y, desde el consentimiento, el `EnrollmentAttemptId`.
+- **Intento de registro**: la unidad de la conversión de onboarding, identificada por el `EnrollmentAttemptId`; sobrevive a reinicios de la app.
 - **Traza de rendimiento**: pantalla o transición medida, con duración, entorno y versión.
 - **Regla de alerta**: umbral sobre una métrica, con correo como canal y un destinatario.
 
@@ -194,6 +253,8 @@ Como responsable de producto/soporte, quiero un dashboard en el proyecto `aeropa
 - **SC-006**: Cuando una métrica cruza su umbral, el responsable recibe un correo sin estar mirando el dashboard.
 - **SC-007**: La pantalla de error técnico muestra "Nuestro equipo ya fue notificado" en los entornos donde la regla existe, y solo en esos.
 - **SC-008**: Ninguna operación del pasajero falla o se retrasa de forma perceptible por la observabilidad.
+- **SC-009**: En un ensayo de la presentación (15 minutos), el dashboard muestra cifras desde el primer minuto y cada error provocado en vivo (crash o `failure_class:service`) aparece en Sentry con su correo de alerta en menos de 2 minutos.
+- **SC-010** *(diferido, Historia 8)*: Ningún build de release puede arrancar con la inyección de fallos activada.
 
 ## Assumptions
 
@@ -201,7 +262,12 @@ Como responsable de producto/soporte, quiero un dashboard en el proyecto `aeropa
 - Métricas priorizadas por el usuario: de negocio, conversión de onboarding (esta app), auto rechazo (ambas apps) y autoservicio (backend); técnicas, disponibilidad (backend), latencia (backend, con el complemento de cliente de la Historia 5) y tasa de contingencia (backend, con los eventos de circuito/pinning de esta app).
 - Enviar los eventos del embudo a Sentry no amplía lo que se recoge: son los mismos eventos, ya diseñados sin datos personales. El plan debe elegir la forma de envío (eventos, logs o métricas de Sentry) según lo que permita graficar tasas y p90 en el dashboard.
 - El destinatario de cada correo lo define el usuario al crear la regla.
+- El tracing distribuido entre app y backend (una sola traza por operación) queda diferido hasta que los endpoints que usa la app existan en el backend (decisión del 2026-09-23 en el spec de backend).
+- La presentación del proyecto dura 15 minutos y usa un entorno no productivo; por eso las alertas de negocio (solo prod, ventana de 1 hora) se muestran con datos preparados, y en vivo se muestran las alertas inmediatas (crash, `failure_class:service`).
+- La inyección de fallos queda diferida por decisión del usuario (2026-09-23); cuando se retome, su catálogo y el reparto entre app y backend se definen junto con el spec de observabilidad del backend.
+- Enviar el 100% de los eventos del embudo tiene un costo en la cuota de Sentry que crece con el volumen de registros; el plan debe estimarlo para el objetivo de volumen del caso de negocio y elegir la forma de envío más económica que siga permitiendo tasas y p90 exactos.
 - La corrección del envío de datos personales por defecto sigue a la constitución (Principio VII, Governance), aunque antes se haya pedido mantenerlo activado.
+- El `EnrollmentAttemptId` en los eventos de Sentry no identifica a nadie por sí solo, pero el backend lo conoce: quien tenga acceso a ambos podría enlazar eventos con un pasajero. El usuario aceptó ese riesgo (2026-09-23) porque es la única forma de medir bien los registros retomados; el acceso a la organización de Sentry debe limitarse al equipo.
 - Session Replay se mantiene en toda la app por decisión del usuario (2026-09-23), apoyado en el enmascarado; el riesgo residual es que una pantalla nueva o un widget que el enmascarado no cubra quede grabado, y por eso FR-004 exige verificarlo antes de cada release.
 - Este spec no cambia el comportamiento de ninguna pantalla.
 

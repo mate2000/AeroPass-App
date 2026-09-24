@@ -88,11 +88,15 @@ lib/
 │   ├── analytics_sink.dart                     # NUEVO: puerto AnalyticsSink + DeveloperLogAnalyticsSink
 │   ├── sentry_log_analytics_sink.dart          # NUEVO: logs del embudo + métrica enrollment.duration
 │   ├── current_enrollment_attempt.dart         # NUEVO: intento vigente en memoria
+│   ├── attempt_tracking_consent_repository.dart # NUEVO: decorador que actualiza el intento vigente
+│   ├── enrollment_duration_tracker.dart        # NUEVO: inicio en memoria + métrica enrollment.duration
+│   ├── full_display_reporter.dart              # NUEVO: puerto TTFD inyectable (sin Sentry en las vistas)
 │   ├── sentry_privacy_filter.dart              # NUEVO: filtro central (reemplaza stripAlertEventPii)
 │   └── sentry_operational_alert_reporter.dart  # sin cambios de comportamiento
 └── features/
     ├── pass/widgets/qr_code_painter.dart       # referencia para la máscara de Replay (sin cambios)
-    └── pass/…                                  # MODIFICA: reportFullyDisplayed cuando el QR está dibujado
+    ├── pass/pass_view.dart                     # MODIFICA: FullDisplayReporter cuando el QR está dibujado
+    └── enrollment/…                            # MODIFICA: FullDisplayReporter en las pantallas críticas
 
 env/
 ├── dev.env, dev-offline.env, prod.env          # MODIFICA: variables de muestreo
@@ -103,6 +107,7 @@ test/
 │   ├── sentry_privacy_filter_test.dart         # NUEVO (primero)
 │   ├── sentry_log_analytics_sink_test.dart     # NUEVO
 │   ├── current_enrollment_attempt_test.dart    # NUEVO
+│   ├── enrollment_duration_tracker_test.dart   # NUEVO
 │   └── sentry_before_send_test.dart            # MODIFICA: pasa a probar el filtro general
 └── contract/
     └── telemetry_allowlist_contract_test.dart  # NUEVO: lista blanca = claves del emisor

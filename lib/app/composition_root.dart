@@ -62,6 +62,7 @@ import '../data/services/passenger_backed_credential_repository.dart';
 import '../data/services/passenger_issuance_repository.dart';
 import '../data/services/passenger_service.dart';
 import '../data/services/diagnostics_interceptor.dart';
+import '../data/services/fault_injection_interceptor.dart';
 import '../data/services/pinned_dio_factory.dart';
 import '../data/services/platform_pass_display.dart';
 import '../data/services/screen_capture_guard.dart';
@@ -176,6 +177,16 @@ class CompositionRoot extends StatelessWidget {
             gate: sessionGate!,
           )
         : const UnavailableSessionTokenProvider();
+    // Chaos builds only: first, so an injected failure passes through the
+    // auth and diagnostics interceptors exactly as a real one would.
+    if (HappyPathFlags.chaosTools) {
+      dio.interceptors.add(
+        FaultInjectionInterceptor(
+          protectionBypassToken: HappyPathFlags.vercelProtectionBypass,
+          faultKey: HappyPathFlags.faultInjectionKey,
+        ),
+      );
+    }
     dio.interceptors
       ..add(AuthInterceptor(tokens: sessionTokenProvider, dio: dio))
       // After the auth interceptor, so each attempt, retry included, is
@@ -261,7 +272,10 @@ class CompositionRoot extends StatelessWidget {
         Provider<Clock>.value(value: clock),
         Provider<AnalyticsSessionId>.value(value: sessionId),
         Provider<SessionTokenProvider>.value(value: sessionTokenProvider),
-        Provider<ClerkAuthState?>.value(value: clerk),
+        // A ChangeNotifier: provider's debug check refuses a plain Provider
+        // for it. Everything reads it with `read`, so nothing rebuilds on
+        // Clerk's notifications.
+        ListenableProvider<ClerkAuthState?>.value(value: clerk),
         ChangeNotifierProvider<SessionGate?>.value(value: sessionGate),
         Provider<ConsentRepository>.value(value: consentRepository),
         Provider<AnalyticsEmitter>.value(value: analyticsEmitter),
@@ -318,7 +332,8 @@ class CompositionRoot extends StatelessWidget {
         Provider<IdentityRecordRepository>.value(value: ports.identityRecord),
         Provider<LivenessVerificationRepository>.value(value: ports.liveness),
         Provider<LivenessCameraService>.value(value: ports.livenessCamera),
-        Provider<VerificationSubmission?>.value(
+        // A ChangeNotifier, read with `read` only (like ClerkAuthState).
+        ListenableProvider<VerificationSubmission?>.value(
           value: ports.verificationSubmission,
         ),
         Provider<CredentialIssuanceRepository>.value(value: ports.issuance),

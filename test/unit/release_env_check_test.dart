@@ -40,6 +40,21 @@ SENTRY_ENVIRONMENT=prod
     ]);
   });
 
+  test('chaos tools and the Preview bypass secret fail the release check', () {
+    const env =
+        '''
+$_base
+CHAOS_TOOLS=true
+VERCEL_PROTECTION_BYPASS=secret
+FAULT_INJECTION_KEY=key
+''';
+    expect(releaseEnvViolations(env), [
+      'CHAOS_TOOLS=true',
+      'VERCEL_PROTECTION_BYPASS=secret',
+      'FAULT_INJECTION_KEY=key',
+    ]);
+  });
+
   test('env/prod.env has no development flags', () {
     final contents = File('env/prod.env').readAsStringSync();
     expect(releaseEnvViolations(contents), isEmpty);

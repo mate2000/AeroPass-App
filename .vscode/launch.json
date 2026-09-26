@@ -38,6 +38,15 @@
             ]
         },
         {
+            "name": "aeropass_app (chaos, fault injection)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define-from-file=env/chaos.env"
+            ]
+        },
+        {
             "name": "aeropass_app (prod)",
             "request": "launch",
             "type": "dart",

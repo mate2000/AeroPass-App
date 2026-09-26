@@ -70,6 +70,11 @@ final class SentryPrivacyFilter {
 
   static const String eventAttribute = 'aeropass.event';
 
+  /// Operational diagnostics (`Diagnostics`, contracts/telemetry-events.md
+  /// §4): codes, states, paths, sizes and durations, redacted before they
+  /// are sent, and never a personal datum by construction.
+  static const String diagnosticsAttributePrefix = 'aeropass.diag.';
+
   /// Attributes the SDK adds itself that identify no one: environment,
   /// release, SDK, OS and device model. `user.*` is never kept.
   static const Set<String> _sdkAttributePrefixes = {
@@ -80,6 +85,8 @@ final class SentryPrivacyFilter {
   };
 
   static const Set<String> _passThroughBreadcrumbCategories = {
+    // `Diagnostics` breadcrumbs carry the same redacted data as its logs.
+    'diagnostics',
     'app.lifecycle',
     'ui.lifecycle',
     'device.connectivity',
@@ -150,6 +157,7 @@ final class SentryPrivacyFilter {
   bool _isAllowedLogAttribute(String key) =>
       logEnvelopeAttributes.contains(key) ||
       logPayloadAttributes.contains(key) ||
+      key.startsWith(diagnosticsAttributePrefix) ||
       _isSdkAttribute(key);
 
   bool _isSdkAttribute(String key) => _sdkAttributePrefixes.any(key.startsWith);

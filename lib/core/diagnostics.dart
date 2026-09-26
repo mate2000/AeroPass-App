@@ -3,6 +3,9 @@ import 'dart:async' show unawaited;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../data/services/sentry_privacy_filter.dart';
+import 'fault_injection.dart';
+
 /// Operational diagnostics that can be read in production: Sentry Logs (and
 /// a Sentry breadcrumb, so the trail rides along with any later event), plus
 /// the device log (`adb logcat -s flutter`). With no Sentry DSN only the
@@ -58,16 +61,27 @@ class Diagnostics {
           // A number (a size, a duration, a status) is never personal data,
           // and masking its digits would hide it.
           key: value is num ? '$value' : redactDiagnostic('$value'),
+      // A chaos build marks everything logged while a fault is active, so an
+      // injected failure is never mistaken for a real incident (§6).
+      if (FaultInjection.instance.active) ...{
+        'fault_injected': 'true',
+        'fault': FaultInjection.instance.label,
+      },
     };
     debugPrint(
       '[aeropass] ${logLevel.name} $event '
       '${clean.entries.map((e) => '${e.key}=${e.value}').join(' ')}',
     );
     if (Sentry.isEnabled) {
+      // Shaped for SentryPrivacyFilter.beforeSendLog: `aeropass.event` equal
+      // to the body, and the attributes under the `aeropass.diag.*`
+      // namespace, which contracts/telemetry-events.md §4 allows. The values
+      // were already redacted above.
       final attrs = {
-        'event': SentryAttribute.string(event),
+        SentryPrivacyFilter.eventAttribute: SentryAttribute.string(event),
         for (final MapEntry(:key, :value) in clean.entries)
-          key: SentryAttribute.string(value),
+          '${SentryPrivacyFilter.diagnosticsAttributePrefix}$key':
+              SentryAttribute.string(value),
       };
       unawaited(
         Future.sync(

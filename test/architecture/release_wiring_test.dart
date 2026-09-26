@@ -72,9 +72,12 @@ void main() {
         offenders.add(file.path);
       }
     }
-    // dev-offline.env still names a host, but it uses only fakes and a
-    // release build refuses its flags.
-    offenders.removeWhere((p) => p.endsWith('dev-offline.env'));
+    // dev-offline.env, and demo.env (copied from it for the observability
+    // presentation), still name a host, but they use only fakes and a
+    // release build refuses their flags.
+    offenders.removeWhere(
+      (p) => p.endsWith('dev-offline.env') || p.endsWith('demo.env'),
+    );
     expect(offenders, isEmpty);
   });
 

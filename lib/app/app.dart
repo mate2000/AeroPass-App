@@ -12,6 +12,7 @@ import '../core/design/app_colors.dart';
 import '../core/diagnostics.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../core/happy_path_flags.dart';
+import 'chaos_panel.dart';
 import 'demo_ribbon.dart';
 import 'router.dart';
 import 'session_gate.dart';
@@ -97,6 +98,8 @@ class _AeroPassAppState extends State<AeroPassApp> {
             child: ClerkErrorListener(handler: showClerkError, child: page),
           );
         }
+        // Fault injection, chaos builds only (telemetry-events.md §6).
+        if (HappyPathFlags.chaosTools) page = ChaosPanel(child: page);
         return HappyPathFlags.biometricProviderMock
             ? DemoRibbon(child: page)
             : page;

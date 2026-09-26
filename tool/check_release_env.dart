@@ -13,10 +13,16 @@ const releaseForbiddenBooleans = [
   // 015 contracts/flavor-wiring.md.
   'ALLOW_INSECURE_LOCAL_BACKEND',
   'SYNTHETIC_CAPTURE',
+  // Fault injection (015 observability, telemetry-events.md §6).
+  'CHAOS_TOOLS',
 ];
 
 /// Keys that must not be set to any value in a release env file.
-const releaseForbiddenKeys = ['DEV_VERIFICATION_FAILURE'];
+const releaseForbiddenKeys = [
+  'DEV_VERIFICATION_FAILURE',
+  'VERCEL_PROTECTION_BYPASS',
+  'FAULT_INJECTION_KEY',
+];
 
 /// Returns the violations found in [envContents]; empty means release-safe.
 List<String> releaseEnvViolations(String envContents) {

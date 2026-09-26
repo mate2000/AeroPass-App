@@ -66,3 +66,22 @@ Sin cambios de forma. El evento `verification_service_failure` con las etiquetas
 - **Sin DSN**: no se envía nada a Sentry; los logs siguen en el log local (Historia 2, escenario 2).
 - **Sin red**: el SDK encola y envía al recuperar la conexión; ninguna llamada del emisor espera la red (FR-012).
 - **Orden y duplicados**: no se garantiza orden entre logs; las métricas de negocio no dependen del orden, solo de `count_unique` y de la distribución.
+
+## 5. Diagnósticos operativos (`Diagnostics`)
+
+Logs de diagnóstico del flujo técnico (spec 015-integracion-backend): cada llamada al backend, cada paso de la navegación de arranque, cada intento de selfie con su causa, la sesión de Clerk, el ciclo de vida de la app y los fallos inyectados (§6). Sirven para diagnosticar en producción lo que el embudo no muestra.
+
+- **Forma**: nivel `info`, `warn` o `error`; mensaje = nombre del evento (`backend_http`, `selfie_verification`, `redirect_step`, `session_gate`, `fault_injected`, …); `aeropass.event` igual al mensaje.
+- **Atributos**: todos bajo el prefijo **`aeropass.diag.`** (por ejemplo `aeropass.diag.path`, `aeropass.diag.status`, `aeropass.diag.code`, `aeropass.diag.ms`). El filtro admite el prefijo completo.
+- **Qué contienen**: solo códigos y estados (enums del backend y de la app), métodos y rutas HTTP sin query, códigos de estado, tamaños en bytes y duraciones en ms.
+- **Doble defensa**: `Diagnostics` redacta cada valor de texto antes de enviarlo (correos, JWT, `Bearer …` y secuencias de 6 o más dígitos) y corta los valores largos. Los números (tamaños, duraciones, estados) se envían tal cual.
+- **Migas**: los mismos datos, redactados, como migas de categoría `diagnostics`.
+- **Prohibido siempre**: lo mismo que §1 (nombre, número de documento, correo, códigos tecleados, tokens, cabeceras, cuerpos de petición o respuesta, imágenes). Un atributo nuevo en `aeropass.diag.*` se revisa en el PR contra esa lista.
+
+## 6. Inyección de fallos (builds `chaos`)
+
+Solo en builds con `CHAOS_TOOLS=true` (un release se niega a arrancar con esa bandera y `tool/check_release_env.dart` la rechaza).
+
+- **`fault_injected`** (`warn`): un fallo inyectado en una petición. Atributos: `aeropass.diag.fault` (nombre del fallo: `latency`, `timeout`, `connectionLost`, `http500`, `http503Storage`, `http504`, `http401`, `http429`, o el fallo pedido al backend), `aeropass.diag.path`, `aeropass.diag.method`.
+- **Fallos pedidos al backend**: header `X-AeroPass-Fault` (spec 003 del backend), más `X-AeroPass-Fault-Key` si el Preview tiene `FAULT_INJECTION_SECRET` (la app lo lee de `FAULT_INJECTION_KEY`). El backend responde `X-AeroPass-Fault-Applied` con los fallos que se dispararon.
+- **Mientras haya un fallo activo**, todo log de `Diagnostics` lleva además `aeropass.diag.fault_injected = true` y `aeropass.diag.fault`, y los eventos de Sentry llevan la etiqueta `fault_injected`, para separar en los tableros lo inyectado de un incidente real.

@@ -116,15 +116,9 @@ void main() {
     );
 
     test('every event loses its request and the token in its breadcrumbs', () {
-      final event = SentryConfig.privacyFilter.beforeSend(
-        eventWith(),
-        Hint(),
-      )!;
+      final event = SentryConfig.privacyFilter.beforeSend(eventWith(), Hint())!;
       expect(event.request, isNull);
-      expect(event.breadcrumbs!.map((b) => b.category), [
-        'http',
-        'navigation',
-      ]);
+      expect(event.breadcrumbs!.map((b) => b.category), ['http', 'navigation']);
       expect(event.toJson().toString(), isNot(contains(_token)));
     });
 

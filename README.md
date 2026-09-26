@@ -74,8 +74,15 @@ flutter run --dart-define-from-file=env/dev.env           # local backend (see b
 flutter run --dart-define-from-file=env/staging.env       # deployed backend, synthetic images only
 flutter run --dart-define-from-file=env/dev-offline.env   # dev fakes, no backend needed
 flutter run --dart-define-from-file=env/demo.env          # dev fakes, `demo` Sentry environment
+flutter run --dart-define-from-file=env/chaos.env         # fault injection panel, `chaos` Sentry environment
 flutter run --release --dart-define-from-file=env/prod.env
 ```
+
+**Fault injection** (`env/chaos.env`): a ⚡ button on every screen injects network faults into
+real requests (latency, timeout, lost connection, 500/503/504/401/429), requests backend faults,
+and forces crashes, so the Sentry dashboards and alerts can be seen reacting. Injected failures
+are tagged `fault_injected`. How to run the experiments: `specs/015-observabilidad-sentry/fault-injection.md`.
+A release build refuses to start with it.
 
 **Three flavors** (specs/015-integracion-backend/contracts/flavor-wiring.md):
 

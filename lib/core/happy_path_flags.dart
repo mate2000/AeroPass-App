@@ -60,6 +60,24 @@ abstract final class HappyPathFlags {
     'SYNTHETIC_CAPTURE',
   );
 
+  /// Fault injection (contracts/telemetry-events.md §6): shows the chaos
+  /// panel, which injects network and backend faults into real requests so
+  /// the observability can be seen reacting. `env/chaos.env` only.
+  static const bool chaosTools = bool.fromEnvironment('CHAOS_TOOLS');
+
+  /// Vercel's Deployment Protection bypass secret, so a chaos build can
+  /// reach a protected Preview deployment. Chaos builds only.
+  static const String vercelProtectionBypass = String.fromEnvironment(
+    'VERCEL_PROTECTION_BYPASS',
+  );
+
+  /// The backend Preview's `FAULT_INJECTION_SECRET` (backend spec 003), sent
+  /// as `X-AeroPass-Fault-Key` with each requested backend fault. Chaos
+  /// builds only.
+  static const String faultInjectionKey = String.fromEnvironment(
+    'FAULT_INJECTION_KEY',
+  );
+
   static const String _authModeName = String.fromEnvironment(
     'AUTH_MODE',
     defaultValue: 'clerk',
@@ -95,6 +113,9 @@ abstract final class HappyPathFlags {
           if (devPassControls) 'DEV_PASS_CONTROLS',
           if (allowInsecureLocalBackend) 'ALLOW_INSECURE_LOCAL_BACKEND',
           if (syntheticCapture) 'SYNTHETIC_CAPTURE',
+          if (chaosTools) 'CHAOS_TOOLS',
+          if (vercelProtectionBypass != '') 'VERCEL_PROTECTION_BYPASS',
+          if (faultInjectionKey != '') 'FAULT_INJECTION_KEY',
           if (authMode == AuthMode.test) 'AUTH_MODE=test',
         ];
     if (enabled.isEmpty) return;
